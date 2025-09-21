@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Sangeh Monkey Forest",
+        "description": "Sangeh Monkey Forest is a hidden gem in Bali, home to a lush nutmeg forest and a sacred temple guarded by a troop of playful long-tailed macaques. The towering trees create a mystical atmosphere, making it a peaceful escape from the busy tourist spots.\n\nVisitors can stroll through the serene pathways, interact with the monkeys under the guidance of local caretakers, and learn about the site's cultural significance. It's a perfect spot for nature lovers and those seeking an authentic Balinese experience.",
+        "image": "sangeh-monkey-forest.webp",
+        "credit": "Jeff Bezos"
+    },
+    {
+        "name": "Uluwatu Temple",
+        "description": "Perched on a dramatic cliff 70 meters above the Indian Ocean, Uluwatu Temple is one of Bali's most spectacular sea temples. The temple's stunning location makes it a prime spot to witness breathtaking sunsets while listening to the rhythmic waves crashing below.\n\nAs evening falls, visitors can watch the famous Kecak fire dance performance, which takes place against the backdrop of the setting sun.",
+        "image": "uluwatu-temple.webp",
+        "credit": "Jeff Bezos"
+    },
+    {
+        "name": "Tegallalang Rice Terraces",
+        "description": "The Tegallalang Rice Terraces offer a stunning showcase of Bali's traditional subak irrigation system. The lush green paddies cascade down the hillsides, creating a breathtaking landscape that changes with the seasons.\n\nVisitors can explore the terraces by walking along the narrow paths, enjoy a swing ride with a panoramic view, or sip on a fresh coconut at a nearby café. Whether at sunrise or sunset, this location provides a perfect escape into Bali's rural charm.",
+        "image": "tegallalang-rice-terraces.webp",
+        "credit": "Jeff Bezos"
+    },
+    {
+        "name": "Nusa Penida",
+        "description": "Nusa Penida is an untouched paradise just a short boat ride from Bali, boasting dramatic cliffs, crystal-clear waters, and pristine beaches. The island is home to iconic spots like Kelingking Beach, Angel's Billabong, and Broken Beach, each offering breathtaking views.\n\nAdventure seekers can snorkel with manta rays, trek to hidden viewpoints, or relax on secluded white-sand beaches. With its rugged beauty and remote charm, Nusa Penida is a dream destination for those looking to experience Bali's wilder side.",
+        "image": "nusa-penida.webp",
+        "credit": "Jeff Bezos"
+    },
+    {
+        "name": "Tanah Lot Temple",
+        "description": "Tanah Lot is one of Bali's most iconic sea temples, set on a rocky outcrop surrounded by crashing waves. This sacred site is a stunning example of Balinese architecture and spiritual devotion, drawing visitors from all over the world.\n\nAt sunset, the temple transforms into a magical silhouette against the glowing sky, creating an unforgettable scene. Whether admiring the view, exploring the nearby markets, or receiving a traditional blessing, Tanah Lot offers a unique glimpse into Bali's cultural and natural beauty.",
+        "image": "tanah-lot-temple.webp",
+        "credit": "Jeff Bezos"
+    }
+]

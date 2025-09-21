@@ -1,0 +1,52 @@
+[
+    {
+        "name": "Villa Imbuh",
+        "url": "https://www.airbnb.com/rooms/1388033269552093966",
+        "description": "Villa Imbuh is a private two-bedroom retreat located just five minutes from Canggu’s vibrant cafés and ten minutes from the renowned Batu Bolong Beach. Blending modern design with a peaceful residential setting, the villa offers refined amenities and a touch of French elegance in the heart of Bali.",
+        "image": "villa-imbuh.webp",
+        "size": 150,
+        "bed_size": "2 Queen beds",
+        "view": "Ricefield",
+        "occupancy": 4
+    },
+    {
+        "name": "Villa Marie",
+        "url": "https://www.airbnb.com/rooms/1388033269552093966",
+        "description": "Villa Marie is a private 2 bedroom retreat 5 minutes from Canggu cafes and 10 minutes from the iconic Batu Bolong beaches. Combining contemporary design, residential tranquility and upscale amenities, it embodies the elegance of French hospitality in the heart of Bali.",
+        "image": "villa-marie.webp",
+        "size": 150,
+        "bed_size": "2 Queen beds",
+        "view": "Ricefield",
+        "occupancy": 4
+    },
+    {
+        "name": "Villa Léa",
+        "url": "https://airbnb.com/rooms/1122009130202952180",
+        "description": "Villa Lea offers a fully private and exclusive retreat with two bedrooms, featuring a modern design and enclosed living area, along with a private pool. Guests can enjoy unlimited high-speed internet access, private bathrooms, and convenient parking facilities.",
+        "image": "villa-lea.webp",
+        "size": 150,
+        "bed_size": "2 Queen beds",
+        "view": "Ricefield",
+        "occupancy": 4
+    },
+    {
+        "name": "Villa Bunga Lily",
+        "url": "https://www.airbnb.com/rooms/879944635014327622",
+        "description": "Indulge in the ultimate Bali getaway at Villa Bunga Lily, a sumptuous & brand-new private villa with modern design throughout. Relax in one of 3 air-conditioned bedrooms, each with its ensuite bathroom.",
+        "image": "villa-bunga-lily.webp",
+        "size": 150,
+        "bed_size": "3 Queen beds",
+        "view": "Ricefield",
+        "occupancy": 6
+    },
+    {
+        "name": "Villa Saraswati Lovina",
+        "url": "https://www.booking.com/hotel/id/villa-saraswati-lovina.html",
+        "description": "Villa Saraswati Lovina in Lovina offers two bedrooms and two bathrooms. The property features a garden, terrace, and outdoor swimming pool. Free WiFi is available throughout.",
+        "image": "villa-saraswati-lovina.webp",
+        "size": 150,
+        "bed_size": "2 Queen beds",
+        "view": "Garden",
+        "occupancy": 4
+    }
+]
