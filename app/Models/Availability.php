@@ -14,11 +14,19 @@ class Availability extends Model
     protected $fillable = [
         'unit_id',
         'date',
+        'qty',
         'is_open',
+        'rate_id',
+        'price',
     ];
 
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function rate(): BelongsTo
+    {
+        return $this->belongsTo(Rate::class);
     }
 }

@@ -115,6 +115,24 @@ class AvailabilityController extends Controller
         $seenReservationIds = [];
 
         // 🧹 prefetch availabilities into keyed collection
+        $baseAvailabilities = $topUnit
+            ? Availability::where('unit_id', $topUnit->id)
+                ->whereBetween('date', [$fromDate, $toDate])
+                ->whereNull('rate_id') // 🔹 [CHANGED] ensure only base rows
+                ->get(['date', 'is_open', 'qty'])
+                ->keyBy('date')
+            : collect();
+
+        // prefetch rate availabilities (per-date, per-rate)
+        $rateAvailabilities = $topUnit
+            ? Availability::where('unit_id', $topUnit->id)
+                ->whereBetween('date', [$fromDate, $toDate])
+                ->whereNotNull('rate_id')
+                ->with('rate') // eager load rate relationship
+                ->get()
+                ->groupBy('date')
+            : collect();
+            
         $availabilities = $topUnit
             ? Availability::where('unit_id', $topUnit->id)
                 ->whereBetween('date', [$fromDate, $toDate])
@@ -122,12 +140,28 @@ class AvailabilityController extends Controller
                 ->keyBy('date')
             : collect();
 
-        $calendarDays = collect($period)->map(function ($date) use ($unit, &$seenReservationIds, $period, $availabilities) {
+        $calendarDays = collect($period)->map(function ($date) use (
+            $unit,
+            &$seenReservationIds,
+            $period,
+            $baseAvailabilities,
+            $rateAvailabilities
+        ) {
             $dateStr = $date->toDateString();
 
-            $availability = $availabilities->get($dateStr);
-            $isOpen = $availability->is_open ?? true; // 🧹 null-safe
+            // Base row
+            $availability = $baseAvailabilities->get($dateStr);
+            $isOpen = $availability->is_open ?? true;
             $qty    = $availability->qty ?? ($unit->qty ?? 0);
+
+            // Attach rate rows for this date
+            $ratesForDay = $rateAvailabilities->get($dateStr, collect())->mapWithKeys(function ($row) {
+                return [
+                    (string) $row->rate_id => [
+                        'price' => $row->price,
+                    ],
+                ];
+            });
 
             $reservationsForDay = array_fill(0, $unit->qty ?? 0, null);
             $activeReservations = collect();
@@ -189,6 +223,7 @@ class AvailabilityController extends Controller
                 'is_open'            => (bool) $isOpen,
                 'reservations_count' => $activeReservations->count(),
                 'reservations'       => $reservationsForDay,
+                'rates'              => $ratesForDay, // 🔹 [CHANGED] new key for per-day rates
             ];
         })->values();
 
@@ -243,7 +278,7 @@ class AvailabilityController extends Controller
             'price'    => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        // --- CASE 1 & 2: Base row (qty / is_open) ---
+        // --- CASE 1: Base row (qty / is_open) ---
         if (is_null($validated['rate_id'] ?? null)) {
             $availability = Availability::firstOrNew([
                 'unit_id' => $unitId,
@@ -252,7 +287,8 @@ class AvailabilityController extends Controller
             ]);
 
             if (! $availability->exists) {
-                $availability->qty     = $unit->qty;
+                // default: null biar dihitung ulang di index
+                $availability->qty     = null;
                 $availability->is_open = true;
             }
 
@@ -268,26 +304,33 @@ class AvailabilityController extends Controller
             return;
         }
 
-        // --- CASE 3: Rate row (price only) ---
+        // --- CASE 2: Rate row (price only) ---
         if (! is_null($validated['rate_id'])) {
+            // Pastikan base row selalu ada
+            $baseRow = Availability::firstOrCreate(
+                [
+                    'unit_id' => $unitId,
+                    'date'    => $validated['date'],
+                    'rate_id' => null,
+                ],
+                [
+                    'qty'     => null,
+                    'is_open' => true,
+                ]
+            );
+
+            // Rate row → hanya simpan price
             $availability = Availability::firstOrNew([
                 'unit_id' => $unitId,
                 'date'    => $validated['date'],
                 'rate_id' => $validated['rate_id'],
             ]);
 
-            if (! $availability->exists) {
-                $baseRow = Availability::where('unit_id', $unitId)
-                    ->where('date', $validated['date'])
-                    ->whereNull('rate_id')
-                    ->first();
-
-                $availability->qty     = $baseRow->qty ?? null;
-                $availability->is_open = $baseRow->is_open ?? null;
-            }
-
             $availability->price = $validated['price'] ?? $availability->price;
+            $availability->qty = null;      // enforce null
+            $availability->is_open = null;  // enforce null
             $availability->save();
+
             return;
         }
     }

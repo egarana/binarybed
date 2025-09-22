@@ -251,6 +251,24 @@ class ReservationController extends Controller
                 ->values();
         }
 
+        if ($request->filled('unit_id')) {
+            $unit = Unit::with('rates')->find($request->unit_id);
+
+            if ($unit) {
+                $units = collect([[
+                    'value' => (string) $unit->id,
+                    'label' => $unit->name . ' (' . ($unit->property->name ?? 'No property') . ')',
+                    'rates' => $unit->rates->map(function ($rate) use ($request) {
+                        // optional: filter by availability check_in - check_out
+                        return [
+                            'value' => (string) $rate->id,
+                            'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
+                        ];
+                    }),
+                ]]);
+            }
+        }
+
         return Inertia::render('Reservations/Create', [
             'units' => $units,
             'countries' => $countries,
@@ -268,7 +286,7 @@ class ReservationController extends Controller
 
         return DB::transaction(function () use ($validated, $checkIn, $checkOut, $unit) {
 
-            // 1. Find all overlapping reservations
+            // 1. Cari overlapping reservations
             $overlappingOrders = Reservation::where('unit_id', $unit->id)
                 ->where(function ($q) use ($checkIn, $checkOut) {
                     $q->whereBetween('check_in', [$checkIn, $checkOut->copy()->subDay()])
@@ -283,7 +301,7 @@ class ReservationController extends Controller
                 ->sort()
                 ->values();
 
-            // 2. Assign first free slot
+            // 2. Cari slot kosong
             $sortOrder = null;
             for ($i = 1; $i <= $unit->qty; $i++) {
                 if (! $overlappingOrders->contains($i)) {
@@ -296,7 +314,7 @@ class ReservationController extends Controller
                 return back()->withErrors(['unit' => 'No available rooms for this period.']);
             }
 
-            // 3. Create reservation
+            // 3. Buat reservation
             $reservation = Reservation::create([
                 'unit_id'    => $unit->id,
                 'rate_id'    => $validated['rate']['value'],
@@ -312,20 +330,8 @@ class ReservationController extends Controller
 
             // 4. Reduce availability
             $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
-
             foreach ($period as $date) {
-                $availability = Availability::firstOrNew([
-                    'unit_id' => $reservation->unit_id,
-                    'date'    => $date->toDateString(),
-                ]);
-
-                if (! $availability->exists) {
-                    $availability->qty = $unit->qty;
-                    $availability->is_open = true;
-                }
-
-                $availability->qty = max(0, (int) $availability->qty - 1); // ✅ enforce integer
-                $availability->save();
+                $this->adjustAvailability($unit, $date, 'reduce');
             }
 
             return redirect()->route('reservations.index');
@@ -501,21 +507,10 @@ class ReservationController extends Controller
             // 1. Restore old availability
             $oldPeriod = CarbonPeriod::create($oldCheckIn, $oldCheckOut->copy()->subDay());
             foreach ($oldPeriod as $date) {
-                $availability = Availability::firstOrNew([
-                    'unit_id' => $reservation->unit_id,
-                    'date'    => $date->toDateString(),
-                ]);
-
-                if (! $availability->exists) {
-                    $availability->qty = $unit->qty;
-                    $availability->is_open = true;
-                }
-
-                $availability->qty = min($unit->qty, (int) $availability->qty + 1); // ✅ enforce integer
-                $availability->save();
+                $this->adjustAvailability($unit, $date, 'restore');
             }
 
-            // 2. Check overlapping reservations (excluding this one)
+            // 2. Cari overlapping reservations (exclude current)
             $overlappingOrders = Reservation::where('unit_id', $unit->id)
                 ->where('id', '!=', $reservation->id)
                 ->where(function ($q) use ($newCheckIn, $newCheckOut) {
@@ -531,7 +526,7 @@ class ReservationController extends Controller
                 ->sort()
                 ->values();
 
-            // 3. Assign slot
+            // 3. Cari slot kosong
             $sortOrder = null;
             for ($i = 1; $i <= $unit->qty; $i++) {
                 if (! $overlappingOrders->contains($i)) {
@@ -554,24 +549,13 @@ class ReservationController extends Controller
                 'phone'      => $validated['phone'],
                 'check_in'   => $newCheckIn,
                 'check_out'  => $newCheckOut,
-                // 'sort_order' => $sortOrder,
+                // 'sort_order' => $sortOrder, // bisa diaktifkan kalau slot perlu update
             ]);
 
             // 5. Reduce new availability
             $newPeriod = CarbonPeriod::create($newCheckIn, $newCheckOut->copy()->subDay());
             foreach ($newPeriod as $date) {
-                $availability = Availability::firstOrNew([
-                    'unit_id' => $reservation->unit_id,
-                    'date'    => $date->toDateString(),
-                ]);
-
-                if (! $availability->exists) {
-                    $availability->qty = $unit->qty;
-                    $availability->is_open = true;
-                }
-
-                $availability->qty = max(0, (int) $availability->qty - 1); // ✅ enforce integer
-                $availability->save();
+                $this->adjustAvailability($unit, $date, 'reduce');
             }
 
             return redirect()->route('reservations.index');
@@ -585,4 +569,31 @@ class ReservationController extends Controller
     {
         $reservation->delete();
     }
+
+    /**
+     * Adjust availability for a given unit & date.
+     * Mode: 'reduce' = kurangi qty, 'restore' = tambah qty.
+     */
+    private function adjustAvailability(Unit $unit, Carbon $date, string $mode = 'reduce'): void
+    {
+        $availability = Availability::firstOrNew([
+            'unit_id' => $unit->id,
+            'date'    => $date->toDateString(),
+            'rate_id' => null, // hanya base row
+        ]);
+
+        if (! $availability->exists || $availability->qty === null) {
+            $availability->qty = $unit->qty;
+            $availability->is_open = true;
+        }
+
+        if ($mode === 'reduce') {
+            $availability->qty = max(0, (int) $availability->qty - 1);
+        } elseif ($mode === 'restore') {
+            $availability->qty = min($unit->qty, (int) $availability->qty + 1);
+        }
+
+        $availability->save();
+    }
+
 }

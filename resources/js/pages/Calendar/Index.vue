@@ -88,21 +88,21 @@ interface ReservationSlot {
 }
 
 interface CalendarDay {
-    date: string
-    day: string
-    day_number: string
-    month: string
-    year: string | number
-    is_weekend?: boolean
-    is_month_end?: boolean
-    is_open: boolean
-    qty: number
-    reservations_count?: number
-    reservations?: ReservationSlot[]
-    editing?: boolean
-    localValue?: number
-    saving?: boolean
-    rates?: {
+	date: string
+	day: string
+	day_number: string
+	month: string
+	year: string | number
+	is_weekend?: boolean
+	is_month_end?: boolean
+	is_open: boolean
+	qty: number
+	reservations_count?: number
+	reservations?: ReservationSlot[]
+	editing?: boolean
+	localValue?: number
+	saving?: boolean
+	rates?: {
 		[rateId: string]: {
 			price: number
 			editing?: boolean
@@ -378,6 +378,52 @@ const save = (day: CalendarDay, unitId: number) => {
     setQty.flush?.()
 }
 
+const loadingRates = ref<Set<string>>(new Set())
+
+const setRatePrice = debounce(
+	(unitId: number, date: string, rateId: number, price: number, oldPrice?: number) => {
+		if (!unitId) return
+		const key = `${date}:${rateId}`
+		loadingRates.value.add(key)
+
+		router.put(
+			route('calendar.update', unitId),
+			{ date, rate_id: rateId, price },
+			{
+				preserveScroll: false,
+				onSuccess: () => {
+					const target = calendarDays.value.find((d) => d.date === date)
+					if (target?.rates?.[rateId]) {
+						target.rates[rateId].price = price
+					}
+
+					toast('Rate updated', {
+						description: 'The rate has been updated successfully',
+						action: { label: 'Close' },
+					})
+				},
+				onError: () => {
+					const target = calendarDays.value.find((d) => d.date === date)
+					if (target?.rates?.[rateId] && oldPrice !== undefined) {
+						target.rates[rateId].price = oldPrice
+						target.rates[rateId].localValue = oldPrice
+					}
+
+					toast('Invalid price', {
+						description: 'Something went wrong, please try again',
+						class: 'toast-destructive',
+						action: { label: 'Close' },
+					})
+				},
+				onFinish: () => {
+					loadingRates.value.delete(key)
+					loadingRates.value = new Set([...loadingRates.value])
+				},
+			}
+		)
+	},
+	300
+)
 /* ------------------------------ Misc ------------------------------ */
 const closeModal = (reservationId: number) => {
     if (reservationId !== undefined && reservationId !== null) {
@@ -551,7 +597,7 @@ const formatNumber = (num: number | string | undefined) => {
 									:class="{
 										'bg-muted/50': date.is_weekend,
 										'border-muted-foreground/70 border-dashed': date.is_month_end,
-										'bg-red-100 hover:bg-red-100 text-red-700': !date.is_open,
+										'bg-red-100 hover:bg-red-100 text-red-700/30': !date.is_open,
 										'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
 									}"
 								>
@@ -559,7 +605,7 @@ const formatNumber = (num: number | string | undefined) => {
 									<div class="pt-1 text-[10px]">{{ date.day_number }} {{ date.month }}</div>
 									<div
 										class="pt-0.5 text-[10px]"
-										:class="{ 'text-red-700': !date.is_open, 'text-muted-foreground/30': date.qty === 0 }"
+										:class="{ 'text-red-700/30': !date.is_open, 'text-muted-foreground/30': date.qty === 0 }"
 									>
 										{{ date.year }}
 									</div>
@@ -575,22 +621,26 @@ const formatNumber = (num: number | string | undefined) => {
 									:class="{
 										'bg-muted/50': date.is_weekend,
 										'border-muted-foreground/70 border-dashed': date.is_month_end,
-										'bg-red-100 hover:bg-red-100 text-red-700': !date.is_open,
-										'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
+										'bg-red-100 hover:bg-red-100 text-red-700/30': !date.is_open,
+										'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0 && date.is_open,
 									}"
 								>
 									<Button
 										type="button"
 										size="sm"
 										class="w-full text-xs flex items-center justify-center hover:cursor-pointer"
-										:variant="date.qty === 0 ? undefined : (date.is_open ? undefined : 'destructive')"
+										:variant="!date.is_open ? 'destructive' : undefined"
 										@click="selectedUnitId && setStatus(selectedUnitId, date.date, !date.is_open)"
-										:disabled="loadingDatesStatus.has(date.date) || date.qty === 0 || !selectedUnitId"
+										:disabled="loadingDatesStatus.has(date.date) || (!date.is_open ? false : date.qty === 0) || !selectedUnitId"
 									>
-										<LoaderCircle v-if="loadingDatesStatus.has(date.date)" class="!w-3.5 !h-3.5 animate-spin" />
+										<LoaderCircle
+											v-if="loadingDatesStatus.has(date.date)"
+											class="!w-3.5 !h-3.5 animate-spin"
+										/>
 										<span class="block w-full overflow-hidden whitespace-nowrap text-ellipsis text-center">
-											<template v-if="date.qty === 0">Sold out</template>
-											<template v-else>{{ date.is_open ? 'Open' : 'Closed' }}</template>
+											<template v-if="!date.is_open">Closed</template>
+											<template v-else-if="date.qty === 0">Sold out</template>
+											<template v-else>Open</template>
 										</span>
 									</Button>
 								</div>
@@ -605,7 +655,7 @@ const formatNumber = (num: number | string | undefined) => {
 									:class="{
 										'bg-muted/50': date.is_weekend,
 										'border-muted-foreground/70 border-dashed': date.is_month_end,
-										'bg-red-100 hover:bg-red-100 text-red-700': !date.is_open,
+										'bg-red-100 hover:bg-red-100 text-red-700/30': !date.is_open,
 										'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
 									}"
 								>
@@ -646,7 +696,7 @@ const formatNumber = (num: number | string | undefined) => {
 									:class="{
 										'bg-muted/50': date.is_weekend,
 										'border-muted-foreground/70 border-dashed': date.is_month_end,
-										'bg-red-100 hover:bg-red-100 text-red-700': !date.is_open,
+										'bg-red-100 hover:bg-red-100 text-red-700/30': !date.is_open,
 										'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
 									}"
 								>
@@ -657,7 +707,7 @@ const formatNumber = (num: number | string | undefined) => {
 									>
 										<span
 											class="block w-full overflow-hidden whitespace-nowrap text-ellipsis text-right"
-											:class="!date.is_open ? 'text-red-700' : 'text-muted-foreground'"
+											:class="!date.is_open ? 'text-red-700/30' : 'text-muted-foreground'"
 										>
 											{{ date.reservations_count ?? 0 }}
 										</span>
@@ -675,7 +725,7 @@ const formatNumber = (num: number | string | undefined) => {
 									<div
 										v-for="date in calendarDays"
 										:key="date.date + ':rate:' + rate.value"
-										class="w-20 h-full text-xs px-1.5 flex items-center hover:bg-muted"
+										class="w-20 h-full text-xs px-1.5 flex items-center hover:bg-muted relative"
 										:class="{
 											'bg-muted/50': date.is_weekend,
 											'border-muted-foreground/70 border-dashed': date.is_month_end,
@@ -683,9 +733,65 @@ const formatNumber = (num: number | string | undefined) => {
 											'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
 										}"
 									>
-										<span class="block w-full overflow-hidden whitespace-nowrap text-ellipsis text-right">
-											{{ formatNumber(rate.price) }}
+										<LoaderCircle
+											v-if="loadingRates.has(date.date + ':' + rate.value)"
+											class="!w-3.5 !h-3.5 animate-spin absolute ms-1"
+										/>
+
+										<!-- Display -->
+										<span
+											v-if="!date.rates?.[rate.value]?.editing"
+											class="flex items-center justify-end w-full text-right border border-transparent hover:border-border hover:bg-background h-5 pe-0.5 hover:cursor-text"
+											@click.stop="
+												() => {
+													if (!date.rates) date.rates = {}
+													if (!date.rates[rate.value]) date.rates[rate.value] = { price: rate.price }
+													date.rates[rate.value].localValue = date.rates[rate.value].price ?? rate.price
+													date.rates[rate.value].editing = true
+												}
+											"
+										>
+											{{ formatNumber(date.rates?.[rate.value]?.price ?? rate.price) }}
 										</span>
+
+										<!-- Edit -->
+										<input
+											v-else
+											:disabled="loadingRates.has(date.date + ':' + rate.value)"
+											v-model="date.rates[rate.value].localValue"
+											type="number"
+											min="0"
+											@keyup.enter="
+												() => {
+													const casted = Number(date.rates?.[rate.value]?.localValue)
+													const newPrice = Number.isNaN(casted) ? 0 : casted
+													const oldPrice = date.rates?.[rate.value]?.price ?? rate.price
+													date.rates[rate.value].editing = false
+													date.rates[rate.value].price = newPrice
+													selectedUnitId &&
+														setRatePrice(selectedUnitId, date.date, Number(rate.value), newPrice, oldPrice)
+												}
+											"
+											@blur="
+												() => {
+													const casted = Number(date.rates?.[rate.value]?.localValue)
+													const newPrice = Number.isNaN(casted) ? 0 : casted
+													const oldPrice = date.rates?.[rate.value]?.price ?? rate.price
+
+													// hanya save kalau ada perubahan
+													if (newPrice !== oldPrice) {
+														date.rates[rate.value].editing = false
+														date.rates[rate.value].price = newPrice
+														selectedUnitId &&
+															setRatePrice(selectedUnitId, date.date, Number(rate.value), newPrice, oldPrice)
+													} else {
+														date.rates[rate.value].editing = false
+													}
+												}
+											"
+											style="font-size: 12px !important;"
+											class="w-full border bg-background text-right h-5 disabled:bg-muted disabled:text-foreground/40"
+										/>
 									</div>
 								</div>
 							</template>
@@ -704,7 +810,7 @@ const formatNumber = (num: number | string | undefined) => {
 										:class="{
 											'bg-muted/50': date.is_weekend,
 											'border-muted-foreground/70 border-dashed': date.is_month_end,
-											'bg-red-100 hover:bg-red-100 text-red-700': !date.is_open,
+											'bg-red-100 hover:bg-red-100 text-red-700/30': !date.is_open,
 											'bg-muted hover:bg-muted text-muted-foreground/30': date.qty === 0,
 										}"
 									>
