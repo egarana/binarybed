@@ -93,6 +93,13 @@ const disabledDates = ref<string[]>(
 		: []
 )
 
+const datesWithQty = ref<{ date: string; qty: number }[]>(   // ⬅️ ADD
+	Array.isArray(usePage().props.datesWithQty)
+		? usePage().props.datesWithQty
+		: []
+)
+const minQty = ref<number | null>(usePage().props.minQty ?? null)
+
 const selectedUnit = ref<UnitOption | undefined>()
 const selectedCountry = ref<CountryOption>({
 	country: 'ID',
@@ -112,7 +119,8 @@ const form = useForm({
 		number: ''
 	} as PhoneField,
 	check_in: '',
-	check_out: ''
+	check_out: '',
+	qty: '',
 })
 
 /* ------------------------------ Breadcrumbs ------------------------------ */
@@ -240,29 +248,30 @@ watch(selectedUnit, (newVal) => {
 	}
 })
 
-/**
- * Load rates hanya kalau unit, checkIn, checkOut sudah ada
- */
 watch([selectedUnit, checkInDate, checkOutDate], ([unit, checkIn, checkOut]) => {
 	if (unit && checkIn && checkOut) {
 		router.get(
 			route('reservations.create'),
 			{
-				unit_id: unit.value, // ⬅️ cukup kirim unit_id
+				unit_id: unit.value,
 				check_in: dayjs(checkIn.toString()).format('YYYY-MM-DD'),
 				check_out: dayjs(checkOut.toString()).format('YYYY-MM-DD'),
 			},
 			{
 				preserveScroll: true,
 				preserveState: true,
-				only: ['units'],
+				only: ['units', 'datesWithQty', 'minQty'], // ⬅️ tambahin
 				onSuccess: () => {
-					// ambil ulang units dari props
-					const newProps = usePage().props.units as UnitOption[] ?? []
-					const foundUnit = newProps.find((u) => u.value === unit.value)
+					// update rates
+					const newUnits = usePage().props.units as UnitOption[] ?? []
+					const foundUnit = newUnits.find((u) => u.value === unit.value)
 
 					rates.value = foundUnit?.rates ?? []
 					form.rate = rates.value.length > 0 ? rates.value[0] : null
+
+					// update qty info
+					datesWithQty.value = usePage().props.datesWithQty as { date: string; qty: number }[] ?? []
+					minQty.value = usePage().props.minQty as number ?? null
 				}
 			}
 		)
@@ -384,6 +393,12 @@ watch(checkInDate, (newCheckIn) => {
 					description="Manually create a new reservation for a unit and assign the appropriate rate"
 				/>
 
+
+				<pre class="text-xs bg-muted p-2 rounded">
+					{{ datesWithQty }}
+					{{ minQty }}
+				</pre>
+
 				<Separator />
 
 				<form @submit.prevent="submit" class="space-y-6 h-full flex flex-col">
@@ -496,6 +511,47 @@ watch(checkInDate, (newCheckIn) => {
 						<InputError :message="form.errors.check_out" />
 					</div>
 
+					<!-- Qty -->
+                    <div class="grid gap-2">
+                        <Label>Qty</Label>
+                        <Combobox 
+                            v-model="form.qty"
+							:disabled="!selectedUnit || !checkInDate || !checkOutDate"
+                            class="mt-1"
+                        >
+                            <ComboboxAnchor as-child>
+                                <ComboboxTrigger as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="justify-between w-full"
+                                        :class="{ 'font-normal text-muted-foreground': !form.qty }"
+                                    >
+                                        {{ form.qty ? form.qty : 'Select a qty for the unit' }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </ComboboxTrigger>
+                            </ComboboxAnchor>
+
+                            <ComboboxList align="start" class="w-full min-w-[250px]">
+                                <ComboboxGroup>
+                                    <ComboboxItem
+                                        v-for="(item, index) in minQty"
+                                        :key="index"
+                                        :value="item"
+                                        class="w-full min-w-[250px] flex items-center justify-between"
+                                    >
+                                        {{ item }}
+                                        <ComboboxItemIndicator>
+                                            <Check :class="cn('ml-auto h-4 w-4')" />
+                                        </ComboboxItemIndicator>
+                                    </ComboboxItem>
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </Combobox>
+                        <InputError :message="form.errors.qty" />
+                    </div>
+
                     <!-- Rate -->
                     <div class="grid gap-2">
                         <Label>Rate</Label>
@@ -512,7 +568,7 @@ watch(checkInDate, (newCheckIn) => {
                                         class="justify-between w-full"
                                         :class="{ 'font-normal text-muted-foreground': !form.rate }"
                                     >
-                                        {{ form.rate?.label ?? 'Select a rate for the unit' }}
+                                        {{ form.rate?.label ?? 'Select a rate for the reservation' }}
                                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </ComboboxTrigger>

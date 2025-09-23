@@ -184,6 +184,8 @@ class ReservationController extends Controller
         $units = collect();
         $countries = collect();
         $disabledDates = collect();
+        $datesWithQty = collect();
+        $minQty = null;
         
         if (!empty($search)) {
             $units = QueryBuilder::for(Unit::class)
@@ -216,7 +218,8 @@ class ReservationController extends Controller
                         'rates' => $unit->rates->map(function ($rate) {
                             return [
                                 'value' => (string) $rate->id,
-                                'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
+                                // 'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
+                                'label' => $rate->name,
                             ];
                         }),
                     ];
@@ -262,10 +265,52 @@ class ReservationController extends Controller
                         // optional: filter by availability check_in - check_out
                         return [
                             'value' => (string) $rate->id,
-                            'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
+                            // 'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
+                            'label' => $rate->name,
                         ];
                     }),
                 ]]);
+            }
+        }
+
+        if ($request->filled('unit_id') && $request->filled(['check_in', 'check_out'])) {
+            $unit = Unit::find($request->unit_id);
+
+            if ($unit) {
+                $defaultQty = $unit->qty ?? 0;
+
+                $checkIn = Carbon::parse($request->check_in);
+                $checkOut = Carbon::parse($request->check_out);
+
+                $availabilities = Availability::query()
+                    ->where('unit_id', $unit->id)
+                    ->whereBetween('date', [$checkIn, $checkOut->copy()->subDay()])
+                    ->orderByRaw("CASE WHEN qty IS NOT NULL THEN 0 ELSE 1 END")
+                    ->orderBy('id')
+                    ->get()
+                    ->unique('date')
+                    ->keyBy('date');
+
+                $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
+                $datesWithQty = collect();
+
+                foreach ($period as $date) {
+                    $availability = $availabilities->get($date->toDateString());
+
+                    $datesWithQty->push([
+                        'date' => $date->toDateString(),
+                        'qty'  => $availability
+                            ? (
+                                $availability->is_open
+                                    ? ($availability->qty !== null ? $availability->qty : $defaultQty)
+                                    : 0
+                            )
+                            : $defaultQty,
+                    ]);
+                }
+
+                // cari nilai qty terkecil
+                $minQty = $datesWithQty->min('qty');
             }
         }
 
@@ -273,6 +318,8 @@ class ReservationController extends Controller
             'units' => $units,
             'countries' => $countries,
             'disabledDates' => $disabledDates,
+            'datesWithQty' => $datesWithQty,
+            'minQty'       => $minQty,
         ]);
     }
 

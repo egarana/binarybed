@@ -18,7 +18,8 @@ class CheckDomain
                 abort(404, 'Unauthorized access (admin domain required).');
             }
 
-            $parsed = $this->parseDomain($host);
+            $parsed = $this->parseDomain($host, true);
+
             app()->instance('domain', $parsed);
             view()->share('domain', $parsed);
 
@@ -58,7 +59,21 @@ class CheckDomain
         return $next($request);
     }
 
-    private function parseDomain(string $host): object
+    // private function parseDomain(string $host): object
+    // {
+    //     $parts = explode('.', $host);
+
+    //     return (object)[
+    //         'host' => $host,
+    //         'parts' => $parts,
+    //         'tld' => $parts[count($parts) - 1] ?? null,
+    //         'sld' => $parts[count($parts) - 2] ?? null,
+    //         'sub' => implode('.', array_slice($parts, 0, -2)),
+    //         'slug' => $parts[0] ?? null,
+    //     ];
+    // }
+
+    private function parseDomain(string $host, bool $isAdmin = false): object
     {
         $parts = explode('.', $host);
 
@@ -68,7 +83,9 @@ class CheckDomain
             'tld' => $parts[count($parts) - 1] ?? null,
             'sld' => $parts[count($parts) - 2] ?? null,
             'sub' => implode('.', array_slice($parts, 0, -2)),
-            'slug' => $parts[0] ?? null,
+            'slug' => $isAdmin
+                ? ($parts[count($parts) - 2] ?? null) // ambil SLD kalau admin
+                : ($parts[0] ?? null),               // ambil subdomain kalau frontend
         ];
     }
 }
