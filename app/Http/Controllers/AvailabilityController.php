@@ -172,14 +172,12 @@ class AvailabilityController extends Controller
                 );
 
                 foreach ($activeReservations as $res) {
-                    if (in_array($res->id, $seenReservationIds, true)) {
-                        continue;
-                    }
+                    foreach ($res->slots as $slot) {
+                        $slotIndex = ($slot->sort_order ?? 1) - 1;
+                        if ($slotIndex < 0 || $slotIndex >= count($reservationsForDay)) {
+                            continue;
+                        }
 
-                    $seenReservationIds[] = $res->id;
-                    $slotIndex = ($res->sort_order ?? 1) - 1;
-
-                    if ($slotIndex >= 0 && $slotIndex < count($reservationsForDay)) {
                         $nights_duration = Carbon::parse($res->check_in)->diffInDays(Carbon::parse($res->check_out));
                         $diffFromPeriodStart = Carbon::parse($res->check_in)->diffInDays($period->first(), false);
                         $diffFromPeriodStart = max(0, $diffFromPeriodStart);
@@ -188,20 +186,23 @@ class AvailabilityController extends Controller
                             ? (($nights_duration - $diffFromPeriodStart) * 80) - 4 + 12
                             : ($nights_duration * 80) - 4;
 
-                        $reservationsForDay[$slotIndex] = [
-                            'index'             => $slotIndex,
-                            'id'                => $res->id,
-                            'name'              => $res->first_name . ' ' . $res->last_name,
-                            'check_in'          => $res->check_in,
-                            'check_out'         => $res->check_out,
-                            'booked_on'         => $res->booked_on,
-                            'nights_duration'   => $nights_duration,
-                            'period_start_diff' => $diffFromPeriodStart,
-                            'is_first_day'      => $dateStr === $res->check_in,
-                            'is_last_day'       => $dateStr === Carbon::parse($res->check_out)->subDay()->toDateString(),
-                            'btn_width'         => $btnWidth . 'px',
-                            'sort_order'        => $res->sort_order,
-                        ];
+                        // 🔹 render hanya di hari check_in
+                        if ($dateStr === $res->check_in) {
+                            $reservationsForDay[$slotIndex] = [
+                                'index'             => $slotIndex,
+                                'id'                => $res->id,
+                                'name'              => $res->first_name . ' ' . $res->last_name,
+                                'check_in'          => $res->check_in,
+                                'check_out'         => $res->check_out,
+                                'booked_on'         => $res->booked_on,
+                                'nights_duration'   => $nights_duration,
+                                'period_start_diff' => $diffFromPeriodStart,
+                                'is_first_day'      => true,
+                                'is_last_day'       => $dateStr === Carbon::parse($res->check_out)->subDay()->toDateString(),
+                                'btn_width'         => $btnWidth . 'px',
+                                'sort_order'        => $slot->sort_order,
+                            ];
+                        }
                     }
                 }
             }
@@ -218,10 +219,10 @@ class AvailabilityController extends Controller
                 'is_month_end'       => $date->isLastOfMonth(),
                 'formatted'          => $date->format('M d, Y'),
                 'qty'                => $availability && isset($availability->qty)
-                                        ? (int) $availability->qty
-                                        : max(0, ($unit->qty ?? 0) - $activeReservations->count()),
+                                            ? (int) $availability->qty
+                                            : max(0, ($unit->qty ?? 0) - $activeReservations->sum('qty')),
                 'is_open'            => (bool) $isOpen,
-                'reservations_count' => $activeReservations->count(),
+                'reservations_count' => $activeReservations->sum('qty'),
                 'reservations'       => $reservationsForDay,
                 'rates'              => $ratesForDay, // 🔹 [CHANGED] new key for per-day rates
             ];

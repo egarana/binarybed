@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->integer('qty')->default(0);
+            $table->string('type')->default('unit');
             $table->integer('size')->default(0);
             $table->string('bed_size')->nullable();
             $table->string('view')->nullable();

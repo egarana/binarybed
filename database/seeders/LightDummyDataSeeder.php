@@ -45,9 +45,9 @@ class LightDummyDataSeeder extends Seeder
                 'secondary_color' => 'hsl(0 0% 92.1%)',
                 'accent_color'    => 'hsl(0 0% 96.1%)',
                 'units' => [
-                    ['name' => 'Deluxe Garden Cottage', 'qty' => 5, 'rate' => 550000],
-                    ['name' => 'Premium Horizon Suite', 'qty' => 5, 'rate' => 850000],
-                    ['name' => 'Family Pool Villa', 'qty' => 2, 'rate' => 1200000],
+                    ['name' => 'Deluxe Garden Cottage', 'qty' => 5, 'rate' => 550000, 'type' => 'cottage'],
+                    ['name' => 'Premium Horizon Suite', 'qty' => 5, 'rate' => 850000, 'type' => 'suite'],
+                    ['name' => 'Family Pool Villa', 'qty' => 2, 'rate' => 1200000, 'type' => 'villa'],
                 ],
             ],
             [
@@ -58,8 +58,8 @@ class LightDummyDataSeeder extends Seeder
                 'secondary_color' => 'hsl(173 58% 39%)',
                 'accent_color'    => 'hsl(27 87% 67%)',
                 'units' => [
-                    ['name' => 'Rahajeng Cabin', 'qty' => 1, 'rate' => 350000],
-                    ['name' => 'Rahayu Cabin',  'qty' => 1, 'rate' => 700000],
+                    ['name' => 'Rahajeng Cabin', 'qty' => 1, 'rate' => 350000, 'type' => 'cabin'],
+                    ['name' => 'Rahayu Cabin',  'qty' => 1, 'rate' => 700000, 'type' => 'cabin'],
                 ],
             ],
             [
@@ -70,7 +70,7 @@ class LightDummyDataSeeder extends Seeder
                 'secondary_color' => 'hsl(43 74% 66%)',
                 'accent_color'    => 'hsl(340 75% 55%)',
                 'units' => [
-                    ['name' => 'Cottage with Garden View', 'qty' => 5, 'rate' => 550000],
+                    ['name' => 'Cottage with Garden View', 'qty' => 5, 'rate' => 550000, 'type' => 'cottage'],
                 ],
             ],
             [
@@ -81,11 +81,11 @@ class LightDummyDataSeeder extends Seeder
                 'secondary_color' => 'hsl(0 0% 92.1%)',
                 'accent_color'    => 'hsl(0 0% 96.1%)',
                 'units' => [
-                    ['name' => 'Villa Imbuh', 'qty' => 1, 'rate' => 550000],
-                    ['name' => 'Villa Marie', 'qty' => 1, 'rate' => 850000],
-                    ['name' => 'Villa Léa', 'qty' => 2, 'rate' => 1200000],
-                    ['name' => 'Villa Bunga Lily', 'qty' => 2, 'rate' => 1200000],
-                    ['name' => 'Villa Saraswati Lovina', 'qty' => 2, 'rate' => 1200000],
+                    ['name' => 'Villa Imbuh', 'qty' => 1, 'rate' => 550000, 'type' => 'villa'],
+                    ['name' => 'Villa Marie', 'qty' => 1, 'rate' => 850000, 'type' => 'villa'],
+                    ['name' => 'Villa Léa', 'qty' => 2, 'rate' => 1200000, 'type' => 'villa'],
+                    ['name' => 'Villa Bunga Lily', 'qty' => 2, 'rate' => 1200000, 'type' => 'villa'],
+                    ['name' => 'Villa Saraswati Lovina', 'qty' => 2, 'rate' => 1200000, 'type' => 'villa'],
                 ],
             ],
         ];
@@ -121,6 +121,7 @@ class LightDummyDataSeeder extends Seeder
                     'slug'          => \Str::slug($unitData['name']), // ✅ matches migration
                     'description'   => $faker->paragraph,             // ✅ optional description
                     'qty'           => $unitData['qty'],
+                    'type'          => $unitData['type'],
                     'size'          => $faker->numberBetween(20, 120), // ✅ random size (sqm)
                     'bed_size'      => $faker->randomElement(['Single', 'Queen', 'King', 'Twin']),
                     'view'          => $faker->randomElement(['Garden', 'Pool', 'Ocean', 'Mountain', 'Ricefield']),

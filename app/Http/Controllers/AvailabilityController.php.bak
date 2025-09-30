@@ -28,10 +28,7 @@ class AvailabilityController extends Controller
             ]);
         }
 
-        // Grab the search value (after normalization)
         $search = $request->input('filter.search');
-
-        // Default empty collections
         $units = collect();
 
         if (!empty($search)) {
@@ -40,13 +37,12 @@ class AvailabilityController extends Controller
                 ->allowedFilters([
                     AllowedFilter::callback('search', function ($query, $value) {
                         $terms = explode(' ', $value);
-
                         $query->where(function ($q) use ($terms) {
                             foreach ($terms as $term) {
                                 $q->where(function ($q2) use ($term) {
-                                    $q2->where('name', 'like', "%{$term}%") // unit name
+                                    $q2->where('name', 'like', "%{$term}%")
                                         ->orWhereHas('property', function ($p) use ($term) {
-                                            $p->where('name', 'like', "%{$term}%"); // property name
+                                            $p->where('name', 'like', "%{$term}%");
                                         });
                                 });
                             }
@@ -59,126 +55,121 @@ class AvailabilityController extends Controller
                     return [
                         'value' => (string) $unit->id,
                         'label' => $unit->name . ' (' . ($unit->property->name ?? 'No property') . ')',
-                        'name' => $unit->name,
-                        'qty' => $unit->qty,
+                        'name'  => $unit->name,
+                        'qty'   => $unit->qty,
                         'rates' => $unit->rates->map(function ($rate) {
                             return [
                                 'value' => (string) $rate->id,
-                                // 'label' => $rate->name . ' (' . 'Rp ' . number_format($rate->price ?? 0, 0, ',', '.') . ')',
                                 'label' => $rate->name,
+                                'price' => $rate->price,
                             ];
                         }),
                     ];
                 });
         }
 
-        // Always fetch the top unit by name (ignoring search)
-        // $topUnit = Unit::with(['property', 'rates'])
-        //     ->orderBy('name')
-        //     ->first();
-
+        // 🧹 simplified: always pick topUnit by requested unitId, else latest
         $unitId = $request->input('unitId');
-
         $topUnit = Unit::with(['property', 'rates'])
-            // Rank the requested ID (if it exists) to the very top (0), others after (1)
             ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$unitId])
-            // If the requested ID isn't present, fall back to the latest by ID
             ->orderByDesc('id')
             ->first();
 
-        // $selectedUnit = $topUnit
-        //     ? [
-        //         'value' => (string) $topUnit->id,
-        //         'label' => $topUnit->name . ' (' . ($topUnit->property->name ?? 'No property') . ')',
-        //         'name'  => $topUnit->name,
-        //         'qty'   => $topUnit->qty,
-        //         'rates' => $topUnit->rates && $topUnit->rates->isNotEmpty()
-        //             ? $topUnit->rates->map(function ($rate) {
-        //                 return [
-        //                     'value' => (string) $rate->id,
-        //                     'label' => $rate->name,
-        //                 ];
-        //             })->values()
-        //             : collect(), // ✅ Always return an empty collection instead of null
-        //     ]
-        //     : null;
+        // 🧹 unified selectedUnit default structure
+        $selectedUnit = $topUnit ? [
+            'value' => (string) $topUnit->id,
+            'label' => $topUnit->name . ' (' . ($topUnit->property->name ?? 'No property') . ')',
+            'name'  => $topUnit->name,
+            'qty'   => $topUnit->qty,
+            'rates' => $topUnit->rates->map(fn($rate) => [
+                'value' => (string) $rate->id,
+                'label' => $rate->name,
+                'price' => $rate->price,
+            ])->values(),
+        ] : [
+            'value' => null,
+            'label' => null,
+            'name'  => null,
+            'qty'   => 0,
+            'rates' => collect(),
+        ];
 
-        $selectedUnit = $topUnit
-            ? [
-                'value' => (string) $topUnit->id,
-                'label' => $topUnit->name . ' (' . ($topUnit->property->name ?? 'No property') . ')',
-                'name'  => $topUnit->name,
-                'qty'   => $topUnit->qty,
-                'rates' => $topUnit->rates->map(fn($rate) => [
-                    'value' => (string) $rate->id,
-                    'label' => $rate->name,
-                ])->values(),
-            ]
-            : [
-                'value' => null,
-                'label' => null,
-                'name'  => null,
-                'qty'   => 0,
-                'rates' => collect(), // ✅ Always safe
-            ];
-
-        // Get request values (default if missing)
+        // 🧹 date handling: ensure safe ranges
         $fromInput = $request->input('from');
         $toInput   = $request->input('until');
 
-        // // Rule 1: fromDate can't be before today
-        // $fromDate = Carbon::parse($fromInput ?? Carbon::today())
-        //     ->max(Carbon::today());
-
         $fromDate = Carbon::parse($fromInput ?? Carbon::today())
-            ->max(Carbon::create(2025, 1, 1));
+            ->max(Carbon::create(2025, 1, 1)); // 🧹 keep enforced minimum date
 
-        // Rule 2: toDate can't be before fromDate, default +30 days
         $toDate = Carbon::parse($toInput ?? $fromDate->copy()->addDays(30));
-
-        // If until < from, force until = from + 1 day
         if ($toDate->lt($fromDate)) {
             $toDate = $fromDate->copy()->addDay();
         }
 
-        // Convert back to string if needed
         $fromDate = $fromDate->toDateString();
         $toDate   = $toDate->toDateString();
 
-        // Generate calendar days
         $period = CarbonPeriod::create($fromDate, $toDate);
 
         $unit = $topUnit ? Unit::with(['reservations'])->find($topUnit->id) : null;
-
         $seenReservationIds = [];
 
+        // 🧹 prefetch availabilities into keyed collection
+        $baseAvailabilities = $topUnit
+            ? Availability::where('unit_id', $topUnit->id)
+                ->whereBetween('date', [$fromDate, $toDate])
+                ->whereNull('rate_id') // 🔹 [CHANGED] ensure only base rows
+                ->get(['date', 'is_open', 'qty'])
+                ->keyBy('date')
+            : collect();
+
+        // prefetch rate availabilities (per-date, per-rate)
+        $rateAvailabilities = $topUnit
+            ? Availability::where('unit_id', $topUnit->id)
+                ->whereBetween('date', [$fromDate, $toDate])
+                ->whereNotNull('rate_id')
+                ->with('rate') // eager load rate relationship
+                ->get()
+                ->groupBy('date')
+            : collect();
+            
         $availabilities = $topUnit
             ? Availability::where('unit_id', $topUnit->id)
                 ->whereBetween('date', [$fromDate, $toDate])
                 ->get(['date', 'is_open', 'qty'])
                 ->keyBy('date')
-                // ->pluck('is_open', 'date') // 👈 key = date, value = is_open
             : collect();
 
-        // return dd($availabilities);
-
-        $calendarDays = collect($period)->map(function ($date) use ($unit, &$seenReservationIds, $period, $availabilities) {
+        $calendarDays = collect($period)->map(function ($date) use (
+            $unit,
+            &$seenReservationIds,
+            $period,
+            $baseAvailabilities,
+            $rateAvailabilities
+        ) {
             $dateStr = $date->toDateString();
 
-            $availability = $availabilities->get($dateStr);
-
+            // Base row
+            $availability = $baseAvailabilities->get($dateStr);
             $isOpen = $availability->is_open ?? true;
-            $qty = $availability->qty ?? ($unit->qty ?? 0);
+            $qty    = $availability->qty ?? ($unit->qty ?? 0);
+
+            // Attach rate rows for this date
+            $ratesForDay = $rateAvailabilities->get($dateStr, collect())->mapWithKeys(function ($row) {
+                return [
+                    (string) $row->rate_id => [
+                        'price' => $row->price,
+                    ],
+                ];
+            });
 
             $reservationsForDay = array_fill(0, $unit->qty ?? 0, null);
-
-            // ✅ Always define activeReservations
             $activeReservations = collect();
 
             if ($unit) {
-                $activeReservations = $unit->reservations->filter(function ($res) use ($dateStr) {
-                    return $dateStr >= $res->check_in && $dateStr < $res->check_out;
-                });
+                $activeReservations = $unit->reservations->filter(fn($res) =>
+                    $dateStr >= $res->check_in && $dateStr < $res->check_out
+                );
 
                 foreach ($activeReservations as $res) {
                     if (in_array($res->id, $seenReservationIds, true)) {
@@ -186,22 +177,16 @@ class AvailabilityController extends Controller
                     }
 
                     $seenReservationIds[] = $res->id;
-
                     $slotIndex = ($res->sort_order ?? 1) - 1;
 
                     if ($slotIndex >= 0 && $slotIndex < count($reservationsForDay)) {
                         $nights_duration = Carbon::parse($res->check_in)->diffInDays(Carbon::parse($res->check_out));
-
-                        $diffFromPeriodStart = Carbon::parse($res->check_in)
-                            ->diffInDays($period->first(), false);
-
+                        $diffFromPeriodStart = Carbon::parse($res->check_in)->diffInDays($period->first(), false);
                         $diffFromPeriodStart = max(0, $diffFromPeriodStart);
 
-                        if ($diffFromPeriodStart > 0) {
-                            $btnWidth = (($nights_duration - $diffFromPeriodStart) * 80) - 4 + 12;
-                        } else {
-                            $btnWidth = ($nights_duration * 80) - 4;
-                        }
+                        $btnWidth = $diffFromPeriodStart > 0
+                            ? (($nights_duration - $diffFromPeriodStart) * 80) - 4 + 12
+                            : ($nights_duration * 80) - 4;
 
                         $reservationsForDay[$slotIndex] = [
                             'index'             => $slotIndex,
@@ -232,65 +217,55 @@ class AvailabilityController extends Controller
                 'is_month_start'     => $date->day === 1,
                 'is_month_end'       => $date->isLastOfMonth(),
                 'formatted'          => $date->format('M d, Y'),
+                // 'qty'                => $availability && isset($availability->qty)
+                //                         ? (int) $availability->qty
+                //                         : max(0, ($unit->qty ?? 0) - $activeReservations->count()),
                 'qty'                => $availability && isset($availability->qty)
-                                        ? (int) $availability->qty
-                                        : max(0, ($unit->qty ?? 0) - $activeReservations->count()),
+                                            ? (int) $availability->qty
+                                            : max(0, ($unit->qty ?? 0) - $activeReservations->sum('qty')),
                 'is_open'            => (bool) $isOpen,
-                'reservations_count' => $activeReservations->count(),
+                // 'reservations_count' => $activeReservations->count(),
+                'reservations_count' => $activeReservations->sum('qty'),
                 'reservations'       => $reservationsForDay,
+                'rates'              => $ratesForDay, // 🔹 [CHANGED] new key for per-day rates
             ];
         })->values();
 
         return Inertia::render('Calendar/Index', [
-            'units' => $units,
-            'selectedUnit' => $selectedUnit,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
-            'calendarDays' => $calendarDays,
+            'units'            => $units,
+            'selectedUnit'     => $selectedUnit,
+            'fromDate'         => $fromDate,
+            'toDate'           => $toDate,
+            'calendarDays'     => $calendarDays,
             'seenReservationIds' => $seenReservationIds,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create() 
     {
-        //
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreAvailabilityRequest $request)
+    public function store(StoreAvailabilityRequest $request) 
     {
-        //
+
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Availability $availability)
+    public function show(Availability $availability) 
     {
-        //
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Availability $availability)
+    public function edit(Availability $availability) 
     {
-        //
+
     }
 
     public function update(Request $request, $unitId)
     {
         $unit = Unit::findOrFail($unitId);
-
-        // First, extract the date so we can compute available slots
         $date = Carbon::parse($request->input('date'))->toDateString();
 
-        // find reservations that overlap this date
         $activeReservations = $unit->reservations()
             ->where('check_in', '<=', $date)
             ->where('check_out', '>', $date)
@@ -301,20 +276,13 @@ class AvailabilityController extends Controller
 
         $validated = $request->validate([
             'date'     => ['required', 'date'],
-            // 'qty'      => ['nullable', 'integer', 'min:0'],
-            'qty'      => [
-                'nullable',
-                'integer',
-                'min:0',
-                // 'max:' . $unit->qty,
-                'max:' . $availableSlots,
-            ],
+            'qty'      => ['nullable', 'integer', 'min:0', 'max:' . $availableSlots],
             'is_open'  => ['nullable', 'boolean'],
             'rate_id'  => ['nullable', 'integer', 'exists:rates,id'],
             'price'    => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        // --- CASE 1 & 2: Base row (qty / is_open) ---
+        // --- CASE 1: Base row (qty / is_open) ---
         if (is_null($validated['rate_id'] ?? null)) {
             $availability = Availability::firstOrNew([
                 'unit_id' => $unitId,
@@ -322,9 +290,9 @@ class AvailabilityController extends Controller
                 'rate_id' => null,
             ]);
 
-            // If it's a new record, set defaults
             if (! $availability->exists) {
-                $availability->qty     = $unit->qty;
+                // default: null biar dihitung ulang di index
+                $availability->qty     = null;
                 $availability->is_open = true;
             }
 
@@ -337,43 +305,42 @@ class AvailabilityController extends Controller
             }
 
             $availability->save();
-
             return;
         }
 
-        // --- CASE 3: Rate row (price only) ---
+        // --- CASE 2: Rate row (price only) ---
         if (! is_null($validated['rate_id'])) {
+            // Pastikan base row selalu ada
+            $baseRow = Availability::firstOrCreate(
+                [
+                    'unit_id' => $unitId,
+                    'date'    => $validated['date'],
+                    'rate_id' => null,
+                ],
+                [
+                    'qty'     => null,
+                    'is_open' => true,
+                ]
+            );
+
+            // Rate row → hanya simpan price
             $availability = Availability::firstOrNew([
                 'unit_id' => $unitId,
                 'date'    => $validated['date'],
                 'rate_id' => $validated['rate_id'],
             ]);
 
-            if (! $availability->exists) {
-                // child row → inherit qty & is_open from base row
-                $baseRow = Availability::where('unit_id', $unitId)
-                    ->where('date', $validated['date'])
-                    ->whereNull('rate_id')
-                    ->first();
-
-                $availability->qty     = $baseRow->qty ?? null;
-                $availability->is_open = $baseRow->is_open ?? null;
-            }
-
             $availability->price = $validated['price'] ?? $availability->price;
+            $availability->qty = null;      // enforce null
+            $availability->is_open = null;  // enforce null
             $availability->save();
 
             return;
         }
-
-        return;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Availability $availability)
+    public function destroy(Availability $availability) 
     {
-        //
+
     }
 }

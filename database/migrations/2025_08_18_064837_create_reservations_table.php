@@ -30,10 +30,15 @@ return new class extends Migration
             // Stay info
             $table->date('check_in');
             $table->date('check_out');
+            $table->unsignedInteger('nights')->virtualAs('DATEDIFF(check_out, check_in)');
             $table->unsignedInteger('guests')->default(1);
             $table->unsignedInteger('qty')->default(1);
 
             // Pricing
+            $table->decimal('subtotal', 15, 2)->default(0);     // 🔹 [NEW]
+            $table->decimal('tax_total', 15, 2)->default(0);    // 🔹 [NEW]
+            $table->decimal('service_total', 15, 2)->default(0);// 🔹 [NEW]
+            $table->decimal('extra_total', 15, 2)->default(0);  // 🔹 [NEW]
             $table->decimal('total_price', 15, 2)->default(0);
             $table->string('currency', 3)->default('IDR'); // ISO 4217
 
@@ -43,9 +48,9 @@ return new class extends Migration
 
             // Meta
             $table->dateTime('booked_on')->nullable();
-            $table->unsignedInteger('sort_order')->default(1);
+            // $table->unsignedInteger('sort_order')->default(1);
             $table->text('notes')->nullable();
-            $table->string('source')->default('direct');
+            $table->enum('source', ['direct','agency','ota','other'])->default('direct');
 
             $table->timestamps();
 

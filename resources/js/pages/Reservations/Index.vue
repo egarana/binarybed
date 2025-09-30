@@ -11,15 +11,34 @@ import { toast } from "vue-sonner"
 import { parseDate, getLocalTimeZone, type DateValue } from "@internationalized/date"
 
 import {
+    AlarmCheck,
+    AlarmClockOff,
+    Ban,
     CalendarDays,
     Check,
+    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     ChevronsUpDown,
+    Circle,
+    CircleCheckBig,
+    CircleMinus,
+    CircleOff,
+    CircleSlash,
+    CircleSlash2,
+    CircleX,
+    Clock,
+    ClockArrowDown,
+    ClockArrowUp,
+    CornerUpLeft,
+    LogIn,
+    LogOut,
     Pencil,
     PlusCircle,
+    RotateCcw,
+    Timer,
     Trash2,
     X,
 } from "lucide-vue-next"
@@ -77,6 +96,18 @@ interface DateOfOption {
   label: string
 }
 
+type StatusConfig = {
+    label: string
+    icon: any
+    class: string
+}
+
+type PaymentStatusConfig = {
+    label: string
+    icon: any
+    class: string
+}
+
 const dateOfOptions = [
     { value: "check_in", label: "Check-in" },
     { value: "check_out", label: "Check-out" },
@@ -102,6 +133,44 @@ const toDate = ref<DateValue | undefined>(
 
 const openFrom = ref(false)
 const openTo = ref(false)
+
+const statusMap: Record<string, StatusConfig> = {
+    pending: { 
+        label: 'Pending', 
+        icon: Circle,
+    },
+    confirmed: { 
+        label: 'Confirmed', 
+        icon: CircleCheckBig,
+    },
+    cancelled: { 
+        label: 'Cancelled', 
+        icon: Ban, 
+    },
+    checked_in: { 
+        label: 'Checked In', 
+        icon: ClockArrowDown,
+    },
+    checked_out: { 
+        label: 'Checked Out', 
+        icon: ClockArrowUp, 
+    },
+}
+
+const paymentStatusMap: Record<string, PaymentStatusConfig> = {
+    unpaid: {
+        label: "Unpaid",
+        icon: Circle,
+    },
+    paid: {
+        label: "Paid",
+        icon: CircleCheckBig,
+    },
+    refunded: {
+        label: "Refunded",
+        icon: RotateCcw,
+    },
+}
 
 const dialogStates = reactive<Record<number, boolean>>({});
 
@@ -266,6 +335,18 @@ const formatNumber = (number) => {
         maximumFractionDigits: 0
     }).format(number);
 }
+
+const formatRupiah = (num: number | string | undefined) => {
+	const n = Number(num ?? 0)
+
+	const formatted = new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'IDR',
+		minimumFractionDigits: 0
+	}).format(n)
+
+	return formatted.replace("IDR", "Rp")
+}
 </script>
 
 <template>
@@ -304,7 +385,6 @@ const formatNumber = (number) => {
                                 :value="item"
                             >
                                 {{ item.label }}
-
                                 <ComboboxItemIndicator>
                                     <Check :class="cn('ml-auto h-4 w-4')" />
                                 </ComboboxItemIndicator>
@@ -407,39 +487,27 @@ const formatNumber = (number) => {
                                         <ChevronsUpDown class="!w-3 !h-3" />
                                     </Button>
                                 </TableHead>
-                                <TableHead class="w-[150px]">
-                                    <Button variant="ghost" size="sm" @click="handleSort('rate')">
-                                        Rate
-                                        <ChevronsUpDown class="!w-3 !h-3" />
-                                    </Button>
-                                </TableHead>
-                                <!-- <TableHead class="w-[250px]">
-                                    <Button variant="ghost" size="sm" @click="handleSort('property')">
-                                        Property
-                                        <ChevronsUpDown class="!w-3 !h-3" />
-                                    </Button>
-                                </TableHead>
-                                <TableHead class="w-[140px] text-right">
-                                    <Button variant="ghost" size="sm" @click="handleSort('standard_rate_price')">
-                                        Standard Rate
-                                        <ChevronsUpDown class="!w-3 !h-3" />
-                                    </Button>
-                                </TableHead>
-                                <TableHead class="w-[90px] text-center">
-                                    <Button variant="ghost" size="sm" @click="handleSort('rates_count')">
-                                        Rates
-                                        <ChevronsUpDown class="!w-3 !h-3" />
-                                    </Button>
-                                </TableHead> -->
-                                <TableHead class="w-[140px]">
-                                    <Button variant="ghost" size="sm" @click="handleSort('created_at')">
-                                        Created At
+                                <TableHead class="w-[130px]">
+                                    <Button variant="ghost" size="sm" @click="handleSort('total_price')">
+                                        Price
                                         <ChevronsUpDown class="!w-3 !h-3" />
                                     </Button>
                                 </TableHead>
                                 <TableHead class="w-[140px]">
-                                    <Button variant="ghost" size="sm" @click="handleSort('updated_at')">
-                                        Updated At
+                                    <Button variant="ghost" size="sm" @click="handleSort('payment_status')">
+                                        Payment
+                                        <ChevronsUpDown class="!w-3 !h-3" />
+                                    </Button>
+                                </TableHead>
+                                <TableHead class="w-[140px]">
+                                    <Button variant="ghost" size="sm" @click="handleSort('status')">
+                                        Status
+                                        <ChevronsUpDown class="!w-3 !h-3" />
+                                    </Button>
+                                </TableHead>
+                                <TableHead class="w-[140px]">
+                                    <Button variant="ghost" size="sm" @click="handleSort('reservation_code')">
+                                        Code
                                         <ChevronsUpDown class="!w-3 !h-3" />
                                     </Button>
                                 </TableHead>
@@ -451,23 +519,37 @@ const formatNumber = (number) => {
                                 <TableCell class="ps-5">{{ reservation.first_name }} {{ reservation.last_name }}</TableCell>
                                 <TableCell class="ps-5">{{ dayjs(reservation.check_in).format('DD MMM YYYY') }}</TableCell>
                                 <TableCell class="ps-5">{{ dayjs(reservation.check_out).format('DD MMM YYYY') }}</TableCell>
-                                <TableCell class="ps-5">{{reservation.unit.name }} - {{reservation.unit.property.name }}</TableCell>
-                                <TableCell class="ps-5">{{ dayjs(reservation.booked_on).format('DD MMM YYYY') }}</TableCell>
-                                <TableCell class="ps-5">{{reservation.rate.name }}</TableCell>
-                                <!-- <TableCell
-                                    :class="(!permissions.includes('delete-reservations') && !permissions.includes('edit-reservations')) ? '!py-4' : ''"
-                                    class="ps-5"
-                                >
-                                    {{ reservation.name }}
-                                </TableCell> -->
-                                <!-- <TableCell class="ps-5">
-                                    <span v-if="reservation.property">{{ reservation.property.name }}</span>
-                                    <span v-else class="text-muted-foreground italic">No property assigned</span>
+                                <TableCell class="ps-5">
+                                    <div>
+                                        <span v-if="reservation.qty > 1">{{ reservation.qty }} x </span>
+                                        {{reservation.unit.name }}
+                                    </div>
+                                    <div class="text-xs text-muted-foreground">{{reservation.unit.property.name }}</div>
                                 </TableCell>
-                                <TableCell class="pe-6 font-medium text-right">{{ formatNumber(reservation.standard_rate.price) }}</TableCell>
-                                <TableCell class="text-center pe-5">{{ reservation.rates_count }}</TableCell> -->
-                                <TableCell class="ps-5">{{ dayjs(reservation.created_at).fromNow() }}</TableCell>
-                                <TableCell class="ps-5">{{ dayjs(reservation.updated_at).fromNow() }}</TableCell>
+                                <TableCell class="ps-5">{{ dayjs(reservation.booked_on).format('DD MMM YYYY') }}</TableCell>
+                                <TableCell class="ps-5">
+                                    <div>{{ formatRupiah(reservation.total_price) }}</div>
+                                    <div class="text-xs text-muted-foreground">{{ reservation.rate.name }}</div>
+                                </TableCell>
+                                <TableCell class="ps-5">
+                                    <div class="flex items-center gap-2">
+                                        <component
+                                            :is="paymentStatusMap[reservation.payment_status]?.icon"
+                                            class="w-4 h-4 text-muted-foreground"
+                                        />
+                                        {{ paymentStatusMap[reservation.payment_status]?.label ?? reservation.payment_status }}
+                                    </div>
+                                </TableCell>
+                                <TableCell class="ps-5">
+                                    <div class="flex items-center gap-2">
+                                        <component
+                                            :is="statusMap[reservation.status]?.icon"
+                                            class="w-4 h-4 text-muted-foreground"
+                                        />
+                                        {{ statusMap[reservation.status]?.label ?? reservation.status }}
+                                    </div>
+                                </TableCell>
+                                <TableCell class="ps-5">{{ reservation.reservation_code }}</TableCell>
                                 <TableCell class="text-right">
                                     <TooltipProvider>
                                         <Tooltip>

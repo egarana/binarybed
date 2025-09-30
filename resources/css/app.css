@@ -218,6 +218,21 @@
         }
     }
 
+    /* Tailwind layer */
+    
+    [data-slot="calendar-cell-trigger"][data-disabled] {
+        @apply line-through text-destructive-foreground opacity-50 cursor-not-allowed;
+    }
+
+
+    /* [data-slot="calendar-cell-trigger"][data-disabled]::after {
+        content: "";
+        @apply absolute left-1/2 top-1/2 w-1/2 border-t border-muted-foreground -translate-x-1/2;
+        transform: rotate(-45deg);
+        transform-origin: center;
+    } */
+
+
     /*  COMPONENTS - FOOTER  */
 
     .footer-social-icon {

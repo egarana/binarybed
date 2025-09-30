@@ -32,7 +32,7 @@ import { toast } from 'vue-sonner'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { debounce } from 'lodash-es'
 
-import { CalendarIcon, Check, ChevronsUpDown, Search, X } from 'lucide-vue-next'
+import { CalendarIcon, Check, ChevronRight, ChevronsUpDown, Search, X } from 'lucide-vue-next'
 
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -44,6 +44,18 @@ import {
 	type DateValue,
 	parseDate
 } from '@internationalized/date'
+
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog'
+import DialogClose from '@/components/ui/dialog/DialogClose.vue'
+import { Textarea } from '@/components/ui/textarea'
 
 /* ------------------------------ Day.js Setup ------------------------------ */
 dayjs.extend(utc)
@@ -93,9 +105,9 @@ const disabledDates = ref<string[]>(
 		: []
 )
 
-const datesWithQty = ref<{ date: string; qty: number }[]>(   // ⬅️ ADD
-	Array.isArray(usePage().props.datesWithQty)
-		? usePage().props.datesWithQty
+const reservationDays = ref<{ date: string; qty: number }[]>(   // ⬅️ ADD
+	Array.isArray(usePage().props.reservationDays)
+		? usePage().props.reservationDays
 		: []
 )
 const minQty = ref<number | null>(usePage().props.minQty ?? null)
@@ -107,10 +119,63 @@ const selectedCountry = ref<CountryOption>({
 	code: '+62'
 })
 
+const totalPrices = ref<{ rate_id: number; rate_name: string; total: number }[]>(
+	Array.isArray(usePage().props.totalPrices)
+		? usePage().props.totalPrices
+		: []
+)
+
+// Total aktif: ambil sesuai rate yang dipilih × qty
+const activeTotal = computed(() => {
+	if (!form.rate || !form.qty) return 0
+	const found = totalPrices.value.find(tp => String(tp.rate_id) === String(form.rate?.value))
+	return found ? found.total * Number(form.qty) : 0
+})
+
+const statuses = [
+	{ value: 'pending', label: 'Pending' },
+	{ value: 'confirmed', label: 'Confirmed' },
+	{ value: 'cancelled', label: 'Cancelled' },
+	{ value: 'checked_in', label: 'Checked In' },
+	{ value: 'checked_out', label: 'Checked Out' },
+]
+
+const paymentStatuses = [
+	{ value: 'unpaid', label: 'Unpaid' },
+	{ value: 'paid', label: 'Paid' },
+	{ value: 'refunded', label: 'Refunded' },
+]
+
+const sources = [
+	{ value: 'direct', label: 'Direct (Website/Walk-in)' },
+	{ value: 'agency', label: 'Travel Agency (Offline)' },
+	{ value: 'ota', label: 'Online Travel Agent (Booking, Agoda, Airbnb, etc.)' },
+	{ value: 'other', label: 'Other' },
+]
+
+
 /* ------------------------------ Form ------------------------------ */
 const form = useForm({
+	status: {
+		value: 'pending', 
+		label: 'Pending',
+	},
+	payment_status: {
+		value: 'unpaid', 
+		label: 'Unpaid',
+	},
+	source: {
+		value: 'direct', 
+		label: 'Direct (Website/Walk-in)',
+	},
 	unit: null as UnitOption | null,
+	check_in: '',
+	check_out: '',
+	qty: '',
+	guests: '',
 	rate: null as RateOption | null,
+	total_price: 0,
+	currency: 'IDR',
 	first_name: '',
 	last_name: '',
 	email: '',
@@ -118,9 +183,7 @@ const form = useForm({
 		country: selectedCountry.value,
 		number: ''
 	} as PhoneField,
-	check_in: '',
-	check_out: '',
-	qty: '',
+	notes: '',
 })
 
 /* ------------------------------ Breadcrumbs ------------------------------ */
@@ -142,7 +205,8 @@ const submit = () => {
 		onError: () => {
 			toast('Error creating reservation', {
 				description: 'Something went wrong, please try again',
-				action: { label: 'Close' }
+				class: 'toast-destructive',
+				action: { label: 'Close' },
 			})
 		}
 	})
@@ -229,6 +293,8 @@ watch(selectedUnit, (newVal) => {
 	checkOutDate.value = undefined
 	form.check_in = ''
 	form.check_out = ''
+	form.qty = null
+	form.total_price = 0
 
 	// Fetch disabled dates kalau ada unit
 	if (newVal) {
@@ -260,7 +326,7 @@ watch([selectedUnit, checkInDate, checkOutDate], ([unit, checkIn, checkOut]) => 
 			{
 				preserveScroll: true,
 				preserveState: true,
-				only: ['units', 'datesWithQty', 'minQty'], // ⬅️ tambahin
+				only: ['units', 'reservationDays', 'minQty', 'totalPrices'], // ⬅️ tambahin
 				onSuccess: () => {
 					// update rates
 					const newUnits = usePage().props.units as UnitOption[] ?? []
@@ -270,8 +336,9 @@ watch([selectedUnit, checkInDate, checkOutDate], ([unit, checkIn, checkOut]) => 
 					form.rate = rates.value.length > 0 ? rates.value[0] : null
 
 					// update qty info
-					datesWithQty.value = usePage().props.datesWithQty as { date: string; qty: number }[] ?? []
+					reservationDays.value = usePage().props.reservationDays as { date: string; qty: number }[] ?? []
 					minQty.value = usePage().props.minQty as number ?? null
+					totalPrices.value = usePage().props.totalPrices as { rate_id: number; rate_name: string; total: number }[] ?? []
 				}
 			}
 		)
@@ -281,6 +348,28 @@ watch([selectedUnit, checkInDate, checkOutDate], ([unit, checkIn, checkOut]) => 
 watch(selectedCountry, (newVal) => {
 	if (newVal) {
 		form.phone.country = newVal
+	}
+})
+
+// Auto set/reset qty berdasarkan check-in & check-out
+watch([checkInDate, checkOutDate], ([checkIn, checkOut]) => {
+	if (checkIn && checkOut) {
+		// Default qty = 1 setiap kali tanggal valid
+		form.qty = 1
+	} else {
+		// Kalau salah satu kosong (misalnya checkout direset) → null
+		form.qty = null
+	}
+})
+
+watch(() => activeTotal.value, (newVal) => {
+	form.total_price = newVal
+})
+
+watch(() => form.qty, (newQty) => {
+	if (newQty && selectedUnit.value) {
+		// otomatis isi guests jadi maksimum
+		form.guests = newQty * (selectedUnit.value.occupancy ?? 1)
 	}
 })
 
@@ -379,10 +468,35 @@ watch(checkInDate, (newCheckIn) => {
 		form.check_out = dayjs(nextDay.toString()).format('YYYY-MM-DD')
 	}
 })
+
+/* ------------------------------ Utilities ------------------------------ */
+const formatNumber = (num: number | string | undefined) => {
+    const n = Number(num ?? 0)
+    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n)
+}
+
+const formatRupiah = (num: number | string | undefined) => {
+	const n = Number(num ?? 0)
+
+	const formatted = new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'IDR',
+		minimumFractionDigits: 0
+	}).format(n)
+
+	return formatted.replace("IDR", "Rp")
+}
+
+const filteredReservationDays = computed(() => {
+	if (!form.rate) return []
+	const rid = String(form.rate.value)
+	// ganti 'reservationDays' dengan sumber datamu, mis. datesWithQty
+	return (reservationDays.value as any[]).filter(d => String(d.rate_id) === rid)
+})
 </script>
 
 <template>
-    <!-- <pre class="text-xs absolute z-50 bg-white">{{ disabledDates }}</pre> -->
+    <!-- <pre class="text-xs absolute z-50 bg-white">{{ selectedUnit }}</pre> -->
 	<Head title="Create Reservation" />
 
 	<AppLayout :breadcrumbs="breadcrumbs">
@@ -393,15 +507,130 @@ watch(checkInDate, (newCheckIn) => {
 					description="Manually create a new reservation for a unit and assign the appropriate rate"
 				/>
 
-
-				<pre class="text-xs bg-muted p-2 rounded">
-					{{ datesWithQty }}
-					{{ minQty }}
-				</pre>
+				<!-- <pre class="text-xs bg-muted p-2 rounded">
+					{{ form }}
+				</pre> -->
 
 				<Separator />
 
 				<form @submit.prevent="submit" class="space-y-6 h-full flex flex-col">
+					<!-- Status -->
+                    <div class="grid gap-2">
+                        <Label>Status</Label>
+                        <Combobox 
+                            v-model="form.status"
+                            class="mt-1"
+                        >
+                            <ComboboxAnchor as-child>
+                                <ComboboxTrigger as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="justify-between w-full"
+                                    >
+                                        {{ form.status?.label ?? 'Select a status for the reservation' }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </ComboboxTrigger>
+                            </ComboboxAnchor>
+
+                            <ComboboxList align="start" class="w-full min-w-[250px]">
+                                <ComboboxGroup>
+                                    <ComboboxItem
+                                        v-for="(status, index) in statuses"
+                                        :key="index"
+                                        :value="status"
+                                        class="w-full min-w-[250px] flex items-center justify-between"
+                                    >
+                                        {{ status.label }}
+                                        <ComboboxItemIndicator>
+                                            <Check :class="cn('ml-auto h-4 w-4')" />
+                                        </ComboboxItemIndicator>
+                                    </ComboboxItem>
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </Combobox>
+                        <InputError :message="form.errors.status" />
+                    </div>
+
+					<!-- Payment Status -->
+                    <div class="grid gap-2">
+                        <Label>Payment Status</Label>
+                        <Combobox 
+                            v-model="form.payment_status"
+                            class="mt-1"
+                        >
+                            <ComboboxAnchor as-child>
+                                <ComboboxTrigger as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="justify-between w-full"
+                                    >
+                                        {{ form.payment_status?.label ?? 'Select a payment status for the reservation' }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </ComboboxTrigger>
+                            </ComboboxAnchor>
+
+                            <ComboboxList align="start" class="w-full min-w-[250px]">
+                                <ComboboxGroup>
+                                    <ComboboxItem
+                                        v-for="(status, index) in paymentStatuses"
+                                        :key="index"
+                                        :value="status"
+                                        class="w-full min-w-[250px] flex items-center justify-between"
+                                    >
+                                        {{ status.label }}
+                                        <ComboboxItemIndicator>
+                                            <Check :class="cn('ml-auto h-4 w-4')" />
+                                        </ComboboxItemIndicator>
+                                    </ComboboxItem>
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </Combobox>
+                        <InputError :message="form.errors.payment_status" />
+                    </div>
+
+					<!-- Source -->
+                    <div class="grid gap-2">
+                        <Label>Source</Label>
+                        <Combobox 
+                            v-model="form.source"
+                            class="mt-1"
+                        >
+                            <ComboboxAnchor as-child>
+                                <ComboboxTrigger as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="justify-between w-full"
+                                    >
+                                        {{ form.source?.label ?? 'Select a source for the reservation' }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </ComboboxTrigger>
+                            </ComboboxAnchor>
+
+                            <ComboboxList align="start" class="w-full min-w-[250px]">
+                                <ComboboxGroup>
+                                    <ComboboxItem
+                                        v-for="(source, index) in sources"
+                                        :key="index"
+                                        :value="source"
+                                        class="w-full min-w-[250px] flex items-center justify-between"
+                                    >
+                                        {{ source.label }}
+                                        <ComboboxItemIndicator>
+                                            <Check :class="cn('ml-auto h-4 w-4')" />
+                                        </ComboboxItemIndicator>
+                                    </ComboboxItem>
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </Combobox>
+                        <InputError :message="form.errors.source" />
+                    </div>
+
 					<!-- Unit -->
 					<div class="grid gap-2">
 						<Label>Unit</Label>
@@ -447,7 +676,7 @@ watch(checkInDate, (newCheckIn) => {
 								</ComboboxList>
 							</Combobox>
 
-							<Button type="button" variant="outline" @click="selectedUnit = undefined">
+							<Button v-if="selectedUnit" type="button" variant="outline" @click="selectedUnit = undefined">
 								Clear
 								<X class="mt-0.5" />
 							</Button>
@@ -536,12 +765,13 @@ watch(checkInDate, (newCheckIn) => {
                             <ComboboxList align="start" class="w-full min-w-[250px]">
                                 <ComboboxGroup>
                                     <ComboboxItem
-                                        v-for="(item, index) in minQty"
+                                        v-for="(item, index) in selectedUnit.qty"
                                         :key="index"
                                         :value="item"
                                         class="w-full min-w-[250px] flex items-center justify-between"
+										:disabled="item > minQty"
                                     >
-                                        {{ item }}
+                                        <span :class="item > minQty ? 'line-through text-muted-foreground/30' : ''">{{ item }}</span>
                                         <ComboboxItemIndicator>
                                             <Check :class="cn('ml-auto h-4 w-4')" />
                                         </ComboboxItemIndicator>
@@ -550,6 +780,47 @@ watch(checkInDate, (newCheckIn) => {
                             </ComboboxList>
                         </Combobox>
                         <InputError :message="form.errors.qty" />
+                    </div>
+
+					<!-- Guests -->
+                    <div class="grid gap-2">
+                        <Label>Guests</Label>
+                        <Combobox 
+                            v-model="form.guests"
+							:disabled="!selectedUnit || !form.qty"
+                            class="mt-1"
+                        >
+                            <ComboboxAnchor as-child>
+                                <ComboboxTrigger as-child>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="justify-between w-full"
+                                        :class="{ 'font-normal text-muted-foreground': !form.qty || !form.guests }"
+                                    >
+                                        {{ form.qty ? form.guests : 'Select a guest number for the reservation' }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </ComboboxTrigger>
+                            </ComboboxAnchor>
+
+                            <ComboboxList align="start" class="w-full min-w-[250px]">
+                                <ComboboxGroup>
+                                    <ComboboxItem
+                                        v-for="(item, index) in (form.qty * selectedUnit.occupancy)"
+                                        :key="index"
+                                        :value="item"
+                                        class="w-full min-w-[250px] flex items-center justify-between"
+                                    >
+                                        <span>{{ item }}</span>
+                                        <ComboboxItemIndicator>
+                                            <Check :class="cn('ml-auto h-4 w-4')" />
+                                        </ComboboxItemIndicator>
+                                    </ComboboxItem>
+                                </ComboboxGroup>
+                            </ComboboxList>
+                        </Combobox>
+                        <InputError :message="form.errors.guests" />
                     </div>
 
                     <!-- Rate -->
@@ -592,6 +863,81 @@ watch(checkInDate, (newCheckIn) => {
                         </Combobox>
                         <InputError :message="form.errors.rate" />
                     </div>
+
+					<!-- Total Price -->
+					<div class="grid gap-2">
+						<Label for="totalPrice">Total Price</Label>
+						<div class="mt-1 flex items-center gap-2">
+							<Input
+								readonly
+								id="totalPrice"
+								class="mt-1 block w-full"
+								:value="form.total_price > 0 ? formatRupiah(form.total_price) : ''"
+								placeholder="Total price"
+							/>
+							<Dialog v-if="form.total_price > 0">
+								<DialogTrigger>
+									<Button type="button" variant="outline">
+										Breakdown
+										<ChevronRight class="mt-0.5" />
+									</Button>
+								</DialogTrigger>
+								<DialogContent class="p-0">
+									<DialogHeader class="px-6 pt-6 pb-0">
+										<DialogTitle>{{ form.rate?.label ?? 'Price breakdown' }}</DialogTitle>
+										<DialogDescription>
+											{{ dayjs(checkInDate).tz(dayjs.tz.guess()).format("DD MMM YYYY") }} - {{ dayjs(checkOutDate).tz(dayjs.tz.guess()).format("DD MMM YYYY") }}
+										</DialogDescription>
+									</DialogHeader>
+
+									<div class="border divide-y" v-if="filteredReservationDays.length">
+										<div 
+											class="flex items-center justify-between gap-2 text-sm px-6 py-4" 
+											v-for="day in filteredReservationDays"
+											:key="`${day.date}-${day.rate_id}`"
+										>
+											<div>
+												<h1 class="leading-none">
+													{{ dayjs(day.date).tz(dayjs.tz.guess()).format("DD MMM YYYY") }}
+												</h1>
+												<div class="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+													<span>{{ formatRupiah(day.total_with_tax) }} (incl. Tax 10%)</span>
+													<div>
+														x{{ form.qty }} {{ selectedUnit.type }}{{ form.qty > 1 ? 's' : '' }}
+													</div>
+												</div>
+											</div>
+											<div class="ms-auto">
+												{{ formatRupiah(day.total_with_tax * (Number(form.qty) || 1)) }}
+											</div>
+										</div>
+										<div
+											class="flex items-center justify-between gap-2 text-sm px-6 py-[23px]" 
+										>
+											<h1 class="font-medium">
+												Total price
+											</h1>
+											<div class="ms-auto font-semibold">
+												{{ formatRupiah(form.total_price) }}
+											</div>
+										</div>
+									</div>
+									<div v-else class="border px-6 py-6 text-sm text-muted-foreground text-center">
+										No price breakdown yet.
+									</div>
+
+									<DialogFooter class="px-6 pb-6 pt-0">
+										<DialogClose as-child>
+											<Button variant="outline">
+												Close
+											</Button>
+										</DialogClose>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</div>
+						<InputError :message="form.errors.total_price" />
+					</div>
 
 					<!-- Guest Info -->
 					<div class="grid gap-2">
@@ -686,6 +1032,19 @@ watch(checkInDate, (newCheckIn) => {
 							/>
 						</div>
 						<InputError :message="form.errors['phone.number']" />
+					</div>
+
+					<!-- Notes -->
+					<div class="grid gap-2">
+						<Label for="notes">Notes</Label>
+						<Textarea
+							id="notes"
+							class="mt-1 block w-full resize-none min-h-52"
+							v-model="form.notes"
+							autocomplete="notes"
+							placeholder="Notes for this reservation"
+						/>
+						<InputError :message="form.errors.notes" />
 					</div>
 
 					<!-- Save -->
