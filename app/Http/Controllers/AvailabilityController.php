@@ -266,7 +266,7 @@ class AvailabilityController extends Controller
         $activeReservations = $unit->reservations()
             ->where('check_in', '<=', $date)
             ->where('check_out', '>', $date)
-            ->count();
+            ->sum('qty');
 
         $capacity = $unit->qty;
         $availableSlots = max(0, $capacity - $activeReservations);

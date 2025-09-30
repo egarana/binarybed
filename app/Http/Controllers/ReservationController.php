@@ -239,14 +239,59 @@ class ReservationController extends Controller
 
         // ✅ If unit_id provided, fetch disabled dates
         if ($request->filled('unit_id')) {
+            $unit = Unit::find($request->unit_id);
+
+            // 1. Disabled normal (is_open / qty <= 0)
             $disabledDates = Availability::query()
-                ->where('unit_id', $request->unit_id)
+                ->where('unit_id', $unit->id)
                 ->where(function ($q) {
                     $q->where('is_open', false)
                     ->orWhere('qty', '<=', 0);
                 })
                 ->pluck('date')
                 ->values();
+
+            // 2. Tambahin continuity check kalau check_in & check_out ada
+            if ($request->filled(['check_in', 'check_out'])) {
+                $checkIn = Carbon::parse($request->check_in);
+                $checkOut = Carbon::parse($request->check_out);
+
+                $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
+
+                foreach ($period as $date) {
+                    $nextDate = $date->copy()->addDay();
+
+                    $allSlots = range(1, $unit->qty);
+
+                    // slot free hari ini
+                    $overlappingToday = ReservationSlot::query()
+                        ->whereHas('reservation', fn($q) =>
+                            $q->where('unit_id', $unit->id)
+                            ->where('check_in', '<=', $date)
+                            ->where('check_out', '>', $date)
+                        )
+                        ->pluck('sort_order')->unique()->toArray();
+                    $freeToday = array_diff($allSlots, $overlappingToday);
+
+                    // slot free hari besok
+                    $overlappingNext = ReservationSlot::query()
+                        ->whereHas('reservation', fn($q) =>
+                            $q->where('unit_id', $unit->id)
+                            ->where('check_in', '<=', $nextDate)
+                            ->where('check_out', '>', $nextDate)
+                        )
+                        ->pluck('sort_order')->unique()->toArray();
+                    $freeNext = array_diff($allSlots, $overlappingNext);
+
+                    // cek continuity
+                    $continuous = array_intersect($freeToday, $freeNext);
+
+                    if (empty($continuous)) {
+                        // 🔹 kalau gak ada slot yang konsisten, besok jadi batas checkout
+                        $disabledDates->push($nextDate->toDateString());
+                    }
+                }
+            }
         }
 
         if ($request->filled('unit_id')) {
@@ -731,7 +776,16 @@ class ReservationController extends Controller
      */
     public function destroy(Reservation $reservation)
     {
+        // kembalikan stok availability
+        $this->restoreReservationAvailability($reservation);
+
+        // hapus slot-slot
+        $reservation->slots()->delete();
+
+        // hapus reservation
         $reservation->delete();
+
+        return redirect()->route('reservations.index');
     }
 
     /**
@@ -781,4 +835,23 @@ class ReservationController extends Controller
 
         return $code;
     }
+
+    /**
+     * Restore availability untuk seluruh periode reservasi
+     */
+    private function restoreReservationAvailability(Reservation $reservation): void
+    {
+        $unit = $reservation->unit;
+        $qty  = $reservation->qty;
+
+        $checkIn  = Carbon::parse($reservation->check_in);
+        $checkOut = Carbon::parse($reservation->check_out);
+
+        $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
+
+        foreach ($period as $date) {
+            $this->adjustAvailability($unit, $date, 'restore', $qty);
+        }
+    }
+
 }

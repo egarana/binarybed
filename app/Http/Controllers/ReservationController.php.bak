@@ -355,7 +355,7 @@ class ReservationController extends Controller
 
         return DB::transaction(function () use ($validated, $checkIn, $checkOut, $unit) {
 
-            // 🔹 [CHANGED] Cari overlapping slots (bukan reservations.sort_order lagi)
+            // Cari overlapping slots
             $overlappingOrders = ReservationSlot::query()
                 ->whereHas('reservation', function ($q) use ($unit, $checkIn, $checkOut) {
                     $q->where('unit_id', $unit->id)
@@ -373,7 +373,7 @@ class ReservationController extends Controller
                 ->sort()
                 ->values();
 
-            // 🔹 [CHANGED] Cari slot kosong sejumlah qty
+            // Cari slot kosong sejumlah qty
             $slots = [];
             for ($i = 1; $i <= $unit->qty; $i++) {
                 if (! $overlappingOrders->contains($i)) {
@@ -388,7 +388,63 @@ class ReservationController extends Controller
                 return back()->withErrors(['unit' => 'No available rooms for this period.']);
             }
 
-            // 🔹 [CHANGED] Hapus kolom sort_order dari create()
+            // 🔹 [NEW] Variabel akumulasi untuk breakdown
+            $subtotal = 0;
+            $taxTotal = 0;
+            $serviceTotal = 0;
+            $extraTotal = 0;
+
+            $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
+            $taxRate = 0.1; 
+            $details = [];
+
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+
+                // Cari harga di availability (prioritas)
+                $availability = Availability::where('unit_id', $unit->id)
+                    ->whereDate('date', $dateStr)
+                    ->where(function ($q) use ($validated) {
+                        $q->where('rate_id', $validated['rate']['value'])
+                        ->orWhereNull('rate_id');
+                    })
+                    ->orderByRaw('CASE WHEN rate_id IS NULL THEN 2 ELSE 1 END')
+                    ->first();
+
+                if ($availability && $availability->price !== null) {
+                    $price = $availability->price;
+                } else {
+                    $price = $unit->rates()->find($validated['rate']['value'])->price ?? 0;
+                }
+
+                // Hitung
+                $lineSubtotal = $price * $validated['qty'];
+                $tax   = (int) round($price * $taxRate) * $validated['qty'];
+                $total = $lineSubtotal + $tax;
+
+                $subtotal   += $lineSubtotal;
+                $taxTotal   += $tax;
+                $serviceTotal += 0;
+                $extraTotal   += 0;
+
+                $details[] = [
+                    'reservation_id' => $reservation->id ?? null, // diisi setelah create
+                    'date'           => $dateStr,
+                    'rate_id'        => $validated['rate']['value'], // 🔹 [NEW]
+                    'qty'            => $validated['qty'],          // 🔹 [NEW]
+                    'base_price'     => $price,
+                    'subtotal'       => $lineSubtotal,
+                    'tax_amount'     => $tax,
+                    'service_fee'    => 0,
+                    'extra_charge'   => 0,
+                    'total_price'    => $total,
+                    'currency'       => $validated['currency'],     // 🔹 [NEW]
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ];
+            }
+
+            // 🔹 [CHANGED] Buat reservation setelah breakdown dihitung
             $reservation = Reservation::create([
                 'reservation_code'  => $this->generateReservationCode(),
                 'unit_id'           => $unit->id,
@@ -401,7 +457,12 @@ class ReservationController extends Controller
                 'check_out'         => $checkOut,
                 'guests'            => $validated['guests'],
                 'qty'               => $validated['qty'],
-                'total_price'       => $validated['total_price'],
+                // 🔹 [CHANGED] isi breakdown
+                'subtotal'          => $subtotal,
+                'tax_total'         => $taxTotal,
+                'service_total'     => $serviceTotal,
+                'extra_total'       => $extraTotal,
+                'total_price'       => $subtotal + $taxTotal + $serviceTotal + $extraTotal,
                 'currency'          => $validated['currency'],
                 'status'            => $validated['status']['value'] ?? 'pending',
                 'payment_status'    => $validated['payment_status']['value'] ?? 'unpaid',
@@ -410,56 +471,22 @@ class ReservationController extends Controller
                 'source'            => $validated['source']['value'] ?? 'direct',
             ]);
 
-            // 🔹 [NEW] Simpan slot-slot yang dipakai
+            // Update reservation_id di details
+            foreach ($details as &$d) {
+                $d['reservation_id'] = $reservation->id;
+            }
+            unset($d);
+
+            DB::table('reservation_details')->insert($details);
+
+            // Simpan slot-slot yang dipakai
             foreach ($slots as $slot) {
                 $reservation->slots()->create([
                     'sort_order' => $slot,
                 ]);
             }
 
-            $period = CarbonPeriod::create($checkIn, $checkOut->copy()->subDay());
-
-            $taxRate = 0.1; 
-            $details = [];
-
-            foreach ($period as $date) {
-                $dateStr = $date->toDateString();
-
-                // 🔹 Cari harga di availability (prioritas)
-                $availability = Availability::where('unit_id', $unit->id)
-                    ->whereDate('date', $dateStr)
-                    ->where(function ($q) use ($validated) {
-                        $q->where('rate_id', $validated['rate']['value'])
-                        ->orWhereNull('rate_id'); // fallback ke base row
-                    })
-                    ->orderByRaw('CASE WHEN rate_id IS NULL THEN 2 ELSE 1 END') // rate_id lebih prioritas
-                    ->first();
-
-                if ($availability && $availability->price !== null) {
-                    $price = $availability->price;
-                } else {
-                    $price = $unit->rates()->find($validated['rate']['value'])->price ?? 0;
-                }
-
-                $tax   = (int) round($price * $taxRate);
-                $total = $price + $tax;
-
-                $details[] = [
-                    'reservation_id' => $reservation->id,
-                    'date'           => $dateStr,
-                    'base_price'     => $price,
-                    'tax_amount'     => $tax,
-                    'service_fee'    => 0,
-                    'extra_charge'   => 0,
-                    'total_price'    => $total,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ];
-            }
-
-            DB::table('reservation_details')->insert($details);
-            
-            // 🔹 [UNCHANGED, tapi sudah support qty]
+            // Adjust availability
             foreach ($period as $date) {
                 $this->adjustAvailability($unit, $date, 'reduce', $validated['qty']);
             }
