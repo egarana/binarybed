@@ -7,8 +7,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestController;
 
-use Symfony\Component\HttpFoundation\Response;
-
 /*
 |--------------------------------------------------------------------------
 | Main Domain Routes
@@ -82,21 +80,6 @@ Route::domain('admin.binarybeds.com')->group(function () {
                 Route::get('/form', 'form')->name('form');
             });
     });
-
-    /**
-     * Tangani semua preflight CORS (OPTIONS) request di dev environment.
-     * Aman karena hanya aktif di local.
-     */
-    if (app()->environment('local')) {
-        Route::options('/{any}', function () {
-            return new Response('', 200, [
-                'Access-Control-Allow-Origin' => request()->headers->get('Origin'),
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, X-CSRF-Token, Authorization',
-                'Access-Control-Allow-Credentials' => 'true',
-            ]);
-        })->where('any', '.*');
-    }
 });
 
 /*
