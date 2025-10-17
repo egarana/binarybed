@@ -170,8 +170,9 @@
         @apply bg-background text-foreground;
     }
     input:not([role="combobox"][aria-expanded="true"]),
-    textarea {
-        @apply transition-[color,box-shadow] !shadow-xs !shadow-red-500;
+    textarea,
+    button {
+        @apply transition-[color,box-shadow] !shadow-none;
     }
     *:focus-visible:not(.cmdk-input-wrapper *):not([cmdk-input-wrapper] *):not(.no-focus-ring) {
         @apply !ring-[1px] !ring-muted-foreground/30 !border-muted-foreground/60 !ring-offset-0;
@@ -182,11 +183,14 @@
     button[role="combobox"]:focus {
         @apply !ring-[1px] !ring-muted-foreground/30 !border-muted-foreground/60 !ring-offset-0;
     }
-    /* input[role="combobox"][aria-expanded="false"] {
-        @apply !shadow-xs;
+}
+
+.toast-destructive {
+    @apply !bg-destructive;
+    [data-title] {
+        @apply !text-destructive-foreground !font-semibold;
     }
-    [data-reka-combobox-viewport] input[role="combobox"],
-    input[role="combobox"][aria-expanded="true"] {
-        @apply focus-visible:!ring-[0px] focus-visible:!border-0 !shadow-none;
-    } */
+    [data-description] {
+        @apply !text-destructive-foreground;
+    }
 }

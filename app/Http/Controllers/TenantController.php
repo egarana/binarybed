@@ -2,65 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tenant;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
+use App\Models\Tenant;
+use App\Services\TenantService;
+use App\Repositories\TenantRepository;
+use App\Http\Requests\StoreTenantRequest;
+use App\Http\Requests\UpdateTenantRequest;
 
 class TenantController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(TenantRepository $repository): Response
     {
-        return Inertia::render('tenants/Index');
+        return Inertia::render('tenants/Index', [
+            'tenants' => $repository->all(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('tenants/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreTenantRequest $request, TenantService $service)
     {
-        //
+        $service->create($request->validated());
+
+        return redirect()
+            ->route('tenants.index')
+            ->with('success', 'Tenant created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Tenant $tenant)
+    public function edit(Tenant $tenant): Response
     {
-        //
+        return Inertia::render('tenants/Edit', [
+            'tenant' => $tenant->load('domains'),
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Tenant $tenant)
+    public function update(UpdateTenantRequest $request, Tenant $tenant, TenantService $service)
     {
-        //
+        $service->update($tenant, $request->validated());
+
+        return redirect()
+            ->route('tenants.index')
+            ->with('success', 'Tenant updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Tenant $tenant)
+    public function destroy(Tenant $tenant, TenantService $service)
     {
-        //
-    }
+        $service->delete($tenant);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Tenant $tenant)
-    {
-        //
+        return redirect()
+            ->route('tenants.index')
+            ->with('success', 'Tenant deleted successfully.');
     }
 }

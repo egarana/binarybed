@@ -6,13 +6,6 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// export function urlIsActive(
-//     urlToCheck: NonNullable<InertiaLinkProps['href']>,
-//     currentUrl: string,
-// ) {
-//     return toUrl(urlToCheck) === currentUrl;
-// }
-
 export function urlIsActive(
     urlToCheck: NonNullable<InertiaLinkProps['href']>,
     currentUrl: string,
@@ -21,15 +14,20 @@ export function urlIsActive(
         const normalizedToCheck = normalizeUrl(toUrl(urlToCheck));
         const normalizedCurrent = normalizeUrl(currentUrl);
 
-        return normalizedToCheck === normalizedCurrent;
+        // cocok jika currentUrl diawali oleh urlToCheck (mis. /tenants -> /tenants/create)
+        return (
+            normalizedCurrent === normalizedToCheck ||
+            normalizedCurrent.startsWith(normalizedToCheck + '/')
+        );
     } catch {
         // fallback jika parsing gagal
-        return toUrl(urlToCheck).replace(/\/+$/, '') === currentUrl.replace(/\/+$/, '');
+        const base = toUrl(urlToCheck).replace(/\/+$/, '');
+        const current = currentUrl.replace(/\/+$/, '');
+        return current === base || current.startsWith(base + '/');
     }
 }
 
 function normalizeUrl(url: string): string {
-    // pastikan URL bisa di-parse, baik relatif maupun absolut
     const u = new URL(url, window.location.origin);
     return u.pathname.replace(/\/+$/, '');
 }
