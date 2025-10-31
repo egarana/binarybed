@@ -38,6 +38,8 @@ const capitalizedEntityName = capitalizeFirst(props.entityName);
 function handleDelete(): void {
     router.delete(props.deleteUrl, {
         preserveScroll: true,
+        preserveState: true,
+        preserveUrl: true,
         onSuccess: () => {
             notifyActionResult('success', 'delete', capitalizedEntityName, null);
             open.value = false;

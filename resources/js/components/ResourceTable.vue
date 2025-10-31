@@ -147,7 +147,7 @@ watch(selectedPerPage, (v) => {
                                     v-if="deleteRoute"
                                     :delete-url="deleteRoute(item.id).url"
                                     :entity-name="resourceName || 'item'"
-                                    @deleted="refresh()"
+                                    @deleted="refresh && refresh()"
                                 />
                             </TableCell>
                         </TableRow>
