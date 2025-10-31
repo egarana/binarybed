@@ -71,6 +71,21 @@ const selectedPerPage = ref(String(snapped));
 watch(selectedPerPage, (v) => {
     props.refresh && props.refresh({ per_page: v, page: 1 });
 });
+
+// Handle delete dengan logic untuk pindah ke page sebelumnya jika item terakhir di last page
+const handleDelete = () => {
+    if (!props.refresh) return;
+    // Cek apakah kita di last page dan item tinggal 1
+    const isLastPage = pagination.value.current_page === pagination.value.last_page;
+    const hasOnlyOneItem = items.value.length === 1;
+    if (isLastPage && hasOnlyOneItem && pagination.value.current_page > 1) {
+        // Pindah ke page sebelumnya
+        props.refresh({ page: pagination.value.current_page - 1 });
+    } else {
+        // Refresh biasa
+        props.refresh();
+    }
+};
 </script>
 
 <template>
@@ -147,7 +162,7 @@ watch(selectedPerPage, (v) => {
                                     v-if="deleteRoute"
                                     :delete-url="deleteRoute(item.id).url"
                                     :entity-name="resourceName || 'item'"
-                                    @deleted="refresh && refresh()"
+                                    @deleted="handleDelete"
                                 />
                             </TableCell>
                         </TableRow>
