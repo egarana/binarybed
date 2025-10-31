@@ -6,6 +6,7 @@ import { Head } from '@inertiajs/vue3';
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
 import ResourceTable from '@/components/ResourceTable.vue';
+import ResourceTableFilter from '@/components/ResourceTableFilter.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -40,6 +41,15 @@ const columns = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <ResourceTableFilter
+                :refresh="refresh"
+                searchPlaceholder="Search tenants..."
+                searchField="name"
+                :showAddButton="true"
+                addButtonLabel="Add Tenant"
+                :addButtonRoute="tenants.create()"
+                :showSearch="true"
+            />
             <ResourceTable
                 :data="resource"
                 :columns="columns"
