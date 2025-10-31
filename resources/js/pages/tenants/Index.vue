@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/vue3';
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
 import ResourceTable from '@/components/ResourceTable.vue';
-import ResourceTableFilter from '@/components/ResourceTableFilter.vue';
+import ResourceTableFilter, { type FilterConfig } from '@/components/ResourceTableFilter.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -34,6 +34,32 @@ const columns = [
     { key: 'created_at', label: 'Created At', sortable: true },
     { key: 'updated_at', label: 'Updated At', sortable: true },
 ];
+
+// Example filters (customize based on your needs)
+const filters: FilterConfig[] = [
+    {
+        name: 'status',
+        label: 'Status',
+        placeholder: 'Select status',
+        options: [
+            { value: 'free', label: 'Free' },
+            { value: 'basic', label: 'Basic' },
+            { value: 'premium', label: 'Premium' },
+            { value: 'enterprise', label: 'Enterprise' }
+        ]
+    },
+    {
+        name: 'plan',
+        label: 'Plan',
+        placeholder: 'Select plan',
+        options: [
+            { value: 'free', label: 'Free' },
+            { value: 'basic', label: 'Basic' },
+            { value: 'premium', label: 'Premium' },
+            { value: 'enterprise', label: 'Enterprise' }
+        ]
+    }
+];
 </script>
 
 <template>
@@ -45,6 +71,7 @@ const columns = [
                 :refresh="refresh"
                 searchPlaceholder="Search tenants..."
                 :searchFields="['name', 'id', 'domains.domain']"
+                :filters="filters"
                 :showAddButton="true"
                 addButtonLabel="Add tenant"
                 :addButtonRoute="tenants.create()"
