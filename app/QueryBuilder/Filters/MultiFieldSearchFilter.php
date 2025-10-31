@@ -26,9 +26,9 @@ class MultiFieldSearchFilter implements Filter
 
     public function __invoke(Builder $query, $value, string $property)
     {
-        // Get search_fields from request, fallback to default
+        // Get fields from request, try 'fields' first (cleaner URL), fallback to 'search_fields'
         $request = request();
-        $fieldsParam = $request->input('search_fields');
+        $fieldsParam = $request->input('fields') ?? $request->input('search_fields');
 
         $fields = $fieldsParam
             ? explode(',', $fieldsParam)

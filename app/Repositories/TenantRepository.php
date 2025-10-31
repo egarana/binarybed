@@ -47,6 +47,14 @@ class TenantRepository
     {
         $perPage = $this->pagination->resolvePerPage($request);
 
+        // Map clean URL params to Spatie QueryBuilder format
+        if ($request->has('search')) {
+            $request->merge(['filter' => array_merge(
+                $request->input('filter', []),
+                ['search' => $request->input('search')]
+            )]);
+        }
+
         $result = $this->baseQuery()
             ->paginate($perPage)
             ->appends($request->query());

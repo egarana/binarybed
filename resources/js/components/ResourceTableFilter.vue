@@ -35,14 +35,14 @@ watch(search, (value) => {
     const filterParams: Record<string, any> = {};
 
     if (value) {
-        // If searchFields (multiple) is provided, use 'search' filter
+        // If searchFields (multiple) is provided, use simple 'search' param
         // Backend will handle OR condition across multiple fields
         if (props.searchFields && props.searchFields.length > 0) {
-            filterParams['filter[search]'] = value;
-            // Also send which fields to search in
-            filterParams['search_fields'] = props.searchFields.join(',');
+            filterParams['search'] = value;
+            // Send fields in cleaner format
+            filterParams['fields'] = props.searchFields.join(',');
         }
-        // Otherwise use single searchField
+        // Otherwise use single searchField with filter[] format
         else if (props.searchField) {
             filterParams[`filter[${props.searchField}]`] = value;
         }
@@ -53,8 +53,8 @@ watch(search, (value) => {
     } else {
         // Reset filters when search is empty
         if (props.searchFields && props.searchFields.length > 0) {
-            filterParams['filter[search]'] = undefined;
-            filterParams['search_fields'] = undefined;
+            filterParams['search'] = undefined;
+            filterParams['fields'] = undefined;
         } else if (props.searchField) {
             filterParams[`filter[${props.searchField}]`] = undefined;
         } else {

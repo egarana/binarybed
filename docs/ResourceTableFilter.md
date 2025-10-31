@@ -12,6 +12,7 @@ Component untuk search/filter dan add button yang digunakan bersama ResourceTabl
 - ✅ Opsi disable/enable
 - ✅ Customizable placeholder dan labels
 - ✅ Support Spatie QueryBuilder filters
+- ✅ **Clean URLs** - no encoded characters like %5B or %2C
 
 ## Props
 
@@ -79,7 +80,8 @@ const { refresh } = useFetcher({
 **How it works:**
 - Ketik "john" akan search di: `name LIKE '%john%' OR id LIKE '%john%' OR domain LIKE '%john%'`
 - Backend menggunakan `MultiFieldSearchFilter` dengan OR condition
-- Query format: `?filter[search]=john&search_fields=name,id,domain`
+- **Clean URL format:** `?search=john&fields=name,id,domain` ✨
+- No encoded characters (%5B, %2C, etc.) - readable dan SEO friendly!
 
 ### 4. Search by Different Field (Single Field)
 
@@ -237,13 +239,29 @@ public function paginate(Request $request)
 {
     $perPage = $this->pagination->resolvePerPage($request);
 
+    // Map clean URL params to Spatie QueryBuilder format
+    if ($request->has('search')) {
+        $request->merge(['filter' => array_merge(
+            $request->input('filter', []),
+            ['search' => $request->input('search')]
+        )]);
+    }
+
     return $this->baseQuery()
         ->paginate($perPage)
         ->appends($request->query());
 }
 ```
 
-**3. Multi-Field Search dengan Relasi:**
+**3. How Clean URLs Work:**
+
+The `paginate()` method above maps clean URL params to Spatie QueryBuilder format internally:
+- Frontend sends: `?search=john&fields=name,email`
+- Repository maps to: `?filter[search]=john` (internally)
+- Spatie QueryBuilder processes the filter
+- Result: Clean, readable URLs without %5B encoding! ✨
+
+**4. Multi-Field Search dengan Relasi:**
 
 `MultiFieldSearchFilter` support relation fields dengan format `relation.column`:
 
@@ -258,7 +276,7 @@ AllowedFilter::custom('search', new MultiFieldSearchFilter([
 ```
 
 **Example Query:**
-- `?filter[search]=john&search_fields=name,email,id`
+- Clean URL: `?search=john&fields=name,email,id` ✨
 - SQL: `WHERE name LIKE '%john%' OR email LIKE '%john%' OR id LIKE '%john%'`
 
 ## How It Works
@@ -273,16 +291,19 @@ AllowedFilter::custom('search', new MultiFieldSearchFilter([
 ### Multi-Field Search
 1. User mengetik di search input
 2. Watch trigger dengan debounce (300ms default dari useFetcher)
-3. Call `refresh()` dengan parameter `filter[search]={value}&search_fields=field1,field2,field3`
-4. Backend `MultiFieldSearchFilter` akan build OR condition untuk semua fields
-5. SQL query: `WHERE field1 LIKE '%value%' OR field2 LIKE '%value%' OR field3 LIKE '%value%'`
-6. Table auto-update dengan data yang di-filter
+3. Call `refresh()` dengan **clean URL parameters**: `search={value}&fields=field1,field2,field3`
+4. Repository maps clean params to Spatie QueryBuilder format internally
+5. Backend `MultiFieldSearchFilter` builds OR condition untuk semua fields
+6. SQL query: `WHERE field1 LIKE '%value%' OR field2 LIKE '%value%' OR field3 LIKE '%value%'`
+7. Table auto-update dengan data yang di-filter
 
 ## Notes
 
-- **Single field**: Menggunakan format `filter[field]=value`
-- **Multi-field**: Menggunakan format `filter[search]=value&search_fields=field1,field2`
+- **Single field**: Menggunakan format `filter[field]=value` (standard Spatie QueryBuilder)
+- **Multi-field**: Menggunakan **clean URL format** `search=value&fields=field1,field2` ✨
+- No URL encoding (%5B, %2C) - URLs are clean and readable!
 - Debounce sudah di-handle oleh `useFetcher` (default 300ms)
 - Reset button akan clear search dan refresh dengan filter kosong
 - Multi-field search support relation fields dengan format `relation.column`
 - Backend menggunakan LIKE dengan wildcards untuk partial search
+- Repository automatically maps clean URLs to Spatie QueryBuilder format
