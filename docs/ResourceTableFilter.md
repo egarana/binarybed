@@ -21,7 +21,7 @@ Component untuk search/filter dan add button yang digunakan bersama ResourceTabl
 | `showSearch` | `boolean` | `true` | Show/hide search input |
 | `showAddButton` | `boolean` | `false` | Show/hide add button |
 | `addButtonLabel` | `string` | `"Add"` | Label untuk add button |
-| `addButtonRoute` | `string` | - | Route untuk add button (required jika showAddButton=true) |
+| `addButtonRoute` | `InertiaLinkProps['href']` | - | Route untuk add button - accepts string atau route object (required jika showAddButton=true) |
 | `disabled` | `boolean` | `false` | Disable semua input/button |
 | `refresh` | `function` | - | Function dari useFetcher untuk trigger refresh |
 | `searchField` | `string` | - | Single field name untuk search (e.g., 'name', 'email') |

@@ -3,14 +3,14 @@ import { ref, watch } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, PlusCircle } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
+import { Link, type InertiaLinkProps } from '@inertiajs/vue3';
 
 interface Props {
     searchPlaceholder?: string;
     showSearch?: boolean;
     showAddButton?: boolean;
     addButtonLabel?: string;
-    addButtonRoute?: string;
+    addButtonRoute?: NonNullable<InertiaLinkProps['href']>;
     disabled?: boolean;
     refresh?: (params?: Record<string, any>) => void;
     searchField?: string; // Single field name to search, e.g., 'name'
