@@ -15,10 +15,10 @@ withDefaults(defineProps<Props>(), {
 
 <template>
     <Toaster 
-        position="bottom-right"
+        position="top-right"
         :expand="true"
         :closeButton="true" 
-        closeButtonPosition="top-left"
+        closeButtonPosition="top-right"
     />
     
     <AppLayout :breadcrumbs="breadcrumbs">

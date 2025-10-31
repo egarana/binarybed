@@ -4,7 +4,7 @@ import type { UseFetcherReturn } from './useFetcher';
 interface SorterOptions {
     defaultField?: string;
     defaultDirection?: 'asc' | 'desc';
-    fetcher?: Pick<UseFetcherReturn, 'fetchData' | 'lastParams'> | Pick<UseFetcherReturn, 'fetchData'>;
+    fetcher?: Pick<UseFetcherReturn, 'fetchData' | 'lastParams'>;
     backend?: boolean;
 }
 
@@ -22,15 +22,15 @@ export function useSorter(options: SorterOptions = {}) {
 
         if (options.fetcher && options.backend) {
             const directionPrefix = sortDirection.value === 'desc' ? '-' : '';
-            const anyFetcher = options.fetcher as any;
+            const sortParam = `${directionPrefix}${sortField.value}`;
 
-            if (anyFetcher.lastParams && typeof anyFetcher.lastParams.value === 'object') {
-                const base = { ...(anyFetcher.lastParams.value || {}) };
-                const merged = { ...base, sort: `${directionPrefix}${sortField.value}` };
-                anyFetcher.fetchData(merged);
-            } else {
-                anyFetcher.fetchData({ sort: `${directionPrefix}${sortField.value}` });
-            }
+            // Merge dengan lastParams untuk mempertahankan filter/params lainnya
+            const params = {
+                ...(options.fetcher.lastParams?.value || {}),
+                sort: sortParam,
+            };
+
+            options.fetcher.fetchData(params);
         }
     };
 

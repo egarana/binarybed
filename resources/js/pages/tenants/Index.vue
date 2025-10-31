@@ -5,7 +5,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
-import { onMounted } from 'vue';
 import ResourceTable from '@/components/ResourceTable.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,9 +22,8 @@ const { resource, fetchData, refresh, lastParams } = useFetcher({
 });
 
 const { sortState, handleSort } = useSorter({
-    fetcher: { fetchData },
+    fetcher: { fetchData, lastParams },
     backend: true,
-    defaultField: 'name',
 });
 
 const columns = [
