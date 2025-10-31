@@ -44,7 +44,7 @@ const columns = [
             <ResourceTableFilter
                 :refresh="refresh"
                 searchPlaceholder="Search tenants..."
-                searchField="name"
+                :searchFields="['name', 'id', 'domain']"
                 :showAddButton="true"
                 addButtonLabel="Add Tenant"
                 :addButtonRoute="tenants.create()"

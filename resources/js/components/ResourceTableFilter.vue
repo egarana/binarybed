@@ -13,7 +13,8 @@ interface Props {
     addButtonRoute?: string;
     disabled?: boolean;
     refresh?: (params?: Record<string, any>) => void;
-    searchField?: string; // Field name to search, e.g., 'name'
+    searchField?: string; // Single field name to search, e.g., 'name'
+    searchFields?: string[]; // Multiple fields to search, e.g., ['name', 'email', 'id']
     initialSearch?: string;
 }
 
@@ -23,7 +24,6 @@ const props = withDefaults(defineProps<Props>(), {
     showAddButton: false,
     addButtonLabel: 'Add',
     disabled: false,
-    searchField: 'name', // Default search by 'name'
 });
 
 const search = ref(props.initialSearch || '');
@@ -32,15 +32,34 @@ const search = ref(props.initialSearch || '');
 watch(search, (value) => {
     if (!props.refresh) return;
 
-    // Build filter object for Spatie QueryBuilder
-    // Example: filter[name]=keyword
     const filterParams: Record<string, any> = {};
 
     if (value) {
-        filterParams[`filter[${props.searchField}]`] = value;
+        // If searchFields (multiple) is provided, use 'search' filter
+        // Backend will handle OR condition across multiple fields
+        if (props.searchFields && props.searchFields.length > 0) {
+            filterParams['filter[search]'] = value;
+            // Also send which fields to search in
+            filterParams['search_fields'] = props.searchFields.join(',');
+        }
+        // Otherwise use single searchField
+        else if (props.searchField) {
+            filterParams[`filter[${props.searchField}]`] = value;
+        }
+        // Fallback to 'name' if nothing specified
+        else {
+            filterParams['filter[name]'] = value;
+        }
     } else {
-        // Reset filter when search is empty
-        filterParams[`filter[${props.searchField}]`] = undefined;
+        // Reset filters when search is empty
+        if (props.searchFields && props.searchFields.length > 0) {
+            filterParams['filter[search]'] = undefined;
+            filterParams['search_fields'] = undefined;
+        } else if (props.searchField) {
+            filterParams[`filter[${props.searchField}]`] = undefined;
+        } else {
+            filterParams['filter[name]'] = undefined;
+        }
     }
 
     props.refresh({ ...filterParams, page: 1 });
