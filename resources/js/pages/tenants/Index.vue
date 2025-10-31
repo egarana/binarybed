@@ -15,10 +15,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { resource, fetchData, refresh } = useFetcher({
+const { resource, fetchData, refresh, lastParams } = useFetcher({
     endpoint: tenants.index(),
     resourceKey: 'tenants',
-    preserveScroll: false,
+    preserveScroll: true,
     preserveUrl: false,
 });
 

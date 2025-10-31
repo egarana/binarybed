@@ -86,7 +86,7 @@ const onError = (payload: any) => {
                         tabindex="5"
                         :disabled="processing"
                         data-test="create-resource-button" <!-- 🔧 Ubah ID sesuai modul -->
-                    >
+                    />
                         <LoaderCircle
                             v-if="processing"
                             class="h-4 w-4 animate-spin"
