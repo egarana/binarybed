@@ -83,9 +83,9 @@ export function useFetcher<T = any>(options: FetcherOptions) {
         options.debounceMs ?? 300
     );
 
-    const refresh = (params: Record<string, any> = {}) => {
-        fetchData(params);
-    };
+    function refresh(params?: Record<string, any>, options?: any) {
+        fetchData(params, options)
+    }
 
     return {
         resource,
