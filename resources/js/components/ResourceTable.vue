@@ -63,7 +63,7 @@ const incoming = Number(pagination.value.per_page ?? 10);
 // snap ke opsi terdekat yang <= incoming
 const snapped = perPageOptions.reduce((acc, v) =>
     incoming >= v ? v : acc,
-perPageOptions[0]
+    perPageOptions[0]
 );
 
 const selectedPerPage = ref(String(snapped));
