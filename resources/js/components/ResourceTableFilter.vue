@@ -39,7 +39,7 @@ watch(search, (value) => {
         // Backend will handle OR condition across multiple fields
         if (props.searchFields && props.searchFields.length > 0) {
             filterParams['search'] = value;
-            // Send fields in cleaner format
+            // Send fields as single param with comma separator (simplest approach)
             filterParams['fields'] = props.searchFields.join(',');
         }
         // Otherwise use single searchField with filter[] format
