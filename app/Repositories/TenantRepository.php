@@ -10,6 +10,7 @@ use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\QueryBuilder\Sorts\RelationSort;
 use App\QueryBuilder\Filters\RelationFilter;
+use App\QueryBuilder\Filters\MultiFieldSearchFilter;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class TenantRepository
@@ -26,6 +27,7 @@ class TenantRepository
                 'name',
                 'slug',
                 AllowedFilter::custom('domain', new RelationFilter('domains', 'domain')),
+                AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'id', 'slug'])),
             ])
             ->allowedSorts([
                 'id', 'name', 'slug', 'created_at', 'updated_at',
@@ -44,6 +46,14 @@ class TenantRepository
     public function paginate(Request $request)
     {
         $perPage = $this->pagination->resolvePerPage($request);
+
+        // Map clean URL params to Spatie QueryBuilder format
+        if ($request->has('search')) {
+            $request->merge(['filter' => array_merge(
+                $request->input('filter', []),
+                ['search' => $request->input('search')]
+            )]);
+        }
 
         $result = $this->baseQuery()
             ->paginate($perPage)
