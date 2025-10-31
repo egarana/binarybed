@@ -18,6 +18,14 @@ export function useFetcher<T = any>(options: FetcherOptions) {
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
 
+    // Inisialisasi lastParams dari URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialParams: Record<string, any> = {};
+    urlParams.forEach((value, key) => {
+        initialParams[key] = value;
+    });
+    const lastParams = ref<Record<string, any>>(initialParams);
+
     const resource = ref<any>(null);
 
     // init data awal
@@ -45,6 +53,9 @@ export function useFetcher<T = any>(options: FetcherOptions) {
             ...(options.params ?? {}),
             ...params,
         };
+
+        // Simpan params terakhir
+        lastParams.value = query;
 
         router.get(options.endpoint, query, {
             preserveScroll: options.preserveScroll ?? true,
@@ -83,8 +94,13 @@ export function useFetcher<T = any>(options: FetcherOptions) {
         options.debounceMs ?? 300
     );
 
-    function refresh(params?: Record<string, any>, options?: any) {
-        fetchData(params, options)
+    function refresh(params?: Record<string, any>) {
+        // Merge lastParams dengan params baru
+        const mergedParams = {
+            ...lastParams.value,
+            ...(params ?? {}),
+        };
+        fetchData(mergedParams);
     }
 
     return {
@@ -93,5 +109,6 @@ export function useFetcher<T = any>(options: FetcherOptions) {
         errorMessage,
         fetchData,
         refresh,
+        lastParams,
     };
 }
