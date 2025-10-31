@@ -228,7 +228,7 @@ const hasActiveFilters = computed(() => {
                         <DropdownMenuCheckboxItem
                             v-for="option in filter.options"
                             :key="getOptionValue(option)"
-                            :checked="isFilterSelected(filter.name, getOptionValue(option))"
+                            :model-value="isFilterSelected(filter.name, getOptionValue(option))"
                             @select.prevent="toggleFilterOption(filter.name, getOptionValue(option))"
                         >
                             {{ getOptionLabel(option) }}
