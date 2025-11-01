@@ -228,18 +228,18 @@ const hasActiveFilters = computed(() => {
                         <DropdownMenuCheckboxItem
                             v-for="option in filter.options"
                             :key="getOptionValue(option)"
-                            :checked="isFilterSelected(filter.name, getOptionValue(option))"
+                            :model-value="isFilterSelected(filter.name, getOptionValue(option))"
                             @select.prevent="toggleFilterOption(filter.name, getOptionValue(option))"
                         >
                             {{ getOptionLabel(option) }}
                         </DropdownMenuCheckboxItem>
                     </DropdownMenuGroup>
                     <template v-if="selectedFilters[filter.name]?.length > 0">
-                        <DropdownMenuSeparator />
+                        <div class="border-t -mx-1 mb-1 my-1"></div>
                         <DropdownMenuGroup class="p-0">
                             <Button
                                 variant="ghost"
-                                class="w-full font-normal text-sm h-auto py-1.5 justify-start"
+                                class="w-full font-normal text-sm h-auto py-1.5 justify-center"
                                 @click="clearFilter(filter.name)"
                             >
                                 Clear filter
@@ -258,7 +258,7 @@ const hasActiveFilters = computed(() => {
             :disabled="disabled"
             class="w-full border md:border-0 md:w-auto"
         >
-            Reset All
+            Reset all
             <X />
         </Button>
 

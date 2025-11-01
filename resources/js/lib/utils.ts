@@ -18,3 +18,8 @@ export function urlIsActive(
     // Active jika currentUrl diawali pathname
     return currentUrl.startsWith(pathname);
 }
+
+export function toUrl(href: NonNullable<InertiaLinkProps['href']>) {
+    return typeof href === 'string' ? href : href?.url;
+}
+
