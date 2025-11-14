@@ -24,7 +24,7 @@ class StoreAgentRequest extends FormRequest
         return [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email', 'unique:agents,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8'],
         ];
     }
 
@@ -48,7 +48,6 @@ class StoreAgentRequest extends FormRequest
             'password.required'  => 'Please enter a password',
             'password.string'    => 'The password must be valid text',
             'password.min'       => 'The password must be at least 8 characters',
-            'password.confirmed' => 'The password confirmation does not match',
         ];
     }
 }
