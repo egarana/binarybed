@@ -5,62 +5,54 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAgentRequest;
 use App\Http\Requests\UpdateAgentRequest;
 use App\Models\Agent;
+use App\Services\AgentService;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AgentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        protected AgentService $service
+    ) {}
+
+    public function index(Request $request): Response
     {
-        //
+        $agents = $this->service->getAllPaginated($request);
+
+        return Inertia::render('agents/Index', compact('agents'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('agents/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreAgentRequest $request)
     {
-        //
+        $this->service->create($request->validated());
+
+        return redirect()->route('agents.index', ['sort' => '-created_at']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Agent $agent)
+    public function edit(Agent $agent): Response
     {
-        //
+        $agent = $agent->load('domains');
+
+        return Inertia::render('agents/Edit', compact('agent'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Agent $agent)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateAgentRequest $request, Agent $agent)
     {
-        //
+        $this->service->update($agent, $request->validated());
+
+        return redirect()->route('agents.index', ['sort' => '-updated_at']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Agent $agent)
     {
-        //
+        $this->service->delete($agent);
+
+        return redirect()->route('agents.index');
     }
 }

@@ -6,11 +6,6 @@ use App\Models\Tenant;
 use App\Repositories\TenantRepository;
 use App\Repositories\DomainRepository;
 
-/**
- * DeleteTenantAction
- * ------------------
- * Menghapus tenant dan domainnya tanpa menghapus database tenant.
- */
 class DeleteTenant
 {
     public function __construct(
@@ -20,13 +15,10 @@ class DeleteTenant
 
     public function execute(Tenant $tenant): void
     {
-        // Hapus semua domain terkait melalui repository
         $this->domainRepository->deleteByTenantId($tenant->id);
 
-        // Nonaktifkan hook drop DB dari Stancl sementara
         static::disableTenantDatabaseDeletion();
 
-        // Hapus tenant record-nya (hanya di central DB) melalui repository
         $this->tenantRepository->forceDelete($tenant);
     }
 
