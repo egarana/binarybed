@@ -6,6 +6,7 @@ use App\Http\Requests\StoreAgentRequest;
 use App\Http\Requests\UpdateAgentRequest;
 use App\Models\Agent;
 use App\Services\AgentService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,7 +29,7 @@ class AgentController extends Controller
         return Inertia::render('agents/Create');
     }
 
-    public function store(StoreAgentRequest $request)
+    public function store(StoreAgentRequest $request): RedirectResponse
     {
         $this->service->create($request->validated());
 
@@ -37,19 +38,17 @@ class AgentController extends Controller
 
     public function edit(Agent $agent): Response
     {
-        $agent = $agent->load('domains');
-
         return Inertia::render('agents/Edit', compact('agent'));
     }
 
-    public function update(UpdateAgentRequest $request, Agent $agent)
+    public function update(UpdateAgentRequest $request, Agent $agent): RedirectResponse
     {
         $this->service->update($agent, $request->validated());
 
         return redirect()->route('agents.index', ['sort' => '-updated_at']);
     }
 
-    public function destroy(Agent $agent)
+    public function destroy(Agent $agent): RedirectResponse
     {
         $this->service->delete($agent);
 
