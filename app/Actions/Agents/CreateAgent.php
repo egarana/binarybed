@@ -15,14 +15,6 @@ class CreateAgent
         protected AgentRepository $agentRepository
     ) {}
 
-    /**
-     * Execute agent creation process.
-     * Creates User + assigns 'agent' role + creates Agent record.
-     *
-     * @param  array  $data
-     * @return Agent
-     * @throws \Exception
-     */
     public function execute(array $data): Agent
     {
         return tenancy()->central(function () use ($data) {

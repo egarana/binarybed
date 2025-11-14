@@ -13,12 +13,6 @@ class CreateTenant
         protected DomainRepository $domainRepository
     ) {}
 
-    /**
-     * Jalankan proses pembuatan tenant baru.
-     *
-     * @param  array  $data
-     * @return Tenant
-     */
     public function execute(array $data): Tenant
     {
         return tenancy()->central(function () use ($data) {

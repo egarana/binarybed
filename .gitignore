@@ -26,5 +26,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-command-console.txt
-binarybed-session-template.txt
+txt/command-console.txt
+txt/binarybed-session-template.txt
+txt/laravel-actions-vs-service-comparison.txt

@@ -25,13 +25,19 @@ class AgentRepository
             ->allowedFilters([
                 'code',
                 'name',
-                AllowedFilter::custom('search', new MultiFieldSearchFilter(['code', 'name'])),
+                'email',
+                AllowedFilter::custom('search', new MultiFieldSearchFilter(['code', 'name', 'email'])),
             ])
             ->allowedSorts([
-                'code', 'name', 'created_at', 'updated_at',
+                'code', 'name', 'email', 'created_at', 'updated_at',
                 // AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
             ->defaultSort('name');
+    }
+
+    public function getAll()
+    {
+        return Agent::orderBy('name')->get();
     }
 
     public function getAllPaginated(Request $request)
@@ -57,19 +63,13 @@ class AgentRepository
         return $result;
     }
 
-    /**
-     * Create a new agent.
-     */
     public function create(array $data): Agent
     {
         $agent = Agent::create($data);
 
-        return $agent->load('domains');
+        return $agent;
     }
 
-    /**
-     * Update an existing agent.
-     */
     public function update(Agent $agent, array $data): Agent
     {
         $agent->update($data);
@@ -77,44 +77,9 @@ class AgentRepository
         return $agent->fresh()->load('domains');
     }
 
-    /**
-     * Delete a agent (soft delete).
-     */
     public function delete(Agent $agent): void
     {
         $agent->delete();
-    }
-
-    /**
-     * Force delete a agent (permanent delete).
-     */
-    public function forceDelete(Agent $agent): void
-    {
-        $agent->forceDelete();
-    }
-
-    /**
-     * Find a agent by ID.
-     */
-    public function find(string $id): ?Agent
-    {
-        return Agent::find($id);
-    }
-
-    /**
-     * Find a agent by ID with domains loaded.
-     */
-    public function findWithDomains(string $id): ?Agent
-    {
-        return Agent::with('domains')->find($id);
-    }
-
-    /**
-     * Get all agents without pagination.
-     */
-    public function getAll()
-    {
-        return Agent::orderBy('name')->get();
     }
 
     /**

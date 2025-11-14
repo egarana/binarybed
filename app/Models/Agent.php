@@ -3,15 +3,45 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Agent extends Model
 {
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'id',
         'code',
         'name',
+        'email',
     ];
 
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        //
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
     protected static function booted(): void
     {
         static::creating(function ($agent) {
@@ -22,11 +52,15 @@ class Agent extends Model
     }
 
     /**
+     * Get the user that owns the agent.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Generate a unique 10-character alphanumeric agent code.
-     *
-     * Generates a random code using uppercase letters (A-Z) and numbers (0-9).
-     * Ensures uniqueness by checking against existing codes in the database.
-     * Will loop until a unique code is generated.
      *
      * @return string The generated unique agent code
      *

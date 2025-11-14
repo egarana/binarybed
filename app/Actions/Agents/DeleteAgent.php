@@ -13,6 +13,6 @@ class DeleteAgent
 
     public function execute(Agent $agent): void
     {
-
+        $this->agentRepository->delete($agent);
     }
 }

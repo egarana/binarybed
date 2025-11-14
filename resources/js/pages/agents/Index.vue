@@ -30,6 +30,7 @@ const { sortState, handleSort } = useSorter({
 const columns = [
     { key: 'code', label: 'Code', sortable: true, className: 'font-medium' },
     { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
     { key: 'created_at', label: 'Created At', sortable: true },
     { key: 'updated_at', label: 'Updated At', sortable: true },
 ];
@@ -43,7 +44,7 @@ const columns = [
             <ResourceTableFilter
                 :refresh="refresh"
                 searchPlaceholder="Search agents..."
-                :searchFields="['code', 'name']"
+                :searchFields="['code', 'name', 'email']"
                 :showAddButton="true"
                 addButtonLabel="Add agent"
                 :addButtonRoute="agents.create.url()"
