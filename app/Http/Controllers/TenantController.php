@@ -32,7 +32,7 @@ class TenantController extends Controller
     {
         $this->service->create($request->validated());
 
-        return redirect()->route('tenants.index');
+        return redirect()->route('tenants.index', ['sort' => '-created_at']);
     }
 
     public function edit(Tenant $tenant): Response
@@ -46,7 +46,7 @@ class TenantController extends Controller
     {
         $this->service->update($tenant, $request->validated());
 
-        return redirect()->route('tenants.index');
+        return redirect()->route('tenants.index', ['sort' => '-updated_at']);
     }
 
     public function destroy(Tenant $tenant)

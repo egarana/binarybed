@@ -32,7 +32,7 @@ class TenantRepository
                 'id', 'name', 'created_at', 'updated_at',
                 AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
-            ->defaultSort('-updated_at')
+            ->defaultSort('name')
             ->with('domains');
     }
 
