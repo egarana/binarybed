@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -45,7 +46,23 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::put('{tenant}', 'update')->name('update');
                     Route::delete('{tenant}', 'destroy')->name('destroy');
                 });
-                
+            
+            /*
+            |--------------------------------------------------------------------------
+            | Agents
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('agents')
+                ->name('agents.')
+                ->controller(AgentController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{agent}/edit', 'edit')->name('edit');
+                    Route::put('{agent}', 'update')->name('update');
+                    Route::delete('{agent}', 'destroy')->name('destroy');
+                });
         });
 
     });
