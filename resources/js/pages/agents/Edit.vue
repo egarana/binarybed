@@ -127,10 +127,13 @@ const onError = (payload: any) => {
                         type="password"
                         :tabindex="3"
                         autocomplete="new-password"
-                        placeholder="Minimum 8 characters"
+                        placeholder="Leave blank to keep current password"
                         v-model="password"
                     />
                     <InputError :message="errors.password" />
+                    <p class="text-xs text-muted-foreground">
+                        Only fill this field if you want to change the password (minimum 8 characters)
+                    </p>
                 </div>
 
                 <div class="mt-auto text-right pt-6">

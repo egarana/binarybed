@@ -79,7 +79,7 @@ class AgentRepository
     {
         $agent->update($data);
 
-        return $agent->fresh()->load('domains');
+        return $agent->fresh();
     }
 
     public function delete(Agent $agent): void
