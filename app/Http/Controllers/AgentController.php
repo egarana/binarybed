@@ -38,6 +38,8 @@ class AgentController extends Controller
 
     public function edit(Agent $agent): Response
     {
+        $agent = $this->service->getForEdit($agent);
+        
         return Inertia::render('agents/Edit', compact('agent'));
     }
 

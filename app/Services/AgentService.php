@@ -23,6 +23,22 @@ class AgentService
         return $this->repository->getAllPaginated($request);
     }
 
+    public function getForEdit(Agent $agent): array
+    {
+        $agent = $this->repository->getForEdit($agent);
+        
+        return [
+            'code' => $agent->code,
+            'name' => $agent->name,
+            'email' => $agent->email,
+            'user' => [
+                'id' => $agent->user->id,
+                'name' => $agent->user->name,
+                'email' => $agent->user->email,
+            ],
+        ];
+    }
+
     public function create(array $data): Agent
     {
         return $this->createAgent->execute($data);

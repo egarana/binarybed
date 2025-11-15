@@ -63,6 +63,11 @@ class AgentRepository
         return $result;
     }
 
+    public function getForEdit(Agent $agent): Agent
+    {
+        return $agent->load('user');
+    }
+
     public function create(array $data): Agent
     {
         $agent = Agent::create($data);
