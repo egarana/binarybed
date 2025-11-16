@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUnitRequest extends FormRequest
 {
@@ -23,7 +24,14 @@ class UpdateUnitRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
+            'slug' => [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('units')->ignore($this->route('unit')),
+            ],
         ];
     }
 
@@ -39,9 +47,12 @@ class UpdateUnitRequest extends FormRequest
             'name.string'   => 'The agent name must be valid text',
             'name.max'      => 'The agent name cannot be longer than 255 characters',
 
+            'slug.required' => 'Please enter the slug',
             'slug.string'   => 'The slug must be valid text',
+            'slug.min'      => 'The slug must be at least 3 characters',
             'slug.max'      => 'The slug cannot be longer than 255 characters',
             'slug.regex'    => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., unit-name)',
+            'slug.unique'   => 'This slug is already in use',
         ];
     }
 }
