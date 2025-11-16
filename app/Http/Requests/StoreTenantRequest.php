@@ -23,32 +23,37 @@ class StoreTenantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id'     => ['required', 'string', 'max:20', 'unique:tenants,id', 'regex:/^[a-z0-9]+$/', new TenantDatabaseNotExists],
+            'id'     => ['required', 'string', 'max:30', 'unique:tenants,id', 'regex:/^[a-z0-9]+$/', new TenantDatabaseNotExists],
             'name'   => ['required', 'string', 'max:255'],
             'domain' => ['required', 'string', 'unique:domains,domain', 'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/'],
         ];
     }
 
+    /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [
             // Tenant ID
-            'id.required' => 'Please enter a unique Tenant ID',
-            'id.string'   => 'The Tenant ID must be a valid text (letters and numbers only)',
-            'id.max'      => 'The Tenant ID must not exceed 20 characters',
-            'id.unique'   => 'This Tenant ID is already in use. Please choose another one',
-            'id.regex'    => 'The Tenant ID must only contain lowercase letters and numbers without spaces (e.g., tenantname)',
+            'id.required'     => 'Please enter a unique Tenant ID',
+            'id.string'       => 'The Tenant ID must be a valid text (letters and numbers only)',
+            'id.max'          => 'The Tenant ID must not exceed 30 characters',
+            'id.unique'       => 'This Tenant ID is already in use. Please choose another one',
+            'id.regex'        => 'The Tenant ID must only contain lowercase letters and numbers without spaces (e.g., tenantname)',
 
             // Tenant Name
-            'name.required' => 'Please enter the tenant\'s full name',
-            'name.string'   => 'The tenant name must be valid text',
-            'name.max'      => 'The tenant name cannot be longer than 255 characters',
+            'name.required'   => 'Please enter the tenant\'s full name',
+            'name.string'     => 'The tenant name must be valid text',
+            'name.max'        => 'The tenant name cannot be longer than 255 characters',
 
             // Domain
             'domain.required' => 'Please provide a domain name',
             'domain.string'   => 'The domain must be written in plain text without symbols or spaces',
             'domain.unique'   => 'This domain is already assigned to another tenant',
-            'domain.regex'   => 'The domain must be a valid domain format (e.g., example.com or subdomain.example.com)',
+            'domain.regex'    => 'The domain must be a valid domain format (e.g., example.com or subdomain.example.com)',
         ];
     }
 }
