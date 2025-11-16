@@ -15,6 +15,7 @@ import { capitalizeFirst } from '@/helpers/string';
 
 interface Props {
     agent: {
+        id: number;
         code: string;
         name: string;
         email: string;
@@ -35,7 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Edit Agent',
-        href: agents.edit.url(props.agent.code),
+        href: agents.edit.url(props.agent.id),
     },
 ];
 
@@ -74,7 +75,7 @@ const onError = (payload: any) => {
             
             <Form
                 ref="formRef"
-                :action="agents.update(agent.code)"
+                :action="agents.update(agent.id)"
                 method="put"
                 @success="onSuccess"
                 @error="onError"
@@ -127,10 +128,13 @@ const onError = (payload: any) => {
                         type="password"
                         :tabindex="3"
                         autocomplete="new-password"
-                        placeholder="Minimum 8 characters"
+                        placeholder="Leave blank to keep current password"
                         v-model="password"
                     />
                     <InputError :message="errors.password" />
+                    <p class="text-xs text-muted-foreground">
+                        Only fill this field if you want to change the password (minimum 8 characters)
+                    </p>
                 </div>
 
                 <div class="mt-auto text-right pt-6">

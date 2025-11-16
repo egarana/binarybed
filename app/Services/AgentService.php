@@ -28,6 +28,7 @@ class AgentService
         $agent = $this->repository->getForEdit($agent);
         
         return [
+            'id' => $agent->id,
             'code' => $agent->code,
             'name' => $agent->name,
             'email' => $agent->email,

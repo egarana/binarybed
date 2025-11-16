@@ -13,6 +13,7 @@ class Agent extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'code',
         'name',
         'email',
