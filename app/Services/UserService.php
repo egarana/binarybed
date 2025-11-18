@@ -46,12 +46,6 @@ class UserService
 
     public function delete(User $user): void
     {
-        if ($user->id === auth()->id()) {
-            return redirect()
-                ->route('users.index')
-                ->with('error', 'You cannot delete your own account.');
-        }
-        
         $this->deleteUser->execute($user);
     }
 }

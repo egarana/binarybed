@@ -17,14 +17,31 @@ class UpdateUser
     {
         return tenancy()->central(function () use ($user, $data) {
             return DB::transaction(function () use ($user, $data) {
-                if (!empty($data['password'])) {
-                    $data['password'] = Hash::make($data['password']);
-                }
+                $userData = $this->prepareUserData($data);
 
-                $user = $this->userRepository->update($user, $data);
-
-                return $user->fresh();
+                return $this->userRepository->update($user, $userData);
             });
         });
+    }
+
+    /**
+     * Prepare user data for update.
+     *
+     * @param  array  $data
+     * @return array
+     */
+    protected function prepareUserData(array $data): array
+    {
+        $userData = [
+            'name'  => $data['name'],
+            'email' => $data['email'],
+        ];
+
+        // Only update password if provided
+        if (!empty($data['password'])) {
+            $userData['password'] = Hash::make($data['password']);
+        }
+
+        return $userData;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Actions\Users;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class DeleteUser
 {
