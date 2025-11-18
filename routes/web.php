@@ -3,6 +3,8 @@
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -32,6 +34,23 @@ foreach (config('tenancy.central_domains') as $domain) {
 
             /*
             |--------------------------------------------------------------------------
+            | Users
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('users')
+                ->name('users.')
+                ->controller(UserController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{user}/edit', 'edit')->name('edit');
+                    Route::put('{user}', 'update')->name('update');
+                    Route::delete('{user}', 'destroy')->name('destroy');
+                });
+
+            /*
+            |--------------------------------------------------------------------------
             | Tenants
             |--------------------------------------------------------------------------
             */
@@ -49,19 +68,19 @@ foreach (config('tenancy.central_domains') as $domain) {
             
             /*
             |--------------------------------------------------------------------------
-            | Agents
+            | Units (Cross-Tenant)
             |--------------------------------------------------------------------------
             */
-            Route::prefix('agents')
-                ->name('agents.')
-                ->controller(AgentController::class)
+            Route::prefix('units')
+                ->name('units.')
+                ->controller(UnitController::class)
                 ->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::get('create', 'create')->name('create');
                     Route::post('/', 'store')->name('store');
-                    Route::get('{agent}/edit', 'edit')->name('edit');
-                    Route::put('{agent}', 'update')->name('update');
-                    Route::delete('{agent}', 'destroy')->name('destroy');
+                    Route::get('{tenant}/{slug}/edit', 'edit')->name('edit');
+                    Route::put('{tenant}/{slug}', 'update')->name('update');
+                    Route::delete('{tenant}/{slug}', 'destroy')->name('destroy');
                 });
         });
 

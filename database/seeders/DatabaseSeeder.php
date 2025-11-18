@@ -5,18 +5,13 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        $role = Role::firstOrCreate([
-            'name' => 'super_admin',
-            'guard_name' => 'web',
+        $this->call([
+            RoleSeeder::class,
         ]);
 
         $user = User::factory()
@@ -27,6 +22,6 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('Letdareca1#8'),
             ]);
 
-        $user->assignRole($role);
+        $user->assignRole('super-admin');
     }
 }

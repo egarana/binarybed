@@ -5,62 +5,52 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
 use App\Models\Unit;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class UnitController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // public function __construct(
+    //     protected UnitService $service
+    // ) {}
+
+    public function index(Request $request): Response
     {
-        //
+        return Inertia::render('units/Index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('units/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreUnitRequest $request)
+    public function store(StoreUnitRequest $request): RedirectResponse
     {
-        //
+        // $this->service->create($request->validated());
+
+        // return redirect()->route('units.index', ['sort' => '-created_at']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Unit $unit)
-    {
-        //
-    }
+    // public function edit(Unit $unit): Response
+    // {
+    //     $unit = $this->service->getForEdit($unit);
+        
+    //     return Inertia::render('units/Edit', compact('unit'));
+    // }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Unit $unit)
-    {
-        //
-    }
+    // public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
+    // {
+    //     $this->service->update($unit, $request->validated());
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateUnitRequest $request, Unit $unit)
-    {
-        //
-    }
+    //     return redirect()->route('units.index', ['sort' => '-updated_at']);
+    // }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Unit $unit)
-    {
-        //
-    }
+    // public function destroy(Unit $unit): RedirectResponse
+    // {
+    //     $this->service->delete($unit);
+
+    //     return redirect()->route('units.index');
+    // }
 }

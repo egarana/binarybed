@@ -14,10 +14,11 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Store, Users } from 'lucide-vue-next';
+import { BookOpen, Folder, KeyRound, LayoutGrid, Store, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import tenants from '@/routes/tenants';
 import agents from '@/routes/agents';
+import units from '@/routes/units';
 
 const mainNavItems: NavItem[] = [
     {
@@ -34,6 +35,11 @@ const mainNavItems: NavItem[] = [
         title: 'Agents',
         href: agents.index(),
         icon: Users,
+    },
+    {
+        title: 'Units',
+        href: units.index(),
+        icon: KeyRound,
     },
 ];
 
