@@ -23,6 +23,11 @@ class TenantService
         return $this->repository->getAllPaginated($request);
     }
 
+    public function search(?string $search = null, int $limit = 10): array
+    {
+        return $this->repository->search($search, $limit);
+    }
+
     public function create(array $data): Tenant
     {
         return $this->createTenant->execute($data);

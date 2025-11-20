@@ -110,10 +110,10 @@ class UnitRepository
                 ->toArray();
         }
 
-        // Search by name or id
+        // Search by name or slug
         return $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('slug', 'like', "%{$search}%");
             })
             ->orderBy('name')
             ->limit($limit)

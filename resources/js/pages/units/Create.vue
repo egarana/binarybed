@@ -84,6 +84,7 @@ const onError = (payload: any) => {
                     label="Tenant"
                     placeholder="Select a tenant"
                     search-placeholder="Search tenant..."
+                    hidden-input-name="tenant_id"
                 >
                     <template #error>
                     <InputError :message="errors.tenant_id" />

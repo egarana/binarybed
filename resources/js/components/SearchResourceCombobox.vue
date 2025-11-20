@@ -31,6 +31,7 @@ const props = withDefaults(defineProps<{
     label?: string;
     placeholder?: string;
     searchPlaceholder?: string;
+    hiddenInputName?: string;
     clearable?: boolean;
     debounceMs?: number;
     id?: string;
@@ -91,7 +92,7 @@ const clear = () => {
     emit('update:modelValue', undefined);
 };
 
-const inputId = computed(() => props.id ?? 'combobox');
+const inputId = computed(() => props.id ?? props.hiddenInputName ?? 'combobox');
 </script>
 
 <template>
@@ -153,6 +154,12 @@ const inputId = computed(() => props.id ?? 'combobox');
                 <X class="mt-0.5" />
             </Button>
         </div>
+        <input
+            v-if="hiddenInputName"
+            type="hidden"
+            :name="hiddenInputName"
+            :value="selected?.value ?? ''"
+        />
         <slot name="error" />
     </div>
 </template>
