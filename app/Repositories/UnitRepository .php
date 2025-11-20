@@ -2,8 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
-use App\Models\UserTenant;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\PaginationService;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -14,7 +13,7 @@ use App\QueryBuilder\Filters\RelationFilter;
 use App\QueryBuilder\Filters\MultiFieldSearchFilter;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class UserRepository
+class UnitRepository
 {
     public function __construct(
         protected PaginationService $pagination
@@ -22,14 +21,14 @@ class UserRepository
 
     private function baseQuery(): QueryBuilder
     {
-        return QueryBuilder::for(User::class)
+        return QueryBuilder::for(Unit::class)
             ->allowedFilters([
                 'name',
-                'email',
-                AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'email'])),
+                'slug',
+                AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'slug'])),
             ])
             ->allowedSorts([
-                'name', 'email', 'created_at', 'updated_at',
+                'name', 'slug', 'created_at', 'updated_at',
                 // AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
             ->defaultSort('name');
@@ -37,7 +36,7 @@ class UserRepository
 
     public function getAll()
     {
-        return User::orderBy('name')->get();
+        return Unit::orderBy('name')->get();
     }
 
     public function getAllPaginated(Request $request)
@@ -63,39 +62,33 @@ class UserRepository
         return $result;
     }
 
-    public function getForEdit(User $user): User
+    public function getForEdit(Unit $unit): Unit
     {
-        return $user;
+        return $unit;
     }
 
-    public function create(array $data): User
+    public function create(array $data): Unit
     {
-        $user = User::create($data);
+        $unit = Unit::create($data);
 
-        return $user;
+        return $unit;
     }
 
-    public function update(User $user, array $data): User
+    public function update(Unit $unit, array $data): Unit
     {
-        $user->update($data);
+        $unit->update($data);
 
-        return $user->fresh();
+        return $unit->fresh();
     }
 
-    public function delete(User $user): void
+    public function delete(Unit $unit): void
     {
-        foreach ($user->tenants as $tenant) {
-            $tenant->run(function () use ($user) {
-                UserTenant::where('global_id', $user->global_id)->delete();
-            });
-        }
-
-        $user->delete();
+        $unit->delete();
     }
 
     /**
-     * Search users for combobox (with limit).
-     * Returns users in format: [{ value: id, label: name }]
+     * Search units for combobox (with limit).
+     * Returns units in format: [{ value: id, label: name }]
      *
      * @param string|null $search
      * @param int $limit
@@ -103,16 +96,16 @@ class UserRepository
      */
     public function search(?string $search = null, int $limit = 10): array
     {
-        $query = User::query();
+        $query = Unit::query();
 
-        // If no search term, return first N users
+        // If no search term, return first N units
         if (!$search) {
             return $query->orderBy('name')
                 ->limit($limit)
                 ->get()
-                ->map(fn($user) => [
-                    'value' => $user->id,
-                    'label' => $user->name,
+                ->map(fn($unit) => [
+                    'value' => $unit->id,
+                    'label' => $unit->name,
                 ])
                 ->toArray();
         }
@@ -125,9 +118,9 @@ class UserRepository
             ->orderBy('name')
             ->limit($limit)
             ->get()
-            ->map(fn($user) => [
-                'value' => $user->id,
-                'label' => $user->name,
+            ->map(fn($unit) => [
+                'value' => $unit->id,
+                'label' => $unit->name,
             ])
             ->toArray();
     }

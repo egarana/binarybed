@@ -3,29 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
-use Stancl\Tenancy\Contracts\SyncMaster;
-use Stancl\Tenancy\Database\Concerns\CentralConnection;
+use Stancl\Tenancy\Contracts\Syncable;
 use Stancl\Tenancy\Database\Concerns\ResourceSyncing;
-use Stancl\Tenancy\Database\Models\TenantPivot;
 
-class User extends Authenticatable implements SyncMaster
+class UserTenant extends Authenticatable implements Syncable
 {
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, ResourceSyncing, CentralConnection;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, ResourceSyncing;
 
     protected $guarded = [];
     public $timestamps = false;
+    
+    // Menggunakan tabel 'users' di tenant database
     protected $table = 'users';
 
     protected $fillable = [
         'global_id',
         'name',
         'email',
-        'password',
     ];
 
     protected $hidden = [
@@ -38,20 +36,8 @@ class User extends Authenticatable implements SyncMaster
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
-    }
-
-    public function tenants(): BelongsToMany
-    {
-        return $this->belongsToMany(Tenant::class, 'tenant_users', 'global_user_id', 'tenant_id', 'global_id')
-            ->using(TenantPivot::class);
-    }
-
-    public function getTenantModelName(): string
-    {
-        return UserTenant::class;
     }
 
     public function getGlobalIdentifierKey()
@@ -66,7 +52,7 @@ class User extends Authenticatable implements SyncMaster
 
     public function getCentralModelName(): string
     {
-        return static::class;
+        return User::class;
     }
 
     public function getSyncedAttributeNames(): array

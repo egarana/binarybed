@@ -13,6 +13,11 @@ import { useShortcut } from '@/composables/useShortcut';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
 import { useAutoSlug } from '@/composables/useAutoSlug';
+import SearchResourceCombobox, { type ComboboxOption } from '@/components/SearchResourceCombobox.vue';
+
+const props = defineProps<{
+    tenants?: ComboboxOption[];
+}>()
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,6 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const formRef = ref<InstanceType<typeof Form> | null>(null);
 
 // Form fields
+const selectedTenant = ref<ComboboxOption>();
 const name = ref('');
 const { slug } = useAutoSlug(name, { 
     separator: '-', 
@@ -69,6 +75,21 @@ const onError = (payload: any) => {
                 class="space-y-6 h-full flex flex-col"
                 v-slot="{ errors, processing }"
             >
+                <!-- Tenant Selection -->
+                <SearchResourceCombobox
+                    v-model="selectedTenant"
+                    :initial-items="tenants"
+                    :fetch-url="() => units.create.url()"
+                    response-key="tenants"
+                    label="Tenant"
+                    placeholder="Select a tenant"
+                    search-placeholder="Search tenant..."
+                >
+                    <template #error>
+                    <InputError :message="errors.tenant_id" />
+                    </template>
+                </SearchResourceCombobox>
+
                 <div class="grid gap-2">
                     <Label for="name">Name</Label>
                     <Input

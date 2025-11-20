@@ -2,57 +2,71 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Unit;
+use App\ValidatesTenantResourceUniqueness;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateUnitRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use ValidatesTenantResourceUniqueness;
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => [
+            'tenant_id' => ['required', 'string', 'exists:tenants,id'],
+            'name'      => ['required', 'string', 'min:8', 'max:255'],
+            'slug'      => [
                 'required',
                 'string',
                 'min:3',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('units')->ignore($this->route('unit')),
             ],
         ];
     }
 
-    /**
-     * Get custom validation messages.
-     *
-     * @return array<string, string>
-     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $tenantId = $this->input('tenant_id');
+            $slug = $this->input('slug');
+
+            if ($tenantId && $slug && !$validator->errors()->has('tenant_id')) {
+                $this->validateTenantUniqueness(
+                    $validator,
+                    Unit::class,
+                    $tenantId,
+                    'slug',
+                    $slug,
+                    $this->route('unit')?->slug
+                );
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
-            'name.required' => 'Please enter the agent name',
-            'name.string'   => 'The agent name must be valid text',
-            'name.max'      => 'The agent name cannot be longer than 255 characters',
+            'tenant_id.required' => 'Please select a tenant',
+            'tenant_id.string'   => 'Invalid tenant selection',
+            'tenant_id.exists'   => 'The selected tenant does not exist',
+
+            'name.required' => 'Please enter the unit name',
+            'name.string'   => 'The unit name must be valid text',
+            'name.min'      => 'The unit name must be at least 8 characters',
+            'name.max'      => 'The unit name cannot be longer than 255 characters',
 
             'slug.required' => 'Please enter the slug',
             'slug.string'   => 'The slug must be valid text',
             'slug.min'      => 'The slug must be at least 3 characters',
             'slug.max'      => 'The slug cannot be longer than 255 characters',
             'slug.regex'    => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., unit-name)',
-            'slug.unique'   => 'This slug is already in use',
         ];
     }
 }

@@ -28,9 +28,9 @@ class UnitController extends Controller
 
     public function store(StoreUnitRequest $request): RedirectResponse
     {
-        // $this->service->create($request->validated());
+        $this->service->create($request->validated());
 
-        // return redirect()->route('units.index', ['sort' => '-created_at']);
+        return redirect()->route('units.index', ['sort' => '-created_at']);
     }
 
     // public function edit(Unit $unit): Response
