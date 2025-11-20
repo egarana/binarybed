@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-// import { useFetcher } from '@/composables/useFetcher';
+import { useFetcher } from '@/composables/useFetcher';
 // import { useSorter } from '@/composables/useSorter';
 // import ResourceTable from '@/components/ResourceTable.vue';
 import ResourceTableFilter from '@/components/ResourceTableFilter.vue';
@@ -15,12 +15,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// const { resource, fetchData, refresh, lastParams } = useFetcher({
-//     endpoint: units.index.url(),
-//     resourceKey: 'units',
-//     preserveScroll: true,
-//     preserveUrl: false,
-// });
+const { resource, fetchData, refresh, lastParams } = useFetcher({
+    endpoint: units.index.url(),
+    resourceKey: 'units',
+    preserveScroll: true,
+    preserveUrl: false,
+});
 
 // const { sortState, handleSort } = useSorter({
 //     fetcher: { fetchData, lastParams },
@@ -40,6 +40,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Units" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
+        <pre class="text-xs">{{ resource }}</pre>
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <ResourceTableFilter
                 :refresh="false"

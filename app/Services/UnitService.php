@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 class UnitService
 {
     public function __construct(
-        protected UnitRepository $repository,
+        protected UnitRepository $unitRepository,
         protected CreateUnit $createUnit,
         protected UpdateUnit $updateUnit,
         protected DeleteUnit $deleteUnit,
@@ -22,7 +22,7 @@ class UnitService
 
     public function getAllPaginated(Request $request)
     {
-        return $this->repository->getAllPaginated($request);
+        return $this->unitRepository->getAllPaginated($request);
     }
 
     public function findByTenantAndSlug(string $tenantId, string $slug): array

@@ -15,13 +15,15 @@ use Inertia\Response;
 class UnitController extends Controller
 {
     public function __construct(
-        protected UnitService $service,
+        protected UnitService $unitService,
         protected TenantService $tenantService
     ) {}
 
     public function index(Request $request): Response
     {
-        return Inertia::render('units/Index');
+        $units = $this->unitService->getAllPaginated($request);
+
+        return Inertia::render('units/Index', compact('units'));
     }
 
     public function create(Request $request): Response
@@ -33,28 +35,28 @@ class UnitController extends Controller
 
     public function store(StoreUnitRequest $request): RedirectResponse
     {
-        $this->service->create($request->validated());
+        $this->unitService->create($request->validated());
 
         return redirect()->route('units.index', ['sort' => '-created_at']);
     }
 
     // public function edit(Unit $unit): Response
     // {
-    //     $unit = $this->service->getForEdit($unit);
+    //     $unit = $this->unitService->getForEdit($unit);
         
     //     return Inertia::render('units/Edit', compact('unit'));
     // }
 
     // public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     // {
-    //     $this->service->update($unit, $request->validated());
+    //     $this->unitService->update($unit, $request->validated());
 
     //     return redirect()->route('units.index', ['sort' => '-updated_at']);
     // }
 
     // public function destroy(Unit $unit): RedirectResponse
     // {
-    //     $this->service->delete($unit);
+    //     $this->unitService->delete($unit);
 
     //     return redirect()->route('units.index');
     // }
