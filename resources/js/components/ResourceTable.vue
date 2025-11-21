@@ -139,67 +139,115 @@ const handleDelete = () => {
                 <TableBody>
                     <template v-if="items.length">
                         <TableRow v-for="item in items" :key="getItemKey(item)">
-                            <TableCell
-                                v-for="col in columns"
-                                :key="col.key"
-                                class="truncate ps-5"
-                                :class="col.className"
-                            >
-                                <slot
-                                    :name="`cell-${col.key}`"
-                                    :item="item"
-                                    :value="item[col.key]"
+                            <!-- Custom slot untuk debug/custom rendering -->
+                            <template v-if="$slots.item">
+                                <TableCell :colspan="columns.length" class="ps-5">
+                                    <slot name="item" :item="item"></slot>
+                                </TableCell>
+                                <TableCell class="text-right flex items-center">
+                                    <TooltipProvider>
+                                        <Tooltip v-if="editRoute">
+                                            <TooltipTrigger>
+                                                <Link
+                                                    :href="editRoute(item)"
+                                                    class="ms-auto"
+                                                >
+                                                    <Button variant="ghost" size="icon">
+                                                        <Pencil class="w-4 h-4 text-muted-foreground" />
+                                                    </Button>
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Edit {{ resourceName || 'item' }}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
+                                    <template v-if="deleteRoute">
+                                        <ConfirmDeleteDialog
+                                            v-bind="(() => {
+                                                try {
+                                                    const deleteConfig = deleteRoute(item);
+                                                    return {
+                                                        'delete-url': deleteConfig.url,
+                                                        'delete-data': deleteConfig.data,
+                                                        'entity-name': resourceName || 'item'
+                                                    };
+                                                } catch (error) {
+                                                    console.error('Error generating delete route:', error, 'Item:', item);
+                                                    return null;
+                                                }
+                                            })()"
+                                            @deleted="handleDelete"
+                                        />
+                                    </template>
+                                </TableCell>
+                            </template>
+
+                            <!-- Default rendering -->
+                            <template v-else>
+                                <TableCell
+                                    v-for="col in columns"
+                                    :key="col.key"
+                                    class="truncate ps-5"
+                                    :class="col.className"
                                 >
-                                    <template v-if="col.formatter">
-                                        {{ col.formatter(item[col.key], item) }}
-                                    </template>
-                                    <template v-else-if="['created_at', 'updated_at'].includes(col.key)">
-                                        {{ dayjs(item[col.key]).fromNow() }}
-                                    </template>
-                                    <template v-else>
-                                        {{ item[col.key] }}
-                                    </template>
-                                </slot>
-                            </TableCell>
+                                    <slot
+                                        :name="`cell-${col.key}`"
+                                        :item="item"
+                                        :value="item[col.key]"
+                                    >
+                                        <template v-if="col.formatter">
+                                            {{ col.formatter(item[col.key], item) }}
+                                        </template>
+                                        <template v-else-if="['created_at', 'updated_at'].includes(col.key)">
+                                            {{ dayjs(item[col.key]).fromNow() }}
+                                        </template>
+                                        <template v-else>
+                                            {{ item[col.key] }}
+                                        </template>
+                                    </slot>
+                                </TableCell>
 
-                            <TableCell class="text-right flex items-center">
-                                <TooltipProvider>
-                                    <Tooltip v-if="editRoute">
-                                        <TooltipTrigger>
-                                            <Link
-                                                :href="editRoute(item)"
-                                                class="ms-auto"
-                                            >
-                                                <Button variant="ghost" size="icon">
-                                                    <Pencil class="w-4 h-4 text-muted-foreground" />
-                                                </Button>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Edit {{ resourceName || 'item' }}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TableCell class="text-right flex items-center">
+                                    <TooltipProvider>
+                                        <Tooltip v-if="editRoute">
+                                            <TooltipTrigger>
+                                                <Link
+                                                    :href="editRoute(item)"
+                                                    class="ms-auto"
+                                                >
+                                                    <Button variant="ghost" size="icon">
+                                                        <Pencil class="w-4 h-4 text-muted-foreground" />
+                                                    </Button>
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Edit {{ resourceName || 'item' }}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
 
-                                <template v-if="deleteRoute">
-                                    <ConfirmDeleteDialog
-                                        v-bind="(() => {
-                                            try {
-                                                const deleteConfig = deleteRoute(item);
-                                                return {
-                                                    'delete-url': deleteConfig.url,
-                                                    'delete-data': deleteConfig.data,
-                                                    'entity-name': resourceName || 'item'
-                                                };
-                                            } catch (error) {
-                                                console.error('Error generating delete route:', error, 'Item:', item);
-                                                return null;
-                                            }
-                                        })()"
-                                        @deleted="handleDelete"
-                                    />
-                                </template>
-                            </TableCell>
+                                    <template v-if="deleteRoute">
+                                        <ConfirmDeleteDialog
+                                            v-bind="(() => {
+                                                try {
+                                                    const deleteConfig = deleteRoute(item);
+                                                    return {
+                                                        'delete-url': deleteConfig.url,
+                                                        'delete-data': deleteConfig.data,
+                                                        'entity-name': resourceName || 'item'
+                                                    };
+                                                } catch (error) {
+                                                    console.error('Error generating delete route:', error, 'Item:', item);
+                                                    return null;
+                                                }
+                                            })()"
+                                            @deleted="handleDelete"
+                                        />
+                                    </template>
+                                </TableCell>
+                            </template>
                         </TableRow>
                     </template>
 

@@ -40,12 +40,12 @@ class UnitController extends Controller
         return redirect()->route('units.index', ['sort' => '-created_at']);
     }
 
-    // public function edit(Unit $unit): Response
-    // {
-    //     $unit = $this->unitService->getForEdit($unit);
+    public function edit(string $tenantId, string $slug): Response
+    {
+        // $unit = $this->unitService->getForEdit($unit);
         
-    //     return Inertia::render('units/Edit', compact('unit'));
-    // }
+        // return Inertia::render('units/Edit', compact('unit'));
+    }
 
     // public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     // {
