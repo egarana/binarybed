@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTenantRequest extends FormRequest
 {
@@ -21,11 +22,17 @@ class UpdateTenantRequest extends FormRequest
      */
     public function rules(): array
     {
-        $tenantId = $this->route('tenant')->id ?? null;
+        $tenant = $this->route('tenant');
+        $currentDomain = $tenant?->domains->first()?->domain;
 
         return [
             'name'   => ['sometimes', 'string', 'max:255'],
-            'domain' => ['sometimes', 'string', "unique:domains,domain,{$tenantId},tenant_id", 'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/'],
+            'domain' => [
+                'sometimes',
+                'string',
+                Rule::unique('domains', 'domain')->ignore($currentDomain, 'domain'),
+                'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/',
+            ],
         ];
     }
 

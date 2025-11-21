@@ -33,17 +33,18 @@ class UpdateUnitRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $tenantId = $this->input('tenant_id');
-            $slug = $this->input('slug');
+            $tenantId = $this->route('tenant');
+            $currentSlug = $this->route('slug');
+            $newSlug = $this->input('slug');
 
-            if ($tenantId && $slug && !$validator->errors()->has('tenant_id')) {
+            if ($tenantId && $newSlug && !$validator->errors()->has('slug')) {
                 $this->validateTenantUniqueness(
                     $validator,
                     Unit::class,
                     $tenantId,
                     'slug',
-                    $slug,
-                    $this->route('unit')?->slug
+                    $newSlug,
+                    $currentSlug
                 );
             }
         });

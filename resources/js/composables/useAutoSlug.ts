@@ -6,13 +6,20 @@ interface UseAutoSlugOptions {
     separator?: string;
     /** Whether to convert to lowercase. Default: true */
     lowercase?: boolean;
+    /** Initial value for slug */
+    initialValue?: string;
 }
 
 export function useAutoSlug(source: Ref<string>, options: UseAutoSlugOptions = {}) {
-    const { separator = '-', lowercase = true } = options;
+    const { separator = '-', lowercase = true, initialValue = '' } = options;
 
-    const slug = ref('');
+    const slug = ref(initialValue);
     const previousAutoSlug = ref('');
+
+    // Set previous auto slug based on initial value if provided
+    if (initialValue) {
+        previousAutoSlug.value = initialValue;
+    }
 
     watch(source, (newVal) => {
         if (!newVal || newVal.trim() === '') {

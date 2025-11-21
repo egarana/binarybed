@@ -12,6 +12,7 @@ import { ref } from 'vue';
 import { useShortcut } from '@/composables/useShortcut';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
+import { useAutoSlug } from '@/composables/useAutoSlug';
 
 interface Props {
     unit: {
@@ -40,7 +41,11 @@ const formRef = ref<InstanceType<typeof Form> | null>(null);
 
 // Form fields
 const name = ref(props.unit.name || '');
-const slug = ref(props.unit.slug || '');
+const { slug } = useAutoSlug(name, { 
+    separator: '-', 
+    lowercase: true,
+    initialValue: props.unit.slug || ''
+});
 
 useShortcut({
     keys: ['ctrl+s', 'meta+s'],
