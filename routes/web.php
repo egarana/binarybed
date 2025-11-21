@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AgentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UnitController;
