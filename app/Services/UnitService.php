@@ -30,106 +30,88 @@ class UnitService
 
     public function getAllFromAllTenants(): array
     {
-        // return $this->getAllFromAllTenantsWithQueryBuilder(
-        //     table: 'units',
-        //     selectFields: ['id', 'name', 'slug', 'created_at', 'updated_at'],
-        //     tenantFields: ['tenant_id' => 'id', 'tenant_name' => 'name', 'tenant_domain' => 'domain'],
-        //     allowedFilters: [
-        //         'name',
-        //         'slug',
-        //         AllowedFilter::exact('tenant_id'),
-        //         AllowedFilter::partial('tenant_name'),
-        //     ],
-        //     allowedSorts: ['name', 'created_at', 'updated_at', 'tenant_name'],
-        //     allowedIncludes: [], // Empty karena UNION tidak support includes
-        //     defaultSort: '-created_at'
-        // );
+        // Ambil semua tenant dari central database
+        $tenants = Tenant::with('domains')->get();
+
+        if ($tenants->isEmpty()) {
+            return [];
+        }
+
+        // Build UNION query untuk menggabungkan semua tenant databases
+        $unionQueries = [];
+        $bindings = [];
+
+        foreach ($tenants as $tenant) {
+            $dbName = config('tenancy.database.prefix') . $tenant->id;
+
+            // Query untuk setiap tenant database
+            // Tambahkan tenant info langsung di SELECT
+            $unionQueries[] = "
+                SELECT
+                    units.id,
+                    units.name,
+                    units.slug,
+                    units.created_at,
+                    units.updated_at,
+                    ? as tenant_id,
+                    ? as tenant_name,
+                    ? as tenant_domain
+                FROM {$dbName}.units
+            ";
+
+            $bindings[] = $tenant->id;
+            $bindings[] = $tenant->name;
+            $bindings[] = $tenant->domain;
+        }
+
+        // Gabungkan semua queries dengan UNION ALL
+        $sql = implode(' UNION ALL ', $unionQueries);
+
+        // Tambahkan ORDER BY di akhir untuk sorting
+        $sql .= ' ORDER BY created_at DESC';
+
+        try {
+            // Execute query menggunakan central connection
+            $results = DB::connection(config('tenancy.database.central_connection'))
+                ->select($sql, $bindings);
+
+            // Convert stdClass to array
+            return array_map(fn($row) => (array) $row, $results);
+        } catch (\Exception $e) {
+            // Fallback ke method lama jika ada error (misalnya database tidak support UNION atau ada issue lain)
+            Log::warning('Failed to use UNION query for getAllFromAllTenants, falling back to loop method', [
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->getAllFromAllTenantsFallback($tenants);
+        }
     }
 
-    // public function getAllFromAllTenants(): array
-    // {
-    //     // Ambil semua tenant dari central database
-    //     $tenants = Tenant::with('domains')->get();
+    protected function getAllFromAllTenantsFallback($tenants): array
+    {
+        $allUnits = [];
 
-    //     if ($tenants->isEmpty()) {
-    //         return [];
-    //     }
+        foreach ($tenants as $tenant) {
+            $tenant->run(function () use ($tenant, &$allUnits) {
+                $units = Unit::all();
 
-    //     // Build UNION query untuk menggabungkan semua tenant databases
-    //     $unionQueries = [];
-    //     $bindings = [];
+                foreach ($units as $unit) {
+                    $allUnits[] = [
+                        'id' => $unit->id,
+                        'name' => $unit->name,
+                        'slug' => $unit->slug,
+                        'created_at' => $unit->created_at,
+                        'updated_at' => $unit->updated_at,
+                        'tenant_id' => $tenant->id,
+                        'tenant_name' => $tenant->name,
+                        'tenant_domain' => $tenant->domain,
+                    ];
+                }
+            });
+        }
 
-    //     foreach ($tenants as $tenant) {
-    //         $dbName = config('tenancy.database.prefix') . $tenant->id;
-
-    //         // Query untuk setiap tenant database
-    //         // Tambahkan tenant info langsung di SELECT
-    //         $unionQueries[] = "
-    //             SELECT
-    //                 units.id,
-    //                 units.name,
-    //                 units.slug,
-    //                 units.created_at,
-    //                 units.updated_at,
-    //                 ? as tenant_id,
-    //                 ? as tenant_name,
-    //                 ? as tenant_domain
-    //             FROM {$dbName}.units
-    //         ";
-
-    //         $bindings[] = $tenant->id;
-    //         $bindings[] = $tenant->name;
-    //         $bindings[] = $tenant->domain;
-    //     }
-
-    //     // Gabungkan semua queries dengan UNION ALL
-    //     $sql = implode(' UNION ALL ', $unionQueries);
-
-    //     // Tambahkan ORDER BY di akhir untuk sorting
-    //     $sql .= ' ORDER BY created_at DESC';
-
-    //     try {
-    //         // Execute query menggunakan central connection
-    //         $results = DB::connection(config('tenancy.database.central_connection'))
-    //             ->select($sql, $bindings);
-
-    //         // Convert stdClass to array
-    //         return array_map(fn($row) => (array) $row, $results);
-    //     } catch (\Exception $e) {
-    //         // Fallback ke method lama jika ada error (misalnya database tidak support UNION atau ada issue lain)
-    //         Log::warning('Failed to use UNION query for getAllFromAllTenants, falling back to loop method', [
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return $this->getAllFromAllTenantsFallback($tenants);
-    //     }
-    // }
-
-    // protected function getAllFromAllTenantsFallback($tenants): array
-    // {
-    //     $allUnits = [];
-
-    //     foreach ($tenants as $tenant) {
-    //         $tenant->run(function () use ($tenant, &$allUnits) {
-    //             $units = Unit::all();
-
-    //             foreach ($units as $unit) {
-    //                 $allUnits[] = [
-    //                     'id' => $unit->id,
-    //                     'name' => $unit->name,
-    //                     'slug' => $unit->slug,
-    //                     'created_at' => $unit->created_at,
-    //                     'updated_at' => $unit->updated_at,
-    //                     'tenant_id' => $tenant->id,
-    //                     'tenant_name' => $tenant->name,
-    //                     'tenant_domain' => $tenant->domain,
-    //                 ];
-    //             }
-    //         });
-    //     }
-
-    //     return $allUnits;
-    // }
+        return $allUnits;
+    }
 
     public function findByTenantAndSlug(string $tenantId, string $slug): array
     {
