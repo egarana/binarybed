@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Models\Tenant;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -52,14 +53,95 @@ trait HasCrossTenantsQuery
     }
 
     /**
-     * Execute optimized UNION query across all tenant databases.
+     * Get paginated records from all tenant databases using optimized UNION query.
+     *
+     * Performance: Two database round-trips (count + data), database-level filtering & sorting.
+     * Returns: Laravel LengthAwarePaginator instance.
+     *
+     * @param int $perPage Records per page (default: 15)
+     * @param array $filters Optional filters (where conditions)
+     * @param array $sorts Optional sorting ['field' => 'direction']
+     * @param int|null $page Current page (null = auto-detect from request)
+     * @param string $pageName Page parameter name (default: 'page')
+     * @return LengthAwarePaginator
      */
-    protected function executeUnionQuery(
-        $tenants,
+    public function getAllFromAllTenantsPaginated(
+        int $perPage = 15,
         array $filters = [],
         array $sorts = [],
-        ?int $limit = null
-    ): array {
+        ?int $page = null,
+        string $pageName = 'page'
+    ): LengthAwarePaginator {
+        $tenants = Tenant::with('domains')->get();
+
+        if ($tenants->isEmpty()) {
+            return new LengthAwarePaginator([], 0, $perPage, $page, [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'pageName' => $pageName,
+            ]);
+        }
+
+        // Get current page
+        $page = $page ?: LengthAwarePaginator::resolveCurrentPage($pageName);
+
+        // Get total count efficiently
+        $total = $this->getTotalCountAcrossTenants($tenants, $filters);
+
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
+
+        // Get paginated data
+        $items = $this->executeUnionQuery($tenants, $filters, $sorts, $perPage, $offset);
+
+        // Return LengthAwarePaginator
+        return new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path' => LengthAwarePaginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+    }
+
+    /**
+     * Get total count of records across all tenants with filters.
+     *
+     * @param $tenants Collection of tenant models
+     * @param array $filters Optional filters
+     * @return int Total count
+     */
+    protected function getTotalCountAcrossTenants($tenants, array $filters = []): int
+    {
+        try {
+            $queryParts = $this->buildUnionQueryParts($tenants, $filters, isCount: true);
+
+            if (empty($queryParts['queries'])) {
+                return 0;
+            }
+
+            $sql = implode(' UNION ALL ', $queryParts['queries']);
+            $sql = "SELECT SUM(cnt) as total FROM ({$sql}) as counts";
+
+            $result = DB::connection(config('tenancy.database.central_connection'))
+                ->select($sql, $queryParts['bindings']);
+
+            return (int) ($result[0]->total ?? 0);
+        } catch (\Exception $e) {
+            Log::warning('Failed to execute count query, using fallback', [
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->getFallbackCount($tenants, $filters);
+        }
+    }
+
+    /**
+     * Build UNION query parts that can be reused for both SELECT and COUNT.
+     *
+     * @param $tenants Collection of tenant models
+     * @param array $filters Optional filters
+     * @param bool $isCount Whether to build count query
+     * @return array ['queries' => [...], 'bindings' => [...]]
+     */
+    protected function buildUnionQueryParts($tenants, array $filters = [], bool $isCount = false): array
+    {
         $unionQueries = [];
         $bindings = [];
 
@@ -68,59 +150,80 @@ trait HasCrossTenantsQuery
         $modelInstance = new $modelClass();
         $tableName = $modelInstance->getTable();
 
-        // Get columns to select
-        $columns = $this->getCrossTenantsColumns();
-
         foreach ($tenants as $tenant) {
             $dbName = config('tenancy.database.prefix') . $tenant->id;
-
-            // Build WHERE clause
             $whereClause = $this->buildWhereClause($filters);
 
-            // Build column selection
-            $selectColumns = $this->buildSelectColumns($columns, $tableName);
+            if ($isCount) {
+                // Count query - no need for column selection or tenant info
+                $query = "SELECT COUNT(*) as cnt FROM {$dbName}.{$tableName} {$whereClause['sql']}";
+                $unionQueries[] = $query;
+                $bindings = array_merge($bindings, $whereClause['bindings']);
+            } else {
+                // Data query - full column selection with tenant info
+                $columns = $this->getCrossTenantsColumns();
+                $selectColumns = $this->buildSelectColumns($columns, $tableName);
 
-            $query = "
-                SELECT
-                    {$selectColumns},
-                    ? as tenant_id,
-                    ? as tenant_name,
-                    ? as tenant_domain
-                FROM {$dbName}.{$tableName}
-                {$whereClause['sql']}
-            ";
+                $query = "
+                    SELECT
+                        {$selectColumns},
+                        ? as tenant_id,
+                        ? as tenant_name,
+                        ? as tenant_domain
+                    FROM {$dbName}.{$tableName}
+                    {$whereClause['sql']}
+                ";
 
-            $unionQueries[] = $query;
-            $bindings[] = $tenant->id;
-            $bindings[] = $tenant->name;
-            $bindings[] = $tenant->domain;
-
-            // Add filter bindings
-            $bindings = array_merge($bindings, $whereClause['bindings']);
+                $unionQueries[] = $query;
+                $bindings[] = $tenant->id;
+                $bindings[] = $tenant->name;
+                $bindings[] = $tenant->domain;
+                $bindings = array_merge($bindings, $whereClause['bindings']);
+            }
         }
 
-        $sql = implode(' UNION ALL ', $unionQueries);
+        return ['queries' => $unionQueries, 'bindings' => $bindings];
+    }
+
+    /**
+     * Execute optimized UNION query across all tenant databases.
+     *
+     * @param $tenants Collection of tenant models
+     * @param array $filters Optional filters
+     * @param array $sorts Optional sorting
+     * @param int|null $limit Optional limit
+     * @param int $offset Optional offset for pagination
+     * @return array
+     */
+    protected function executeUnionQuery(
+        $tenants,
+        array $filters = [],
+        array $sorts = [],
+        ?int $limit = null,
+        int $offset = 0
+    ): array {
+        $queryParts = $this->buildUnionQueryParts($tenants, $filters, isCount: false);
+
+        if (empty($queryParts['queries'])) {
+            return [];
+        }
+
+        $sql = implode(' UNION ALL ', $queryParts['queries']);
 
         // Add ORDER BY
-        if (!empty($sorts)) {
-            $orderClauses = [];
-            foreach ($sorts as $field => $direction) {
-                $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
-                $orderClauses[] = "{$field} {$direction}";
-            }
-            $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
-        } else {
-            $sql .= ' ORDER BY created_at DESC';
-        }
+        $sql .= $this->buildOrderByClause($sorts);
 
-        // Add LIMIT
+        // Add LIMIT and OFFSET
         if ($limit) {
             $sql .= " LIMIT {$limit}";
+        }
+        if ($offset > 0) {
+            $sql .= " OFFSET {$offset}";
         }
 
         try {
             $results = DB::connection(config('tenancy.database.central_connection'))
-                ->select($sql, $bindings);
+                ->select($sql, $queryParts['bindings']);
 
             return array_map(fn($row) => (array) $row, $results);
         } catch (\Exception $e) {
@@ -128,18 +231,26 @@ trait HasCrossTenantsQuery
                 'error' => $e->getMessage()
             ]);
 
-            return $this->executeFallbackQuery($tenants, $filters, $sorts, $limit);
+            return $this->executeFallbackQuery($tenants, $filters, $sorts, $limit, $offset);
         }
     }
 
     /**
      * Fallback method using iterative approach (only used if UNION fails).
+     *
+     * @param $tenants Collection of tenant models
+     * @param array $filters Optional filters
+     * @param array $sorts Optional sorting
+     * @param int|null $limit Optional limit
+     * @param int $offset Optional offset
+     * @return array
      */
     protected function executeFallbackQuery(
         $tenants,
         array $filters = [],
         array $sorts = [],
-        ?int $limit = null
+        ?int $limit = null,
+        int $offset = 0
     ): array {
         $allRecords = [];
         $modelClass = $this->getCrossTenantsModelClass();
@@ -151,13 +262,7 @@ trait HasCrossTenantsQuery
                     $query = $modelClass::query();
 
                     // Apply filters
-                    foreach ($filters as $field => $value) {
-                        if (is_array($value)) {
-                            $query->whereIn($field, $value);
-                        } else {
-                            $query->where($field, $value);
-                        }
-                    }
+                    $this->applyFiltersToQuery($query, $filters);
 
                     // Apply column selection if not using wildcard
                     if (!in_array('*', $columns)) {
@@ -195,16 +300,92 @@ trait HasCrossTenantsQuery
             $allRecords = $allRecords->values()->toArray();
         }
 
-        // Apply limit
-        if ($limit && count($allRecords) > $limit) {
-            $allRecords = array_slice($allRecords, 0, $limit);
+        // Apply offset and limit
+        if ($offset > 0 || $limit) {
+            $allRecords = array_slice(
+                $allRecords,
+                $offset,
+                $limit ?? count($allRecords)
+            );
         }
 
         return $allRecords;
     }
 
     /**
+     * Get fallback count by iterating through tenants.
+     *
+     * @param $tenants Collection of tenant models
+     * @param array $filters Optional filters
+     * @return int
+     */
+    protected function getFallbackCount($tenants, array $filters = []): int
+    {
+        $total = 0;
+        $modelClass = $this->getCrossTenantsModelClass();
+
+        foreach ($tenants as $tenant) {
+            try {
+                $tenant->run(function () use ($tenant, &$total, $filters, $modelClass) {
+                    $query = $modelClass::query();
+                    $this->applyFiltersToQuery($query, $filters);
+                    $total += $query->count();
+                });
+            } catch (\Exception $e) {
+                Log::warning('Failed to count tenant database', [
+                    'tenant_id' => $tenant->id,
+                    'error' => $e->getMessage()
+                ]);
+                continue;
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * Apply filters to an Eloquent query builder.
+     *
+     * @param $query Query builder instance
+     * @param array $filters Filters to apply
+     * @return void
+     */
+    protected function applyFiltersToQuery($query, array $filters): void
+    {
+        foreach ($filters as $field => $value) {
+            if (is_array($value)) {
+                $query->whereIn($field, $value);
+            } else {
+                $query->where($field, $value);
+            }
+        }
+    }
+
+    /**
+     * Build ORDER BY clause for SQL query.
+     *
+     * @param array $sorts Sorting configuration ['field' => 'direction']
+     * @return string SQL ORDER BY clause
+     */
+    protected function buildOrderByClause(array $sorts = []): string
+    {
+        if (!empty($sorts)) {
+            $orderClauses = [];
+            foreach ($sorts as $field => $direction) {
+                $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+                $orderClauses[] = "{$field} {$direction}";
+            }
+            return ' ORDER BY ' . implode(', ', $orderClauses);
+        }
+
+        return ' ORDER BY created_at DESC';
+    }
+
+    /**
      * Build WHERE clause for SQL query with parameter binding.
+     *
+     * @param array $filters Filter configuration
+     * @return array ['sql' => string, 'bindings' => array]
      */
     protected function buildWhereClause(array $filters): array
     {
@@ -233,6 +414,10 @@ trait HasCrossTenantsQuery
 
     /**
      * Build SELECT columns clause for SQL query.
+     *
+     * @param array $columns Column names to select
+     * @param string $tableName Table name for prefixing
+     * @return string SQL column selection clause
      */
     protected function buildSelectColumns(array $columns, string $tableName): string
     {
