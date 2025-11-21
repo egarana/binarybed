@@ -45,9 +45,13 @@ class UnitService
         return $this->unitRepository->getAllPaginated($request);
     }
 
-    public function findByTenantAndSlug(string $tenantId, string $slug): array
+    public function getForEdit(string $tenantId, string $slug): array
     {
-        return $this->findUnitByTenantAndSlug->execute($tenantId, $slug);
+        $unit = $this->findUnitByTenantAndSlug->execute($tenantId, $slug);
+
+        return [
+            
+        ];
     }
 
     public function create(array $data): Unit

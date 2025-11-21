@@ -24,7 +24,7 @@ class UpdateUnit
      */
     public function execute(string $tenantId, string $slug, array $data): Unit
     {
-        return $this->executeInTenantContext($tenantId, function ($tenant) use ($slug, $data) {
+        return $this->executeInTenantContext($tenantId, function () use ($slug, $data) {
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
             return $this->unitRepository->update($unit, $data);

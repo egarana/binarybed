@@ -42,9 +42,9 @@ class UnitController extends Controller
 
     public function edit(string $tenantId, string $slug): Response
     {
-        // $unit = $this->unitService->getForEdit($unit);
+        $unit = $this->unitService->getForEdit($tenantId, $slug);
         
-        // return Inertia::render('units/Edit', compact('unit'));
+        return Inertia::render('units/Edit', compact('unit'));
     }
 
     // public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse

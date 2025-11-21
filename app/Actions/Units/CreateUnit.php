@@ -24,7 +24,7 @@ class CreateUnit
     {
         $tenantId = $data['tenant_id'];
 
-        return $this->executeInTenantContext($tenantId, function ($tenant) use ($data) {
+        return $this->executeInTenantContext($tenantId, function () use ($data) {
             $unit = $this->unitRepository->create($data);
 
             return $unit;
