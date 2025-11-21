@@ -54,10 +54,10 @@ class UnitController extends Controller
     //     return redirect()->route('units.index', ['sort' => '-updated_at']);
     // }
 
-    // public function destroy(Unit $unit): RedirectResponse
-    // {
-    //     $this->unitService->delete($unit);
+    public function destroy(string $tenantId, string $slug): RedirectResponse
+    {
+        $this->unitService->delete($tenantId, $slug);
 
-    //     return redirect()->route('units.index');
-    // }
+        return redirect()->route('units.index');
+    }
 }

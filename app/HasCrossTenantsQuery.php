@@ -225,7 +225,10 @@ trait HasCrossTenantsQuery
             $results = DB::connection(config('tenancy.database.central_connection'))
                 ->select($sql, $queryParts['bindings']);
 
-            return array_map(fn($row) => (array) $row, $results);
+            $results = array_map(fn($row) => (array) $row, $results);
+
+            // Format timestamps to ISO8601 format (same as Eloquent serialization)
+            return $this->formatTimestamps($results);
         } catch (\Exception $e) {
             Log::warning('Failed to execute UNION query, falling back to iterative approach', [
                 'error' => $e->getMessage()
@@ -309,7 +312,8 @@ trait HasCrossTenantsQuery
             );
         }
 
-        return $allRecords;
+        // Format timestamps to ISO8601 format for consistency
+        return $this->formatTimestamps($allRecords);
     }
 
     /**
@@ -431,5 +435,39 @@ trait HasCrossTenantsQuery
         }
 
         return implode(', ', $selectColumns);
+    }
+
+    /**
+     * Format timestamp fields to ISO8601 format (same as Eloquent serialization).
+     *
+     * @param array $records Array of records to format
+     * @return array Records with formatted timestamps
+     */
+    protected function formatTimestamps(array $records): array
+    {
+        // Common timestamp field names in Laravel
+        $timestampFields = ['created_at', 'updated_at', 'deleted_at'];
+
+        foreach ($records as &$record) {
+            foreach ($timestampFields as $field) {
+                if (isset($record[$field]) && $record[$field] !== null) {
+                    try {
+                        // Parse MySQL datetime format and convert to ISO8601 with microseconds
+                        // Format: 2025-11-21T09:11:42.000000Z
+                        $date = \Carbon\Carbon::parse($record[$field]);
+                        $record[$field] = $date->format('Y-m-d\TH:i:s.u\Z');
+                    } catch (\Exception $e) {
+                        // If parsing fails, keep original value
+                        Log::warning('Failed to format timestamp', [
+                            'field' => $field,
+                            'value' => $record[$field],
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return $records;
     }
 }

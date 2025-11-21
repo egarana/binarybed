@@ -23,7 +23,7 @@ class DeleteUnit
      */
     public function execute(string $tenantId, string $slug): void
     {
-        $this->executeInTenantContext($tenantId, function ($tenant) use ($slug) {
+        $this->executeInTenantContext($tenantId, function () use ($slug) {
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
             $this->unitRepository->delete($unit);
