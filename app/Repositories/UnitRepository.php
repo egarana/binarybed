@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\HandlesTenancy;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\PaginationService;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UnitRepository
 {
+    use HandlesTenancy;
+    
     public function __construct(
         protected PaginationService $pagination
     ) {}
@@ -41,23 +44,8 @@ class UnitRepository
 
     public function getAllPaginated(Request $request)
     {
-        $perPage = $this->pagination->resolvePerPage($request);
 
-        // Map clean URL params to Spatie QueryBuilder format
-        if ($request->has('search')) {
-            $request->merge(['filter' => array_merge(
-                $request->input('filter', []),
-                ['search' => $request->input('search')]
-            )]);
-        }
-
-        $result = $this->baseQuery()
-            ->paginate($perPage)
-            ->appends($request->query());
-
-        if ($result->currentPage() > $result->lastPage() && $result->total() > 0) {
-            throw new NotFoundHttpException();
-        }
+        $result = $this->baseQuery();
 
         return $result;
     }

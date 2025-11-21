@@ -21,7 +21,8 @@ class UnitController extends Controller
 
     public function index(Request $request): Response
     {
-        $units = $this->unitService->getAllPaginated($request);
+        // $units = $this->unitService->getAllPaginated($request);
+        $units = $this->unitService->getAllFromAllTenants();
 
         return Inertia::render('units/Index', compact('units'));
     }
