@@ -3,12 +3,32 @@
 namespace App;
 
 use App\Models\Tenant;
-use App\Models\Unit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 trait HasCrossTenantsQuery
 {
+    /**
+     * Get the model class to query across tenants.
+     * This method must be implemented by the class using this trait.
+     *
+     * @return string The fully qualified model class name
+     */
+    abstract protected function getCrossTenantsModelClass(): string;
+
+    /**
+     * Get the columns to select from the model.
+     * Override this method to customize columns.
+     *
+     * @return array Array of column names to select
+     */
+    protected function getCrossTenantsColumns(): array
+    {
+        // Default: select common columns
+        // Classes can override this to specify their own columns
+        return ['*'];
+    }
+
     /**
      * Get all records from all tenant databases using optimized UNION query.
      *
@@ -43,23 +63,30 @@ trait HasCrossTenantsQuery
         $unionQueries = [];
         $bindings = [];
 
+        // Get model class and derive table name
+        $modelClass = $this->getCrossTenantsModelClass();
+        $modelInstance = new $modelClass();
+        $tableName = $modelInstance->getTable();
+
+        // Get columns to select
+        $columns = $this->getCrossTenantsColumns();
+
         foreach ($tenants as $tenant) {
             $dbName = config('tenancy.database.prefix') . $tenant->id;
 
             // Build WHERE clause
             $whereClause = $this->buildWhereClause($filters);
 
+            // Build column selection
+            $selectColumns = $this->buildSelectColumns($columns, $tableName);
+
             $query = "
                 SELECT
-                    units.id,
-                    units.name,
-                    units.slug,
-                    units.created_at,
-                    units.updated_at,
+                    {$selectColumns},
                     ? as tenant_id,
                     ? as tenant_name,
                     ? as tenant_domain
-                FROM {$dbName}.units
+                FROM {$dbName}.{$tableName}
                 {$whereClause['sql']}
             ";
 
@@ -114,12 +141,14 @@ trait HasCrossTenantsQuery
         array $sorts = [],
         ?int $limit = null
     ): array {
-        $allUnits = [];
+        $allRecords = [];
+        $modelClass = $this->getCrossTenantsModelClass();
+        $columns = $this->getCrossTenantsColumns();
 
         foreach ($tenants as $tenant) {
             try {
-                $tenant->run(function () use ($tenant, &$allUnits, $filters) {
-                    $query = Unit::query();
+                $tenant->run(function () use ($tenant, &$allRecords, $filters, $modelClass, $columns) {
+                    $query = $modelClass::query();
 
                     // Apply filters
                     foreach ($filters as $field => $value) {
@@ -130,19 +159,20 @@ trait HasCrossTenantsQuery
                         }
                     }
 
-                    $units = $query->get();
+                    // Apply column selection if not using wildcard
+                    if (!in_array('*', $columns)) {
+                        $query->select($columns);
+                    }
 
-                    foreach ($units as $unit) {
-                        $allUnits[] = [
-                            'id' => $unit->id,
-                            'name' => $unit->name,
-                            'slug' => $unit->slug,
-                            'created_at' => $unit->created_at,
-                            'updated_at' => $unit->updated_at,
-                            'tenant_id' => $tenant->id,
-                            'tenant_name' => $tenant->name,
-                            'tenant_domain' => $tenant->domain,
-                        ];
+                    $records = $query->get();
+
+                    foreach ($records as $record) {
+                        $recordArray = $record->toArray();
+                        $recordArray['tenant_id'] = $tenant->id;
+                        $recordArray['tenant_name'] = $tenant->name;
+                        $recordArray['tenant_domain'] = $tenant->domain;
+
+                        $allRecords[] = $recordArray;
                     }
                 });
             } catch (\Exception $e) {
@@ -156,21 +186,21 @@ trait HasCrossTenantsQuery
 
         // Apply sorting
         if (!empty($sorts)) {
-            $allUnits = collect($allUnits);
+            $allRecords = collect($allRecords);
             foreach ($sorts as $field => $direction) {
-                $allUnits = $direction === 'desc'
-                    ? $allUnits->sortByDesc($field)
-                    : $allUnits->sortBy($field);
+                $allRecords = $direction === 'desc'
+                    ? $allRecords->sortByDesc($field)
+                    : $allRecords->sortBy($field);
             }
-            $allUnits = $allUnits->values()->toArray();
+            $allRecords = $allRecords->values()->toArray();
         }
 
         // Apply limit
-        if ($limit && count($allUnits) > $limit) {
-            $allUnits = array_slice($allUnits, 0, $limit);
+        if ($limit && count($allRecords) > $limit) {
+            $allRecords = array_slice($allRecords, 0, $limit);
         }
 
-        return $allUnits;
+        return $allRecords;
     }
 
     /**
@@ -199,5 +229,22 @@ trait HasCrossTenantsQuery
         $sql = 'WHERE ' . implode(' AND ', $conditions);
 
         return ['sql' => $sql, 'bindings' => $bindings];
+    }
+
+    /**
+     * Build SELECT columns clause for SQL query.
+     */
+    protected function buildSelectColumns(array $columns, string $tableName): string
+    {
+        if (in_array('*', $columns)) {
+            return "{$tableName}.*";
+        }
+
+        $selectColumns = [];
+        foreach ($columns as $column) {
+            $selectColumns[] = "{$tableName}.{$column}";
+        }
+
+        return implode(', ', $selectColumns);
     }
 }
