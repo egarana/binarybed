@@ -47,12 +47,12 @@ class UnitController extends Controller
         return Inertia::render('units/Edit', compact('unit'));
     }
 
-    // public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
-    // {
-    //     $this->unitService->update($unit, $request->validated());
+    public function update(UpdateUnitRequest $request, string $tenantId, string $slug): RedirectResponse
+    {
+        $this->unitService->update($tenantId, $slug, $request->validated());
 
-    //     return redirect()->route('units.index', ['sort' => '-updated_at']);
-    // }
+        return redirect()->route('units.index', ['sort' => '-updated_at']);
+    }
 
     public function destroy(string $tenantId, string $slug): RedirectResponse
     {

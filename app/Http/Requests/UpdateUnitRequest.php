@@ -19,7 +19,6 @@ class UpdateUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_id' => ['required', 'string', 'exists:tenants,id'],
             'name'      => ['required', 'string', 'min:8', 'max:255'],
             'slug'      => [
                 'required',
@@ -53,10 +52,6 @@ class UpdateUnitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tenant_id.required' => 'Please select a tenant',
-            'tenant_id.string'   => 'Invalid tenant selection',
-            'tenant_id.exists'   => 'The selected tenant does not exist',
-
             'name.required' => 'Please enter the unit name',
             'name.string'   => 'The unit name must be valid text',
             'name.min'      => 'The unit name must be at least 8 characters',

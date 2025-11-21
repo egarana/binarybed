@@ -22,8 +22,11 @@ class FindUnitByTenantAndSlug
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
             return [
-                'unit' => $unit,
-                'tenant' => $tenant
+                'id' => $unit->id,
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'name' => $unit->name,
+                'slug' => $unit->slug,
             ];
         });
     }

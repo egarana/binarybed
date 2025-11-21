@@ -47,11 +47,7 @@ class UnitService
 
     public function getForEdit(string $tenantId, string $slug): array
     {
-        $unit = $this->findUnitByTenantAndSlug->execute($tenantId, $slug);
-
-        return [
-            
-        ];
+        return $this->findUnitByTenantAndSlug->execute($tenantId, $slug);
     }
 
     public function create(array $data): Unit

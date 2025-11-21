@@ -53,7 +53,6 @@ class UpdateUserRequest extends FormRequest
             'email.max'          => 'The email address must not exceed 255 characters',
             'email.unique'       => 'This email address is already registered',
 
-            'password.required'  => "Please enter the user's password",
             'password.string'    => 'The password must be valid text',
             'password.min'       => 'The password must be at least 8 characters',
             'password.max'       => 'The password must not exceed 255 characters',
