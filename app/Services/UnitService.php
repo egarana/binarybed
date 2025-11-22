@@ -13,8 +13,6 @@ use Illuminate\Http\Request;
 
 class UnitService
 {
-    use HasCrossTenantsQuery;
-
     public function __construct(
         protected UnitRepository $unitRepository,
         protected CreateUnit $createUnit,
@@ -23,26 +21,9 @@ class UnitService
         protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug
     ) {}
 
-    /**
-     * Get the model class for cross-tenant queries.
-     */
-    protected function getCrossTenantsModelClass(): string
+    public function getAllFromAllTenantsPaginated(Request $request)
     {
-        return Unit::class;
-    }
-
-    /**
-     * Optional: Specify which columns to select from units table.
-     * Override to customize. Default is ['*'] which selects all columns.
-     */
-    protected function getCrossTenantsColumns(): array
-    {
-        return ['id', 'name', 'slug', 'created_at', 'updated_at'];
-    }
-
-    public function getAllPaginated(Request $request)
-    {
-        return $this->unitRepository->getAllPaginated($request);
+        return $this->unitRepository->getAllFromAllTenantsPaginated($request);
     }
 
     public function getForEdit(string $tenantId, string $slug): array

@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\HandlesTenancy;
+use App\HasMultiTenantSearch;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\PaginationService;
@@ -12,11 +12,13 @@ use Spatie\QueryBuilder\AllowedFilter;
 use App\QueryBuilder\Sorts\RelationSort;
 use App\QueryBuilder\Filters\RelationFilter;
 use App\QueryBuilder\Filters\MultiFieldSearchFilter;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UnitRepository
 {
-    use HandlesTenancy;
+    use HasMultiTenantSearch;
     
     public function __construct(
         protected PaginationService $pagination
@@ -37,15 +39,92 @@ class UnitRepository
             ->defaultSort('name');
     }
 
-    public function getAll()
+    public function getAllFromAllTenantsPaginated(Request $request)
     {
-        return Unit::orderBy('name')->get();
-    }
+        $perPage = $this->pagination->resolvePerPage($request);
 
-    public function getAllPaginated(Request $request)
-    {
+        // Capture search parameters
+        $searchValue = $request->input('search');
+        $searchFields = $request->input('fields')
+            ? explode(',', $request->input('fields'))
+            : ['name'];
 
-        $result = $this->baseQuery();
+        // Define fields that only exist at collection level (added post-query)
+        $collectionFields = ['tenant_name', 'tenant_id'];
+
+        // Check if we need collection-level search
+        $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
+
+        // Get database-only fields for QueryBuilder
+        $databaseFields = $this->getDatabaseFields($searchFields, $collectionFields);
+
+        // Prepare request for QueryBuilder if using DB-level filtering
+        if ($searchValue && !$needsCollectionSearch && !empty($databaseFields)) {
+            $request->merge(['filter' => array_merge(
+                $request->input('filter', []),
+                ['search' => $searchValue]
+            )]);
+            $request->merge(['fields' => implode(',', $databaseFields)]);
+        }
+
+        // Check if sorting by a collection-level field
+        $sortField = $request->input('sort', 'name');
+        $sortFieldName = ltrim($sortField, '-');
+        $isCollectionSort = in_array($sortFieldName, $collectionFields);
+
+        // If sorting by collection field, temporarily remove sort parameter for QueryBuilder
+        $originalSort = null;
+        if ($isCollectionSort) {
+            $originalSort = $request->input('sort');
+            $request->offsetUnset('sort');
+        }
+
+        // Fetch data from all tenant databases using the trait
+        $allUnits = $this->fetchFromAllTenants(
+            modelClass: Unit::class,
+            callback: fn() => $needsCollectionSearch,
+            queryModifier: fn($query) => $this->baseQuery(),
+            tenantDataMapper: function ($unit, $tenant) {
+                $unitArray = $unit->toArray();
+                $unitArray['tenant_id'] = $tenant->id;
+                $unitArray['tenant_name'] = $tenant->name ?? $tenant->id;
+                return $unitArray;
+            }
+        );
+
+        // Restore original sort parameter if it was removed
+        if ($originalSort !== null) {
+            $request->merge(['sort' => $originalSort]);
+        }
+
+        // Apply collection-level search if needed
+        if ($searchValue && $needsCollectionSearch) {
+            $allUnits = $this->applyCollectionSearch($allUnits, $searchValue, $searchFields);
+        }
+
+        // Apply sorting manually (data is merged from multiple databases)
+        $sortField = $request->input('sort', 'name');
+        $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $sortField = ltrim($sortField, '-');
+
+        $allUnits = $allUnits->sortBy($sortField, SORT_REGULAR, $sortDirection === 'desc');
+
+        // Manual pagination to maintain Laravel pagination format
+        $currentPage = Paginator::resolveCurrentPage();
+        $currentPageItems = $allUnits->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $result = new LengthAwarePaginator(
+            $currentPageItems,
+            $allUnits->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // Validasi current page
+        if ($result->currentPage() > $result->lastPage() && $result->total() > 0) {
+            throw new NotFoundHttpException();
+        }
 
         return $result;
     }
