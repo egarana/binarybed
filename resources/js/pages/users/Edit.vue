@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import users from '@/routes/users';
-import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { LoaderCircle } from 'lucide-vue-next';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
-import { useShortcut } from '@/composables/useShortcut';
-import { notifyActionResult } from '@/helpers/notifyActionResult';
-import { capitalizeFirst } from '@/helpers/string';
+import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { useResourceForm } from '@/composables/useResourceForm';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
@@ -25,42 +18,23 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Users',
-        href: users.index.url(),
-    },
-    {
-        title: 'Edit User',
-        href: users.edit.url(props.user.id),
-    },
-];
+const breadcrumbs = useResourceBreadcrumbs({
+    resourceName: 'User',
+    resourceNamePlural: 'Users',
+    indexRoute: users.index.url(),
+    action: 'edit',
+    actionRoute: users.edit.url(props.user.id),
+});
 
-const formRef = ref<InstanceType<typeof Form> | null>(null);
+const { formRef, onSuccess, onError } = useResourceForm({
+    resourceName: 'user',
+    action: 'update',
+});
 
 // Form fields
 const name = ref(props.user.name || '');
 const email = ref(props.user.email || '');
 const password = ref('');
-
-useShortcut({
-    keys: ['ctrl+s', 'meta+s'],
-    callback: () => {
-        formRef.value?.$el?.requestSubmit?.();
-    },
-});
-
-const onSuccess = (payload: any) => {
-    notifyActionResult('success', 'update', capitalizeFirst('user'), payload, {
-        successDescription: 'The user has been updated successfully.',
-    });
-};
-
-const onError = (payload: any) => {
-    notifyActionResult('error', 'update', 'user', payload, {
-        errorDescription: 'An unexpected error occurred while updating the user. Please check your input and try again.',
-    });
-};
 </script>
 
 <template>

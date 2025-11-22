@@ -5,57 +5,52 @@ import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
 import { useResourceForm } from '@/composables/useResourceForm';
-import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
-
-interface Props {
-    tenant: {
-        id: string;
-        name: string;
-        domain: string;
-    };
-}
-
-const props = defineProps<Props>();
 
 const breadcrumbs = useResourceBreadcrumbs({
     resourceName: 'Tenant',
     resourceNamePlural: 'Tenants',
     indexRoute: tenants.index.url(),
-    action: 'edit',
-    actionRoute: tenants.edit.url(props.tenant.id),
+    action: 'create',
+    actionRoute: tenants.create.url(),
 });
 
 const { formRef, onSuccess, onError } = useResourceForm({
     resourceName: 'tenant',
-    action: 'update',
+    action: 'create',
 });
 
 // Form fields
-const name = ref(props.tenant.name || '');
-const domain = ref(props.tenant.domain || '');
+const id = ref('');
+const name = ref('');
+const domain = ref('');
 </script>
 
 <template>
-    <Head :title="`Edit Tenant: ${tenant.name}`" />
+    <Head title="Create Tenant" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
             <Form
                 ref="formRef"
-                :action="tenants.update(tenant.id)"
-                method="put"
+                :action="tenants.store()"
+                method="post"
                 @success="onSuccess"
                 @error="onError"
                 class="space-y-6 h-full flex flex-col"
                 v-slot="{ errors, processing }"
             >
-                <DisabledFormField
+                <FormField
+                    id="id"
                     label="ID"
-                    :value="tenant.id"
-                    help-text="Tenant ID cannot be changed after creation"
+                    type="text"
+                    :tabindex="1"
+                    autocomplete="off"
+                    placeholder="e.g. tenantname (lowercase letters and numbers only)"
+                    v-model="id"
+                    :error="errors.id"
                 />
 
                 <FormField
@@ -83,8 +78,8 @@ const domain = ref(props.tenant.domain || '');
                 <SubmitButton
                     :processing="processing"
                     :tabindex="4"
-                    test-id="update-tenant-button"
-                    label="Save"
+                    test-id="create-tenant-button"
+                    label="Create"
                 />
             </Form>
 

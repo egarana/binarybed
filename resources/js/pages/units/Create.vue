@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
-import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
-import { useShortcut } from '@/composables/useShortcut';
-import { notifyActionResult } from '@/helpers/notifyActionResult';
-import { capitalizeFirst } from '@/helpers/string';
+import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { useResourceForm } from '@/composables/useResourceForm';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import SearchResourceCombobox, { type ComboboxOption } from '@/components/SearchResourceCombobox.vue';
 import FormField from '@/components/FormField.vue';
@@ -17,45 +15,26 @@ const props = defineProps<{
     tenants?: ComboboxOption[];
 }>()
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Units',
-        href: units.index.url(),
-    },
-    {
-        title: 'Create Unit',
-        href: units.create.url(),
-    },
-];
+const breadcrumbs = useResourceBreadcrumbs({
+    resourceName: 'Unit',
+    resourceNamePlural: 'Units',
+    indexRoute: units.index.url(),
+    action: 'create',
+    actionRoute: units.create.url(),
+});
 
-const formRef = ref<InstanceType<typeof Form> | null>(null);
+const { formRef, onSuccess, onError } = useResourceForm({
+    resourceName: 'unit',
+    action: 'create',
+});
 
 // Form fields
 const selectedTenant = ref<ComboboxOption>();
 const name = ref('');
-const { slug } = useAutoSlug(name, { 
-    separator: '-', 
-    lowercase: true 
+const { slug } = useAutoSlug(name, {
+    separator: '-',
+    lowercase: true
 });
-
-useShortcut({
-    keys: ['ctrl+s', 'meta+s'],
-    callback: () => {
-        formRef.value?.$el?.requestSubmit?.();
-    },
-});
-
-const onSuccess = (payload: any) => {
-    notifyActionResult('success', 'create', capitalizeFirst('unit'), payload, {
-        successDescription: 'The unit has been created successfully.',
-    });
-};
-
-const onError = (payload: any) => {
-    notifyActionResult('error', 'create', 'unit', payload, {
-        errorDescription: 'An unexpected error occurred while creating the unit. Please check your input and try again.',
-    });
-};
 </script>
 
 <template>
