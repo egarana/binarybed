@@ -2,7 +2,7 @@
 import tenants from '@/routes/tenants';
 import { ref } from 'vue';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
-import { useResourceForm } from '@/composables/useResourceForm';
+import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
@@ -15,7 +15,7 @@ const breadcrumbs = useResourceBreadcrumbs({
     actionRoute: tenants.create.url(),
 });
 
-const { onSuccess, onError } = useResourceForm({
+const { onSuccess, onError } = useFormNotifications({
     resourceName: 'tenant',
     action: 'create',
 });
