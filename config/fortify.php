@@ -134,6 +134,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Fortify Redirects
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure the redirect paths for various Fortify actions.
+    | Set these to custom paths or leave them as null to use the default
+    | behavior. Useful for customizing the user flow after authentication.
+    |
+    */
+
+    'redirects' => [
+        'login' => null,
+        'logout' => 'login',
+        'password-confirmation' => null,
+        'register' => null,
+        'email-verification' => null,
+        'password-reset' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Features
     |--------------------------------------------------------------------------
     |
