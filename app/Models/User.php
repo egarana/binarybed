@@ -18,7 +18,6 @@ class User extends Authenticatable implements SyncMaster
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, ResourceSyncing, CentralConnection;
 
     protected $guarded = [];
-    public $timestamps = false;
     protected $table = 'users';
 
     protected $fillable = [

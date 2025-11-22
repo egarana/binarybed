@@ -44,11 +44,11 @@ const columns = [
             <ResourceTableFilter
                 :refresh="refresh"
                 searchPlaceholder="Search units..."
-                :searchFields="['name', 'id', 'domains.domain']"
+                :searchFields="['name', 'slug', 'tenant_name']"
                 :showAddButton="true"
                 addButtonLabel="Add unit"
                 :addButtonRoute="units.create.url()"
-                :showSearch="false"
+                :showSearch="true"
             />
             <ResourceTable
                 :data="resource"
