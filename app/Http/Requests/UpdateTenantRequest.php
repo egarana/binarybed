@@ -24,14 +24,14 @@ class UpdateTenantRequest extends FormRequest
     public function rules(): array
     {
         $tenant = $this->route('tenant');
-        $currentDomain = $tenant?->domains->first()?->domain;
+        $currentDomainId = $tenant?->domains->first()?->id;
 
         return [
             'name'   => ['sometimes', 'string', 'max:255'],
             'domain' => [
-                'sometimes', 
-                'string', 
-                'unique:domains,domain',
+                'sometimes',
+                'string',
+                Rule::unique('domains', 'domain')->ignore($currentDomainId),
                 new ValidDomain,
             ],
         ];

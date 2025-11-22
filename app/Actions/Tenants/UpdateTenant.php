@@ -34,6 +34,9 @@ class UpdateTenant
                 } else {
                     $this->domainRepository->create($domain, $tenant->id);
                 }
+
+                // Touch tenant to update updated_at when domain changes
+                $tenant->touch();
             }
 
             return $this->tenantRepository->findWithDomains($tenant->id);

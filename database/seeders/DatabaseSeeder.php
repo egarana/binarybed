@@ -25,5 +25,9 @@ class DatabaseSeeder extends Seeder
             ]);
 
         $user->assignRole('super-admin');
+
+        $this->call([
+            DummyDataSeeder::class,
+        ]);
     }
 }
