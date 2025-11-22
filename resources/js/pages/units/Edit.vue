@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
-import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
-import { useResourceForm } from '@/composables/useResourceForm';
+import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
+import BaseFormPage from '@/components/BaseFormPage.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
@@ -30,7 +29,7 @@ const breadcrumbs = useResourceBreadcrumbs({
     actionRoute: units.edit.url([props.unit.tenant_id, props.unit.slug]),
 });
 
-const { formRef, onSuccess, onError } = useResourceForm({
+const { onSuccess, onError } = useFormNotifications({
     resourceName: 'unit',
     action: 'update',
 });
@@ -45,58 +44,51 @@ const { slug } = useAutoSlug(name, {
 </script>
 
 <template>
-    <Head :title="`Edit Unit: ${unit.name}`" />
+    <BaseFormPage
+        :title="`Edit Unit: ${unit.name}`"
+        :breadcrumbs="breadcrumbs"
+        :action="units.update.url([unit.tenant_id, unit.slug])"
+        method="put"
+        :onSuccess="onSuccess"
+        :onError="onError"
+    >
+        <template #default="{ errors, processing }">
+            <input type="hidden" name="tenant_id" :value="unit.tenant_id" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <DisabledFormField
+                label="Tenant"
+                :value="unit.tenant_name"
+                help-text="Unit tenant cannot be changed after creation"
+            />
 
-            <Form
-                ref="formRef"
-                :action="units.update([unit.tenant_id, unit.slug])"
-                method="put"
-                @success="onSuccess"
-                @error="onError"
-                class="space-y-6 h-full flex flex-col"
-                v-slot="{ errors, processing }"
-            >
-                <input type="hidden" name="tenant_id" :value="unit.tenant_id" />
+            <FormField
+                id="name"
+                label="Name"
+                type="text"
+                :tabindex="1"
+                autocomplete="organization"
+                placeholder="e.g. Unit Name"
+                v-model="name"
+                :error="errors.name"
+            />
 
-                <DisabledFormField
-                    label="Tenant"
-                    :value="unit.tenant_name"
-                    help-text="Unit tenant cannot be changed after creation"
-                />
+            <FormField
+                id="slug"
+                label="Slug"
+                type="text"
+                :tabindex="2"
+                autocomplete="off"
+                placeholder="e.g. unit-name"
+                v-model="slug"
+                :error="errors.slug"
+            />
 
-                <FormField
-                    id="name"
-                    label="Name"
-                    type="text"
-                    :tabindex="1"
-                    autocomplete="organization"
-                    placeholder="e.g. Unit Name"
-                    v-model="name"
-                    :error="errors.name"
-                />
-
-                <FormField
-                    id="slug"
-                    label="Slug"
-                    type="text"
-                    :tabindex="2"
-                    autocomplete="off"
-                    placeholder="e.g. unit-name"
-                    v-model="slug"
-                    :error="errors.slug"
-                />
-
-                <SubmitButton
-                    :processing="processing"
-                    :tabindex="3"
-                    test-id="update-unit-button"
-                    label="Save"
-                />
-            </Form>
-
-        </div>
-    </AppLayout>
+            <SubmitButton
+                :processing="processing"
+                :tabindex="3"
+                test-id="update-unit-button"
+                label="Save"
+            />
+        </template>
+    </BaseFormPage>
 </template>
