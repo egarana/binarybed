@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\ValidDomain;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,10 +29,10 @@ class UpdateTenantRequest extends FormRequest
         return [
             'name'   => ['sometimes', 'string', 'max:255'],
             'domain' => [
-                'sometimes',
-                'string',
-                Rule::unique('domains', 'domain')->ignore($currentDomain, 'domain'),
-                'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/',
+                'sometimes', 
+                'string', 
+                'unique:domains,domain',
+                new ValidDomain,
             ],
         ];
     }

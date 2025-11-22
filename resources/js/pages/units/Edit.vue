@@ -133,7 +133,7 @@ const onError = (payload: any) => {
                             v-if="processing"
                             class="h-4 w-4 animate-spin"
                         />
-                        Update
+                        Save
                     </Button>
                 </div>
             </Form>

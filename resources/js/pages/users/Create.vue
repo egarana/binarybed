@@ -73,7 +73,7 @@ const onError = (payload: any) => {
                         name="name"
                         type="text"
                         :tabindex="1"
-                        autocomplete="organization"
+                        autocomplete="name"
                         placeholder="e.g. User Name"
                         v-model="name"
                     />

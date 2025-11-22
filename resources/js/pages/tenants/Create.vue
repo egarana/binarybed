@@ -27,8 +27,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 const formRef = ref<InstanceType<typeof Form> | null>(null);
 
 // Form fields
-const tenantId = ref('');
-const tenantName = ref('');
+const id = ref('');
+const name = ref('');
 const domain = ref('');
 
 useShortcut({
@@ -75,7 +75,7 @@ const onError = (payload: any) => {
                         :tabindex="1"
                         autocomplete="off"
                         placeholder="e.g. tenantname (lowercase letters and numbers only)"
-                        v-model="tenantId"
+                        v-model="id"
                     />
                     <InputError :message="errors.id" />
                 </div>
@@ -89,7 +89,7 @@ const onError = (payload: any) => {
                         :tabindex="2"
                         autocomplete="organization"
                         placeholder="e.g. Tenant Name"
-                        v-model="tenantName"
+                        v-model="name"
                     />
                     <InputError :message="errors.name" />
                 </div>
@@ -111,7 +111,7 @@ const onError = (payload: any) => {
                 <div class="mt-auto text-right pt-6">
                     <Button
                         type="submit"
-                        tabindex="8"
+                        tabindex="4"
                         :disabled="processing"
                         data-test="create-tenant-button"
                     >

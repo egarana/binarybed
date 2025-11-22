@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\TenantDatabaseNotExists;
+use App\Rules\ValidDomain;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTenantRequest extends FormRequest
@@ -23,9 +24,21 @@ class StoreTenantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id'     => ['required', 'string', 'max:30', 'unique:tenants,id', 'regex:/^[a-z0-9]+$/', new TenantDatabaseNotExists],
+            'id'     => [
+                'required', 
+                'string', 
+                'max:30', 
+                'unique:tenants,id', 
+                'regex:/^[a-z0-9]+$/', 
+                new TenantDatabaseNotExists
+            ],
             'name'   => ['required', 'string', 'max:255'],
-            'domain' => ['required', 'string', 'unique:domains,domain', 'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/'],
+            'domain' => [
+                'required', 
+                'string', 
+                'unique:domains,domain',
+                new ValidDomain,
+            ],
         ];
     }
 

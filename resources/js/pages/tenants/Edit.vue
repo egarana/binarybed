@@ -36,6 +36,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formRef = ref<InstanceType<typeof Form> | null>(null);
 
+// Form fields
+const name = ref(props.tenant.name || '');
+const domain = ref(props.tenant.domain || '');
+
 useShortcut({
     keys: ['ctrl+s', 'meta+s'],
     callback: () => {
@@ -57,7 +61,7 @@ const onError = (payload: any) => {
 </script>
 
 <template>
-    <Head :title="`Edit Tenant - ${tenant.name}`" />
+    <Head :title="`Edit Tenant: ${tenant.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -89,9 +93,9 @@ const onError = (payload: any) => {
                         name="name"
                         type="text"
                         :tabindex="2"
-                        :defaultValue="tenant.name"
                         autocomplete="organization"
                         placeholder="e.g. Tenant Name"
+                        v-model="name"
                     />
                     <InputError :message="errors.name" />
                 </div>
@@ -103,9 +107,9 @@ const onError = (payload: any) => {
                         name="domain"
                         type="text"
                         :tabindex="3"
-                        :defaultValue="tenant.domain"
                         autocomplete="url"
                         placeholder="e.g. tenantname.com (no https:// or www, valid domain format)"
+                        v-model="domain"
                     />
                     <InputError :message="errors.domain" />
                 </div>
@@ -113,7 +117,7 @@ const onError = (payload: any) => {
                 <div class="mt-auto text-right pt-6">
                     <Button
                         type="submit"
-                        tabindex="8"
+                        tabindex="3"
                         :disabled="processing"
                         data-test="update-tenant-button"
                     >
@@ -121,7 +125,7 @@ const onError = (payload: any) => {
                             v-if="processing"
                             class="h-4 w-4 animate-spin"
                         />
-                        Update
+                        Save
                     </Button>
                 </div>
             </Form>
