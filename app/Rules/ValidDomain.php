@@ -25,6 +25,12 @@ class ValidDomain implements ValidationRule
         // Validasi setiap label domain (bagian yang dipisahkan oleh titik)
         $labels = explode('.', $value);
         
+        // Domain harus memiliki minimal 2 label (domain + TLD)
+        if (count($labels) < 2) {
+            $fail('The domain must include a top-level domain (e.g., example.com).');
+            return;
+        }
+
         foreach ($labels as $label) {
             // Setiap label maksimal 63 karakter
             if (strlen($label) > 63) {
