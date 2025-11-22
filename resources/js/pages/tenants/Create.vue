@@ -15,7 +15,7 @@ const breadcrumbs = useResourceBreadcrumbs({
     actionRoute: tenants.create.url(),
 });
 
-const { formRef, onSuccess, onError } = useResourceForm({
+const { onSuccess, onError } = useResourceForm({
     resourceName: 'tenant',
     action: 'create',
 });
@@ -30,7 +30,6 @@ const domain = ref('');
     <BaseFormPage
         title="Create Tenant"
         :breadcrumbs="breadcrumbs"
-        :formRef="formRef"
         :action="tenants.store.url()"
         method="post"
         :onSuccess="onSuccess"
