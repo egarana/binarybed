@@ -58,6 +58,7 @@ const columns = [
                 :refresh="refresh"
                 :editRoute="(item) => units.edit.url([item.tenant_id, item.slug])"
                 :deleteRoute="(item) => ({ url: units.destroy.url([item.tenant_id, item.slug]) })"
+                :itemKey="(item) => `${item.tenant_id}-${item.id}`"
                 resourceName="unit"
             />
         </div>
