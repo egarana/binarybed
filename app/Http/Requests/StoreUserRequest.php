@@ -24,7 +24,7 @@ class StoreUserRequest extends FormRequest
         return [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'max:255'],
+            'password' => ['required', 'string', 'min:6', 'max:255'],
         ];
     }
 
@@ -47,7 +47,7 @@ class StoreUserRequest extends FormRequest
 
             'password.required'  => "Please enter the user's password",
             'password.string'    => 'The password must be valid text',
-            'password.min'       => 'The password must be at least 8 characters',
+            'password.min'       => 'The password must be at least 6 characters',
             'password.max'       => 'The password must not exceed 255 characters',
         ];
     }

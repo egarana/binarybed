@@ -3,16 +3,14 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { LoaderCircle } from 'lucide-vue-next';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
 import { useShortcut } from '@/composables/useShortcut';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
 import { useAutoSlug } from '@/composables/useAutoSlug';
+import DisabledFormField from '@/components/DisabledFormField.vue';
+import FormField from '@/components/FormField.vue';
+import SubmitButton from '@/components/SubmitButton.vue';
 
 interface Props {
     unit: {
@@ -84,58 +82,40 @@ const onError = (payload: any) => {
             >
                 <input type="hidden" name="tenant_id" :value="unit.tenant_id" />
 
-                <div class="grid gap-2">
-                    <h1 class="disabled-label">Tenant</h1>
-                    <div class="disabled-input">
-                        {{ unit.tenant_name }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        Unit tenant cannot be changed after creation
-                    </p>
-                </div>
+                <DisabledFormField
+                    label="Tenant"
+                    :value="unit.tenant_name"
+                    help-text="Unit tenant cannot be changed after creation"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        :tabindex="1"
-                        autocomplete="organization"
-                        placeholder="e.g. Unit Name"
-                        v-model="name"
-                    />
-                    <InputError :message="errors.name" />
-                </div>
+                <FormField
+                    id="name"
+                    label="Name"
+                    type="text"
+                    :tabindex="1"
+                    autocomplete="organization"
+                    placeholder="e.g. Unit Name"
+                    v-model="name"
+                    :error="errors.name"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="slug">Slug</Label>
-                    <Input
-                        id="slug"
-                        name="slug"
-                        type="text"
-                        :tabindex="2"
-                        autocomplete="off"
-                        placeholder="e.g. unit-name"
-                        v-model="slug"
-                    />
-                    <InputError :message="errors.slug" />
-                </div>
+                <FormField
+                    id="slug"
+                    label="Slug"
+                    type="text"
+                    :tabindex="2"
+                    autocomplete="off"
+                    placeholder="e.g. unit-name"
+                    v-model="slug"
+                    :error="errors.slug"
+                />
 
-                <div class="mt-auto text-right pt-6">
-                    <Button
-                        type="submit"
-                        tabindex="3"
-                        :disabled="processing"
-                        data-test="update-unit-button"
-                    >
-                        <LoaderCircle
-                            v-if="processing"
-                            class="h-4 w-4 animate-spin"
-                        />
-                        Save
-                    </Button>
-                </div>
+                <SubmitButton
+                    :processing="processing"
+                    :tabindex="3"
+                    test-id="update-unit-button"
+                    label="Save"
+                />
             </Form>
 
         </div>

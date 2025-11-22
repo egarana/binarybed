@@ -12,6 +12,8 @@ import { ref } from 'vue';
 import { useShortcut } from '@/composables/useShortcut';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
+import FormField from '@/components/FormField.vue';
+import SubmitButton from '@/components/SubmitButton.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -66,62 +68,45 @@ const onError = (payload: any) => {
                 class="space-y-6 h-full flex flex-col"
                 v-slot="{ errors, processing }"
             >
-                <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        :tabindex="1"
-                        autocomplete="name"
-                        placeholder="e.g. User Name"
-                        v-model="name"
-                    />
-                    <InputError :message="errors.name" />
-                </div>
+                <FormField
+                    id="name"
+                    label="Name"
+                    type="text"
+                    :tabindex="1"
+                    autocomplete="name"
+                    placeholder="e.g. User Name"
+                    v-model="name"
+                    :error="errors.name"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="email">Email</Label>
-                    <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        :tabindex="2"
-                        autocomplete="email"
-                        placeholder="e.g. john@example.com"
-                        v-model="email"
-                    />
-                    <InputError :message="errors.email" />
-                </div>
+                <FormField
+                    id="email"
+                    label="Email"
+                    type="email"
+                    :tabindex="2"
+                    autocomplete="email"
+                    placeholder="e.g. john@example.com"
+                    v-model="email"
+                    :error="errors.email"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="password">Password</Label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        :tabindex="3"
-                        autocomplete="new-password"
-                        placeholder="Minimum 8 characters"
-                        v-model="password"
-                    />
-                    <InputError :message="errors.password" />
-                </div>
+                <FormField
+                    id="password"
+                    label="Password"
+                    type="password"
+                    :tabindex="3"
+                    autocomplete="new-password"
+                    placeholder="Minimum 6 characters"
+                    v-model="password"
+                    :error="errors.password"
+                />
 
-                <div class="mt-auto text-right pt-6">
-                    <Button
-                        type="submit"
-                        tabindex="4"
-                        :disabled="processing"
-                        data-test="create-user-button"
-                    >
-                        <LoaderCircle
-                            v-if="processing"
-                            class="h-4 w-4 animate-spin"
-                        />
-                        Create
-                    </Button>
-                </div>
+                <SubmitButton
+                    :processing="processing"
+                    :tabindex="4"
+                    test-id="create-user-button"
+                    label="Create"
+                />
             </Form>
 
         </div>

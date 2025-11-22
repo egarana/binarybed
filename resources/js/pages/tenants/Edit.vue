@@ -3,15 +3,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import tenants from '@/routes/tenants';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { LoaderCircle } from 'lucide-vue-next';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
 import { useShortcut } from '@/composables/useShortcut';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
+import DisabledFormField from '@/components/DisabledFormField.vue';
+import FormField from '@/components/FormField.vue';
+import SubmitButton from '@/components/SubmitButton.vue';
 
 interface Props {
     tenant: {
@@ -75,59 +73,40 @@ const onError = (payload: any) => {
                 class="space-y-6 h-full flex flex-col"
                 v-slot="{ errors, processing }"
             >
+                <DisabledFormField
+                    label="ID"
+                    :value="tenant.id"
+                    help-text="Tenant ID cannot be changed after creation"
+                />
 
-                <div class="grid gap-2">
-                    <h1 class="disabled-label">ID</h1>
-                    <div class="disabled-input">
-                        {{ tenant.id }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        Tenant ID cannot be changed after creation
-                    </p>
-                </div>
+                <FormField
+                    id="name"
+                    label="Name"
+                    type="text"
+                    :tabindex="2"
+                    autocomplete="organization"
+                    placeholder="e.g. Tenant Name"
+                    v-model="name"
+                    :error="errors.name"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        :tabindex="2"
-                        autocomplete="organization"
-                        placeholder="e.g. Tenant Name"
-                        v-model="name"
-                    />
-                    <InputError :message="errors.name" />
-                </div>
+                <FormField
+                    id="domain"
+                    label="Domain"
+                    type="text"
+                    :tabindex="3"
+                    autocomplete="url"
+                    placeholder="e.g. tenantname.com (no https:// or www, valid domain format)"
+                    v-model="domain"
+                    :error="errors.domain"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="domain">Domain</Label>
-                    <Input
-                        id="domain"
-                        name="domain"
-                        type="text"
-                        :tabindex="3"
-                        autocomplete="url"
-                        placeholder="e.g. tenantname.com (no https:// or www, valid domain format)"
-                        v-model="domain"
-                    />
-                    <InputError :message="errors.domain" />
-                </div>
-
-                <div class="mt-auto text-right pt-6">
-                    <Button
-                        type="submit"
-                        tabindex="3"
-                        :disabled="processing"
-                        data-test="update-tenant-button"
-                    >
-                        <LoaderCircle
-                            v-if="processing"
-                            class="h-4 w-4 animate-spin"
-                        />
-                        Save
-                    </Button>
-                </div>
+                <SubmitButton
+                    :processing="processing"
+                    :tabindex="4"
+                    test-id="update-tenant-button"
+                    label="Save"
+                />
             </Form>
 
         </div>

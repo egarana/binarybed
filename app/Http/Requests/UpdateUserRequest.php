@@ -32,7 +32,7 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users')->ignore($userId),
             ],
-            'password' => ['nullable', 'string', 'min:8', 'max:255'],
+            'password' => ['nullable', 'string', 'min:6', 'max:255'],
         ];
     }
 
@@ -54,7 +54,7 @@ class UpdateUserRequest extends FormRequest
             'email.unique'       => 'This email address is already registered',
 
             'password.string'    => 'The password must be valid text',
-            'password.min'       => 'The password must be at least 8 characters',
+            'password.min'       => 'The password must be at least 6 characters',
             'password.max'       => 'The password must not exceed 255 characters',
         ];
     }

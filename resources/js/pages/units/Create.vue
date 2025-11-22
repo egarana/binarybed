@@ -3,10 +3,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { LoaderCircle } from 'lucide-vue-next';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
 import { useShortcut } from '@/composables/useShortcut';
@@ -14,6 +10,8 @@ import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import SearchResourceCombobox, { type ComboboxOption } from '@/components/SearchResourceCombobox.vue';
+import FormField from '@/components/FormField.vue';
+import SubmitButton from '@/components/SubmitButton.vue';
 
 const props = defineProps<{
     tenants?: ComboboxOption[];
@@ -87,52 +85,38 @@ const onError = (payload: any) => {
                     hidden-input-name="tenant_id"
                 >
                     <template #error>
-                    <InputError :message="errors.tenant_id" />
+                        <InputError :message="errors.tenant_id" />
                     </template>
                 </SearchResourceCombobox>
 
-                <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        :tabindex="1"
-                        autocomplete="organization"
-                        placeholder="e.g. Unit Name"
-                        v-model="name"
-                    />
-                    <InputError :message="errors.name" />
-                </div>
+                <FormField
+                    id="name"
+                    label="Name"
+                    type="text"
+                    :tabindex="1"
+                    autocomplete="organization"
+                    placeholder="e.g. Unit Name"
+                    v-model="name"
+                    :error="errors.name"
+                />
 
-                <div class="grid gap-2">
-                    <Label for="slug">Slug</Label>
-                    <Input
-                        id="slug"
-                        name="slug"
-                        type="text"
-                        :tabindex="2"
-                        autocomplete="off"
-                        placeholder="e.g. unit-name"
-                        v-model="slug"
-                    />
-                    <InputError :message="errors.slug" />
-                </div>
+                <FormField
+                    id="slug"
+                    label="Slug"
+                    type="text"
+                    :tabindex="2"
+                    autocomplete="off"
+                    placeholder="e.g. unit-name"
+                    v-model="slug"
+                    :error="errors.slug"
+                />
 
-                <div class="mt-auto text-right pt-6">
-                    <Button
-                        type="submit"
-                        tabindex="3"
-                        :disabled="processing"
-                        data-test="create-unit-button"
-                    >
-                        <LoaderCircle
-                            v-if="processing"
-                            class="h-4 w-4 animate-spin"
-                        />
-                        Create
-                    </Button>
-                </div>
+                <SubmitButton
+                    :processing="processing"
+                    :tabindex="3"
+                    test-id="create-unit-button"
+                    label="Create"
+                />
             </Form>
 
         </div>
