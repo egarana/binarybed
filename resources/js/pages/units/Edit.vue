@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import units from '@/routes/units';
-import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { useShortcut } from '@/composables/useShortcut';
-import { notifyActionResult } from '@/helpers/notifyActionResult';
-import { capitalizeFirst } from '@/helpers/string';
+import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { useResourceForm } from '@/composables/useResourceForm';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
@@ -24,45 +22,26 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Units',
-        href: units.index.url(),
-    },
-    {
-        title: 'Edit Unit',
-        href: units.edit.url([props.unit.tenant_id, props.unit.slug]),
-    },
-];
+const breadcrumbs = useResourceBreadcrumbs({
+    resourceName: 'Unit',
+    resourceNamePlural: 'Units',
+    indexRoute: units.index.url(),
+    action: 'edit',
+    actionRoute: units.edit.url([props.unit.tenant_id, props.unit.slug]),
+});
 
-const formRef = ref<InstanceType<typeof Form> | null>(null);
+const { formRef, onSuccess, onError } = useResourceForm({
+    resourceName: 'unit',
+    action: 'update',
+});
 
 // Form fields
 const name = ref(props.unit.name || '');
-const { slug } = useAutoSlug(name, { 
-    separator: '-', 
+const { slug } = useAutoSlug(name, {
+    separator: '-',
     lowercase: true,
     initialValue: props.unit.slug || ''
 });
-
-useShortcut({
-    keys: ['ctrl+s', 'meta+s'],
-    callback: () => {
-        formRef.value?.$el?.requestSubmit?.();
-    },
-});
-
-const onSuccess = (payload: any) => {
-    notifyActionResult('success', 'update', capitalizeFirst('unit'), payload, {
-        successDescription: 'The unit has been updated successfully.',
-    });
-};
-
-const onError = (payload: any) => {
-    notifyActionResult('error', 'update', 'unit', payload, {
-        errorDescription: 'An unexpected error occurred while updating the unit. Please check your input and try again.',
-    });
-};
 </script>
 
 <template>

@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import tenants from '@/routes/tenants';
-import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { useShortcut } from '@/composables/useShortcut';
-import { notifyActionResult } from '@/helpers/notifyActionResult';
-import { capitalizeFirst } from '@/helpers/string';
+import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { useResourceForm } from '@/composables/useResourceForm';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
@@ -21,41 +19,22 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Tenants',
-        href: tenants.index.url(),
-    },
-    {
-        title: 'Edit Tenant',
-        href: tenants.edit.url(props.tenant.id),
-    },
-];
+const breadcrumbs = useResourceBreadcrumbs({
+    resourceName: 'Tenant',
+    resourceNamePlural: 'Tenants',
+    indexRoute: tenants.index.url(),
+    action: 'edit',
+    actionRoute: tenants.edit.url(props.tenant.id),
+});
 
-const formRef = ref<InstanceType<typeof Form> | null>(null);
+const { formRef, onSuccess, onError } = useResourceForm({
+    resourceName: 'tenant',
+    action: 'update',
+});
 
 // Form fields
 const name = ref(props.tenant.name || '');
 const domain = ref(props.tenant.domain || '');
-
-useShortcut({
-    keys: ['ctrl+s', 'meta+s'],
-    callback: () => {
-        formRef.value?.$el?.requestSubmit?.();
-    },
-});
-
-const onSuccess = (payload: any) => {
-    notifyActionResult('success', 'update', capitalizeFirst('tenant'), payload, {
-        successDescription: 'The tenant has been updated successfully.',
-    });
-};
-
-const onError = (payload: any) => {
-    notifyActionResult('error', 'update', 'tenant', payload, {
-        errorDescription: 'An unexpected error occurred while updating the tenant. Please check your input and try again.',
-    });
-};
 </script>
 
 <template>

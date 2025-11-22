@@ -1,51 +1,30 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import tenants from '@/routes/tenants';
-import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { useShortcut } from '@/composables/useShortcut';
-import { notifyActionResult } from '@/helpers/notifyActionResult';
-import { capitalizeFirst } from '@/helpers/string';
+import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { useResourceForm } from '@/composables/useResourceForm';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Tenants',
-        href: tenants.index.url(),
-    },
-    {
-        title: 'Create Tenant',
-        href: tenants.create.url(),
-    },
-];
+const breadcrumbs = useResourceBreadcrumbs({
+    resourceName: 'Tenant',
+    resourceNamePlural: 'Tenants',
+    indexRoute: tenants.index.url(),
+    action: 'create',
+    actionRoute: tenants.create.url(),
+});
 
-const formRef = ref<InstanceType<typeof Form> | null>(null);
+const { formRef, onSuccess, onError } = useResourceForm({
+    resourceName: 'tenant',
+    action: 'create',
+});
 
 // Form fields
 const id = ref('');
 const name = ref('');
 const domain = ref('');
-
-useShortcut({
-    keys: ['ctrl+s', 'meta+s'],
-    callback: () => {
-        formRef.value?.$el?.requestSubmit?.();
-    },
-});
-
-const onSuccess = (payload: any) => {
-    notifyActionResult('success', 'create', capitalizeFirst('tenant'), payload, {
-        successDescription: 'The tenant has been created successfully.',
-    });
-};
-
-const onError = (payload: any) => {
-    notifyActionResult('error', 'create', 'tenant', payload, {
-        errorDescription: 'An unexpected error occurred while creating the tenant. Please check your input and try again.',
-    });
-};
 </script>
 
 <template>
