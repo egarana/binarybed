@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import users from '@/routes/users';
-import { Form, Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
-import { useResourceForm } from '@/composables/useResourceForm';
+import { useFormNotifications } from '@/composables/useFormNotifications';
+import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
@@ -26,7 +25,7 @@ const breadcrumbs = useResourceBreadcrumbs({
     actionRoute: users.edit.url(props.user.id),
 });
 
-const { formRef, onSuccess, onError } = useResourceForm({
+const { onSuccess, onError } = useFormNotifications({
     resourceName: 'user',
     action: 'update',
 });
@@ -38,62 +37,55 @@ const password = ref('');
 </script>
 
 <template>
-    <Head :title="`Edit User: ${user.name}`" />
+    <BaseFormPage
+        :title="`Edit User: ${user.name}`"
+        :breadcrumbs="breadcrumbs"
+        :action="users.update.url(user.id)"
+        method="put"
+        :onSuccess="onSuccess"
+        :onError="onError"
+    >
+        <template #default="{ errors, processing }">
+            <FormField
+                id="name"
+                label="Name"
+                type="text"
+                :tabindex="1"
+                autocomplete="name"
+                placeholder="e.g. John Doe"
+                v-model="name"
+                :error="errors.name"
+            />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            
-            <Form
-                ref="formRef"
-                :action="users.update(user.id)"
-                method="put"
-                @success="onSuccess"
-                @error="onError"
-                class="space-y-6 h-full flex flex-col"
-                v-slot="{ errors, processing }"
-            >
-                <FormField
-                    id="name"
-                    label="Name"
-                    type="text"
-                    :tabindex="1"
-                    autocomplete="name"
-                    placeholder="e.g. John Doe"
-                    v-model="name"
-                    :error="errors.name"
-                />
+            <FormField
+                id="email"
+                label="Email"
+                type="email"
+                :tabindex="2"
+                autocomplete="email"
+                placeholder="e.g. john@example.com"
+                v-model="email"
+                :error="errors.email"
+            />
 
-                <FormField
-                    id="email"
-                    label="Email"
-                    type="email"
-                    :tabindex="2"
-                    autocomplete="email"
-                    placeholder="e.g. john@example.com"
-                    v-model="email"
-                    :error="errors.email"
-                />
+            <FormField
+                id="password"
+                label="Password"
+                type="password"
+                :tabindex="3"
+                autocomplete="new-password"
+                placeholder="Leave blank to keep current password"
+                v-model="password"
+                :error="errors.password"
+                help-text="Only fill this field if you want to change the password (minimum 6 characters)"
+            />
 
-                <FormField
-                    id="password"
-                    label="Password"
-                    type="password"
-                    :tabindex="3"
-                    autocomplete="new-password"
-                    placeholder="Leave blank to keep current password"
-                    v-model="password"
-                    :error="errors.password"
-                    help-text="Only fill this field if you want to change the password (minimum 6 characters)"
-                />
-
-                <SubmitButton
-                    :processing="processing"
-                    :tabindex="4"
-                    test-id="update-user-button"
-                    label="Save"
-                />
-            </Form>
-
-        </div>
-    </AppLayout>
+            <SubmitButton
+                :processing="processing"
+                :tabindex="4"
+                test-id="update-user-button"
+                label="Save"
+            />
+        </template>
+    </BaseFormPage>
 </template>
