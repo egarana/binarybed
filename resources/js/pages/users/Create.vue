@@ -42,7 +42,7 @@ const password = ref('');
                 type="text"
                 :tabindex="1"
                 autocomplete="name"
-                placeholder="e.g. User Name"
+                placeholder="e.g. John Doe"
                 v-model="name"
                 :error="errors.name"
             />

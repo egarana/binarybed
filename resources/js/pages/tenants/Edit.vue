@@ -56,7 +56,7 @@ const domain = ref(props.tenant.domain || '');
                 id="name"
                 label="Name"
                 type="text"
-                :tabindex="2"
+                :tabindex="1"
                 autocomplete="organization"
                 placeholder="e.g. Tenant Name"
                 v-model="name"
@@ -67,7 +67,7 @@ const domain = ref(props.tenant.domain || '');
                 id="domain"
                 label="Domain"
                 type="text"
-                :tabindex="3"
+                :tabindex="2"
                 autocomplete="url"
                 placeholder="e.g. tenantname.com (no https:// or www, valid domain format)"
                 v-model="domain"
@@ -76,7 +76,7 @@ const domain = ref(props.tenant.domain || '');
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="4"
+                :tabindex="3"
                 test-id="update-tenant-button"
                 label="Save"
             />

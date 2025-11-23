@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import units from '@/routes/units';
-import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
 import { useFormNotifications } from '@/composables/useFormNotifications';
@@ -9,10 +8,11 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchResourceCombobox, { type ComboboxOption } from '@/components/SearchResourceCombobox.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+import InputError from '@/components/InputError.vue';
 
 const props = defineProps<{
     tenants?: ComboboxOption[];
-}>()
+}>();
 
 const breadcrumbs = useResourceBreadcrumbs({
     resourceName: 'Unit',
@@ -56,6 +56,7 @@ const { slug } = useAutoSlug(name, {
                 placeholder="Select a tenant"
                 search-placeholder="Search tenant..."
                 hidden-input-name="tenant_id"
+                :tabindex="1"
             >
                 <template #error>
                     <InputError :message="errors.tenant_id" />
@@ -66,7 +67,7 @@ const { slug } = useAutoSlug(name, {
                 id="name"
                 label="Name"
                 type="text"
-                :tabindex="1"
+                :tabindex="2"
                 autocomplete="organization"
                 placeholder="e.g. Unit Name"
                 v-model="name"
@@ -77,7 +78,7 @@ const { slug } = useAutoSlug(name, {
                 id="slug"
                 label="Slug"
                 type="text"
-                :tabindex="2"
+                :tabindex="3"
                 autocomplete="off"
                 placeholder="e.g. unit-name"
                 v-model="slug"
@@ -86,7 +87,7 @@ const { slug } = useAutoSlug(name, {
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="3"
+                :tabindex="4"
                 test-id="create-unit-button"
                 label="Create"
             />

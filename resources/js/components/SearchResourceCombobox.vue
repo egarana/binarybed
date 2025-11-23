@@ -35,6 +35,7 @@ const props = withDefaults(defineProps<{
     clearable?: boolean;
     debounceMs?: number;
     id?: string;
+    tabindex?: number;
 }>(), {
     searchParam: 'search',
     placeholder: 'Select an option',
@@ -106,6 +107,7 @@ const inputId = computed(() => props.id ?? props.hiddenInputName ?? 'combobox');
                     <ComboboxTrigger as-child>
                         <Button
                             :id="inputId"
+                            :tabindex="tabindex"
                             type="button"
                             variant="outline"
                             class="justify-between w-full"
