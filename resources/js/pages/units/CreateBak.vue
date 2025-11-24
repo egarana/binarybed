@@ -5,9 +5,13 @@ import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
-import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
+import SearchResourceCombobox, { type ComboboxOption } from '@/components/SearchResourceCombobox.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+import InputError from '@/components/InputError.vue';
+
+import MultiSelectCombobox from '@/components/MultiSelectCombobox.vue';
+import { User2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     tenants?: ComboboxOption[];
@@ -47,20 +51,34 @@ const { slug } = useAutoSlug(name, {
     >
         <template #default="{ errors, processing }">
             <!-- Tenant Selection -->
-            <SearchableSelect
-                mode="single"
+            <SearchResourceCombobox
                 v-model="selectedTenant"
-                :options="tenants"
+                :initial-items="tenants"
                 :fetch-url="() => units.create.url()"
                 response-key="tenants"
                 label="Tenant"
                 placeholder="Select a tenant"
                 search-placeholder="Search tenant..."
-                name="tenant_id"
+                hidden-input-name="tenant_id"
                 :tabindex="1"
-                :error="errors.tenant_id"
-                :required="true"
-                :clearable="true"
+            >
+                <template #error>
+                    <InputError :message="errors.tenant_id" />
+                </template>
+            </SearchResourceCombobox>
+
+            <pre class="text-xs">{{ tenants }}</pre>
+
+            <!-- Multi Select Tenants -->
+            <MultiSelectCombobox
+                v-model="selectedTenants"
+                label="Tenants"
+                name="tenant_ids"
+                placeholder="Select tenants"
+                search-placeholder="Search tenants..."
+                :options="tenants"
+                :fetch-url="units.create.url()"
+                :error="errors.tenant_ids"
             />
 
             <FormField
