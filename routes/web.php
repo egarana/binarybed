@@ -80,6 +80,12 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('{tenant}/{slug}/edit', 'edit')->name('edit');
                     Route::put('{tenant}/{slug}', 'update')->name('update');
                     Route::delete('{tenant}/{slug}', 'destroy')->name('destroy');
+
+                    // User attachment routes
+                    Route::get('{tenant}/{slug}/users', 'users')->name('users');
+                    Route::post('{tenant}/{slug}/users', 'attachUser')->name('users.attach');
+                    Route::delete('{tenant}/{slug}/users/{user}', 'detachUser')->name('users.detach');
+                    Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
                 });
         });
 

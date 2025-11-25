@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import units from '@/routes/units';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
+import { Users } from 'lucide-vue-next';
 
 const config = {
     resourceName: 'Unit',
@@ -19,6 +20,14 @@ const config = {
     editRoute: (item: any) => units.edit.url([item.tenant_id, item.slug]),
     deleteRoute: (item: any) => ({ url: units.destroy.url([item.tenant_id, item.slug]) }),
     itemKey: (item: any) => `${item.tenant_id}-${item.id}`,
+    customActions: [
+        {
+            icon: Users,
+            tooltip: 'Manage users',
+            url: (item: any) => units.users.url([item.tenant_id, item.slug]),
+            variant: 'outline',
+        },
+    ],
 };
 </script>
 

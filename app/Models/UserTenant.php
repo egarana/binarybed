@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -61,5 +62,16 @@ class UserTenant extends Authenticatable implements Syncable
             'name',
             'email',
         ];
+    }
+
+    /**
+     * Get all units assigned to this user
+     */
+    public function units(): MorphToMany
+    {
+        return $this->morphedByMany(Unit::class, 'resourceable', 'resource_users')
+            // ->withPivot(['role', 'commission', 'assigned_at'])
+            ->withPivot(['assigned_at'])
+            ->withTimestamps();
     }
 }

@@ -33,6 +33,13 @@ const props = defineProps<{
     deleteRoute?: (item: any) => { url: string; data?: Record<string, any> };
     resourceName?: string;
     itemKey?: string | ((item: any) => string | number);
+    customActions?: Array<{
+        icon: any; // Lucide icon component
+        tooltip: string;
+        url: (item: any) => string;
+        variant?: 'ghost' | 'outline' | 'default' | 'secondary' | 'destructive';
+        condition?: (item: any) => boolean; // Optional condition to show/hide button
+    }>;
 }>();
 
 const items = computed(() => props.data?.data ?? []);
@@ -163,6 +170,30 @@ const handleDelete = () => {
                                         </Tooltip>
                                     </TooltipProvider>
 
+                                    <!-- Custom Actions -->
+                                    <TooltipProvider v-if="customActions">
+                                        <template v-for="(action, index) in customActions" :key="index">
+                                            <Tooltip v-if="!action.condition || action.condition(item)">
+                                                <TooltipTrigger>
+                                                    <Link :href="action.url(item)">
+                                                        <Button
+                                                            :variant="action.variant || 'ghost'"
+                                                            size="icon"
+                                                        >
+                                                            <component
+                                                                :is="action.icon"
+                                                                class="w-4 h-4 text-muted-foreground"
+                                                            />
+                                                        </Button>
+                                                    </Link>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{{ action.tooltip }}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </template>
+                                    </TooltipProvider>
+
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog
                                             v-bind="(() => {
@@ -209,7 +240,31 @@ const handleDelete = () => {
                                     </slot>
                                 </TableCell>
 
-                                <TableCell class="text-right flex items-center">
+                                <TableCell class="text-right flex items-center gap-1.5">
+                                    <!-- Custom Actions -->
+                                    <TooltipProvider v-if="customActions">
+                                        <template v-for="(action, index) in customActions" :key="index">
+                                            <Tooltip v-if="!action.condition || action.condition(item)">
+                                                <TooltipTrigger>
+                                                    <Link :href="action.url(item)">
+                                                        <Button
+                                                            :variant="action.variant || 'ghost'"
+                                                            size="icon"
+                                                        >
+                                                            <component
+                                                                :is="action.icon"
+                                                                class="w-4 h-4 text-muted-foreground"
+                                                            />
+                                                        </Button>
+                                                    </Link>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{{ action.tooltip }}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </template>
+                                    </TooltipProvider>
+
                                     <TooltipProvider>
                                         <Tooltip v-if="editRoute">
                                             <TooltipTrigger>
@@ -217,7 +272,7 @@ const handleDelete = () => {
                                                     :href="editRoute(item)"
                                                     class="ms-auto"
                                                 >
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button variant="outline" size="icon">
                                                         <Pencil class="w-4 h-4 text-muted-foreground" />
                                                     </Button>
                                                 </Link>

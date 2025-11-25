@@ -9,6 +9,14 @@ export interface ResourceColumn {
     className?: string;
 }
 
+export interface CustomAction {
+    icon: any;
+    tooltip: string;
+    url: (item: any) => string;
+    variant?: 'ghost' | 'outline' | 'default' | 'secondary' | 'destructive';
+    condition?: (item: any) => boolean;
+}
+
 export interface UseResourceIndexConfig {
     resourceName: string;
     resourceNamePlural: string;
@@ -22,6 +30,7 @@ export interface UseResourceIndexConfig {
     editRoute: (item: any) => string;
     deleteRoute: (item: any) => { url: string };
     itemKey?: (item: any) => string;
+    customActions?: CustomAction[];
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -63,6 +72,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         deleteRoute: config.deleteRoute,
         resourceName: config.resourceName.toLowerCase(),
         itemKey: config.itemKey,
+        customActions: config.customActions,
     };
 
     return {

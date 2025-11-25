@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Unit extends Model
 {
@@ -35,5 +36,15 @@ class Unit extends Model
         return [
             //
         ];
+    }
+
+    /**
+     * Get all users assigned to this unit
+     */
+    public function users(): MorphToMany
+    {
+        return $this->morphToMany(UserTenant::class, 'resourceable', 'resource_users')
+            ->withPivot(['role', 'commission', 'assigned_at'])
+            ->withTimestamps();
     }
 }

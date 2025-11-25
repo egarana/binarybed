@@ -62,7 +62,7 @@ function handleDelete(): void {
             <Tooltip>
                 <TooltipTrigger>
                     <DialogTrigger as-child>
-                        <Button variant="ghost" size="icon" @click="open = true">
+                        <Button variant="outline" size="icon" @click="open = true">
                             <Trash2 class="w-4 h-4 text-muted-foreground" />
                         </Button>
                     </DialogTrigger>

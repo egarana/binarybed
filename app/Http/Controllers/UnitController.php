@@ -60,4 +60,11 @@ class UnitController extends Controller
 
         return redirect()->route('units.index');
     }
+
+    public function users(string $tenantId, string $slug): Response
+    {
+        // $units = $this->unitService->getAllFromAllTenantsPaginated($request);
+
+        return Inertia::render('units/users/Index');
+    }
 }
