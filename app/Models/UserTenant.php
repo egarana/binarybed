@@ -69,8 +69,7 @@ class UserTenant extends Authenticatable implements Syncable
      */
     public function units(): MorphToMany
     {
-        return $this->morphedByMany(Unit::class, 'resourceable', 'resource_users')
-            // ->withPivot(['role', 'commission', 'assigned_at'])
+        return $this->morphedByMany(Unit::class, 'resourceable', 'resource_users', 'global_user_id')
             ->withPivot(['assigned_at'])
             ->withTimestamps();
     }

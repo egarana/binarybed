@@ -43,8 +43,8 @@ class Unit extends Model
      */
     public function users(): MorphToMany
     {
-        return $this->morphToMany(UserTenant::class, 'resourceable', 'resource_users')
-            ->withPivot(['role', 'commission', 'assigned_at'])
+        return $this->morphToMany(UserTenant::class, 'resourceable', 'resource_users', 'resourceable_id', 'global_user_id')
+            ->withPivot(['assigned_at'])
             ->withTimestamps();
     }
 }

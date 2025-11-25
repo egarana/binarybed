@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('resource_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('global_user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('global_user_id')->constrained('users', 'id')->cascadeOnDelete();
             $table->morphs('resourceable'); // Creates resourceable_type and resourceable_id
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
