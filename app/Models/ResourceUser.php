@@ -13,7 +13,7 @@ class ResourceUser extends Pivot
     public $incrementing = true;
 
     protected $fillable = [
-        'user_id',
+        'global_id',            // Foreign key ke users.global_id
         'resourceable_type',
         'resourceable_id',
         'assigned_at',
@@ -24,11 +24,15 @@ class ResourceUser extends Pivot
     ];
 
     /**
-     * Get the user
+     * Get the user that owns this assignment
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(UserTenant::class);
+        return $this->belongsTo(
+            UserTenant::class,
+            'global_id',  // foreign key di resource_users table
+            'global_id'   // owner key di users table (primary key)
+        );
     }
 
     /**

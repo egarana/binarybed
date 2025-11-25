@@ -13,13 +13,24 @@ return new class extends Migration
     {
         Schema::create('resource_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('global_user_id')->constrained()->cascadeOnDelete();
-            $table->morphs('resourceable'); // Creates resourceable_type and resourceable_id
+
+            // Foreign key ke users.global_id (konsisten dengan nama kolom di tabel users)
+            $table->string('global_id');
+            $table->foreign('global_id')
+                ->references('global_id')
+                ->on('users')
+                ->cascadeOnDelete();
+
+            // Polymorphic columns
+            $table->string('resourceable_type');
+            $table->unsignedBigInteger('resourceable_id');
+            $table->index(['resourceable_type', 'resourceable_id']);
+
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
 
             // Unique constraint untuk prevent duplicate assignments
-            $table->unique(['global_user_id', 'resourceable_type', 'resourceable_id'], 'unique_user_resource');
+            $table->unique(['global_id', 'resourceable_type', 'resourceable_id'], 'unique_user_resource');
         });
     }
 

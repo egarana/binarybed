@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('global_id')->unique();
+            // Gunakan global_id sebagai primary key (ID dari central database)
+            $table->string('global_id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            $table->timestamps();
         });
     }
 

@@ -43,8 +43,16 @@ class Unit extends Model
      */
     public function users(): MorphToMany
     {
-        return $this->morphToMany(UserTenant::class, 'resourceable', 'resource_users')
-            ->withPivot(['role', 'commission', 'assigned_at'])
-            ->withTimestamps();
+        return $this->morphToMany(
+            UserTenant::class,     // Related model
+            'resourceable',        // Polymorphic name
+            'resource_users',      // Pivot table
+            'resourceable_id',     // foreignPivotKey - foreign key untuk Unit di pivot
+            'global_id',           // relatedPivotKey - foreign key untuk User di pivot
+            'id',                  // parentKey - primary key di Unit table
+            'global_id'            // relatedKey - primary key di UserTenant table (global_id)
+        )
+        ->withPivot(['assigned_at'])
+        ->withTimestamps();
     }
 }
