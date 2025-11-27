@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import tenants from '@/routes/tenants';
 import { ref } from 'vue';
-import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
@@ -18,13 +18,10 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const breadcrumbs = useResourceBreadcrumbs({
-    resourceName: 'Tenant',
-    resourceNamePlural: 'Tenants',
-    indexRoute: tenants.index.url(),
-    action: 'edit',
-    actionRoute: tenants.edit.url(props.tenant.id),
-});
+const breadcrumbs = [
+    { title: 'Tenants', href: tenants.index.url() },
+    { title: 'Edit Tenant', href: tenants.edit.url(props.tenant.id) },
+];
 
 const { onSuccess, onError } = useFormNotifications({
     resourceName: 'tenant',

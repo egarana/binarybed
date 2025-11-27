@@ -17,6 +17,9 @@ const config = {
     ],
     searchFields: ['name', 'slug', 'tenant_name'],
     showTable: true,
+    breadcrumbs: [
+        { title: 'Units', href: units.index.url() },
+    ],
     addButtonRoute: units.create.url(),
     editRoute: (item: any) => units.edit.url([item.tenant_id, item.slug]),
     deleteRoute: (item: any) => ({ url: units.destroy.url([item.tenant_id, item.slug]) }),

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import users from '@/routes/users';
 import { ref } from 'vue';
-import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
@@ -17,13 +17,10 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const breadcrumbs = useResourceBreadcrumbs({
-    resourceName: 'User',
-    resourceNamePlural: 'Users',
-    indexRoute: users.index.url(),
-    action: 'edit',
-    actionRoute: users.edit.url(props.user.id),
-});
+const breadcrumbs = [
+    { title: 'Users', href: users.index.url() },
+    { title: 'Edit User', href: users.edit.url(props.user.id) },
+];
 
 const { onSuccess, onError } = useFormNotifications({
     resourceName: 'user',

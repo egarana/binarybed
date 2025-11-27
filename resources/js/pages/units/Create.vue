@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import units from '@/routes/units';
 import { ref } from 'vue';
-import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
@@ -9,17 +9,14 @@ import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSe
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
-const props = defineProps<{
+defineProps<{
     tenants?: ComboboxOption[];
 }>();
 
-const breadcrumbs = useResourceBreadcrumbs({
-    resourceName: 'Unit',
-    resourceNamePlural: 'Units',
-    indexRoute: units.index.url(),
-    action: 'create',
-    actionRoute: units.create.url(),
-});
+const breadcrumbs = [
+    { title: 'Units', href: units.index.url() },
+    { title: 'Create Unit', href: units.create.url() },
+];
 
 const { onSuccess, onError } = useFormNotifications({
     resourceName: 'unit',
@@ -28,7 +25,7 @@ const { onSuccess, onError } = useFormNotifications({
 
 // Form fields
 const selectedTenant = ref<ComboboxOption>();
-const selectedTenants = ref<ComboboxOption[]>([]);
+
 const name = ref('');
 const { slug } = useAutoSlug(name, {
     separator: '-',

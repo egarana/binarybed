@@ -14,6 +14,10 @@ const config = {
     ],
     searchFields: ['name', 'email'],
     addButtonLabel: 'Assign User',
+    breadcrumbs: [
+        { title: 'Units', href: units.index.url() },
+        { title: 'Manage Users', href: '#' },
+    ],
 };
 </script>
 

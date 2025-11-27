@@ -15,6 +15,9 @@ const config = {
     ],
     searchFields: ['name', 'email'],
     showTable: true,
+    breadcrumbs: [
+        { title: 'Users', href: users.index.url() },
+    ],
     addButtonRoute: users.create.url(),
     editRoute: (item: any) => users.edit.url(item.id),
     deleteRoute: (item: any) => ({ url: users.destroy.url(item.id) }),

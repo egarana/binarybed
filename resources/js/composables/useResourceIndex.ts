@@ -1,7 +1,8 @@
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
-import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
 import { computed } from 'vue';
+
+import type { BreadcrumbItem } from '@/types';
 
 export interface ResourceColumn {
     key: string;
@@ -33,15 +34,12 @@ export interface UseResourceIndexConfig {
     itemKey?: (item: any) => string;
     customActions?: CustomAction[];
     showTable?: boolean;
+    breadcrumbs: BreadcrumbItem[];
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
     // Setup breadcrumbs
-    const breadcrumbs = useResourceBreadcrumbs({
-        resourceName: config.resourceName,
-        resourceNamePlural: config.resourceNamePlural,
-        indexRoute: config.endpoint,
-    });
+    const breadcrumbs = config.breadcrumbs;
 
     // Setup fetcher
     const { resource, fetchData, refresh, lastParams } = useFetcher({

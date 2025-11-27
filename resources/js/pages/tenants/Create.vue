@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import tenants from '@/routes/tenants';
 import { ref } from 'vue';
-import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
-const breadcrumbs = useResourceBreadcrumbs({
-    resourceName: 'Tenant',
-    resourceNamePlural: 'Tenants',
-    indexRoute: tenants.index.url(),
-    action: 'create',
-    actionRoute: tenants.create.url(),
-});
+const breadcrumbs = [
+    { title: 'Tenants', href: tenants.index.url() },
+    { title: 'Create Tenant', href: tenants.create.url() },
+];
 
 const { onSuccess, onError } = useFormNotifications({
     resourceName: 'tenant',
