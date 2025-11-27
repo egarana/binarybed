@@ -35,6 +35,7 @@ export interface UseResourceIndexConfig {
     customActions?: CustomAction[];
     showTable?: boolean;
     breadcrumbs: BreadcrumbItem[];
+    showSearch?: boolean;
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -62,7 +63,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         showAddButton: !!config.addButtonRoute,
         addButtonLabel: config.addButtonLabel || `Add ${config.resourceName.toLowerCase()}`,
         addButtonRoute: config.addButtonRoute,
-        showSearch: true,
+        showSearch: config.showSearch ?? true,
     };
 
     // Table config
