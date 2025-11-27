@@ -1,6 +1,7 @@
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
 import { useResourceBreadcrumbs } from '@/composables/useResourceBreadcrumbs';
+import { computed } from 'vue';
 
 export interface ResourceColumn {
     key: string;
@@ -27,10 +28,11 @@ export interface UseResourceIndexConfig {
     searchPlaceholder?: string;
     addButtonLabel?: string;
     addButtonRoute?: string;
-    editRoute: (item: any) => string;
-    deleteRoute: (item: any) => { url: string };
+    editRoute?: (item: any) => string;
+    deleteRoute?: (item: any) => { url: string };
     itemKey?: (item: any) => string;
     customActions?: CustomAction[];
+    showTable?: boolean;
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -75,6 +77,13 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         customActions: config.customActions,
     };
 
+    const showTable = computed(() => {
+        if (config.showTable !== undefined) {
+            return config.showTable;
+        }
+        return false;
+    });
+
     return {
         breadcrumbs,
         resource,
@@ -83,5 +92,6 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         handleSort,
         filterConfig,
         tableConfig,
+        showTable,
     };
 }

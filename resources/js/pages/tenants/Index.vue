@@ -15,6 +15,7 @@ const config = {
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
     searchFields: ['name', 'id', 'domains.domain'],
+    showTable: true,
     addButtonRoute: tenants.create.url(),
     editRoute: (item: any) => tenants.edit.url(item.id),
     deleteRoute: (item: any) => ({ url: tenants.destroy.url(item.id) }),

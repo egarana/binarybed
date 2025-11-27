@@ -1,27 +1,22 @@
 <script setup lang="ts">
 import units from '@/routes/units';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { type BreadcrumbItem } from '@/types';
+import BaseIndexPage from '@/components/BaseIndexPage.vue';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Units',
-        href: units.index.url(),
-    },
-    {
-        title: 'Attached User',
-        href: units.index.url(),
-    },
-];
+const config = {
+    resourceName: 'User',
+    resourceNamePlural: 'Users',
+    endpoint: units.index.url(),
+    resourceKey: 'users',
+    columns: [
+        { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
+        { key: 'email', label: 'Email', sortable: true },
+        { key: 'created_at', label: 'Created At', sortable: true },
+    ],
+    searchFields: ['name', 'email'],
+    addButtonLabel: 'Assign User',
+};
 </script>
 
 <template>
-    <Head title="Attached User" />
-
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            
-        </div>
-    </AppLayout>
+    <BaseIndexPage title="Manage Users" :config="config" />
 </template>

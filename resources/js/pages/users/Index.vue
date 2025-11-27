@@ -14,6 +14,7 @@ const config = {
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
     searchFields: ['name', 'email'],
+    showTable: true,
     addButtonRoute: users.create.url(),
     editRoute: (item: any) => users.edit.url(item.id),
     deleteRoute: (item: any) => ({ url: users.destroy.url(item.id) }),

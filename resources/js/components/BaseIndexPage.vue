@@ -12,7 +12,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tableConfig } =
+const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tableConfig, showTable } =
     useResourceIndex(props.config);
 </script>
 
@@ -23,6 +23,7 @@ const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tab
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <ResourceTableFilter :refresh="refresh" v-bind="filterConfig" />
             <ResourceTable
+                v-if="showTable"
                 :data="resource"
                 :sortState="sortState"
                 :handleSort="handleSort"
