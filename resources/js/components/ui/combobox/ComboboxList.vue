@@ -5,10 +5,11 @@ import { reactiveOmit } from "@vueuse/core"
 import { ComboboxContent, ComboboxPortal, ComboboxViewport, useForwardPropsEmits } from "reka-ui"
 import { cn } from "@/lib/utils"
 
-const props = withDefaults(defineProps<ComboboxContentProps & { class?: HTMLAttributes["class"] }>(), {
+const props = withDefaults(defineProps<ComboboxContentProps & { class?: HTMLAttributes["class"]; disablePortal?: boolean }>(), {
   position: "popper",
   align: "center",
   sideOffset: 4,
+  disablePortal: false,
 })
 const emits = defineEmits<ComboboxContentEmits>()
 
@@ -18,7 +19,20 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <ComboboxPortal>
+  <!-- Render without portal when inside Dialog to avoid infinite loop bug -->
+  <template v-if="disablePortal">
+    <ComboboxContent
+      v-bind="forwarded"
+      :class="cn('z-50 w-[200px] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2', props.class)"
+    >
+      <ComboboxViewport>
+        <slot />
+      </ComboboxViewport>
+    </ComboboxContent>
+  </template>
+  
+  <!-- Normal rendering with portal for non-Dialog contexts -->
+  <ComboboxPortal v-else>
     <ComboboxContent
       v-bind="forwarded"
       :class="cn('z-50 w-[200px] rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2', props.class)"

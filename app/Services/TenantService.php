@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 class TenantService
 {
     public function __construct(
-        protected TenantRepository $repository,
+        protected TenantRepository $tenantRepository,
         protected CreateTenant $createTenant,
         protected UpdateTenant $updateTenant,
         protected DeleteTenant $deleteTenant,
@@ -20,12 +20,12 @@ class TenantService
 
     public function getAllPaginated(Request $request)
     {
-        return $this->repository->getAllPaginated($request);
+        return $this->tenantRepository->getAllPaginated($request);
     }
 
     public function search(?string $search = null, int $limit = 10): array
     {
-        return $this->repository->search($search, $limit);
+        return $this->tenantRepository->search($search, $limit);
     }
 
     public function create(array $data): Tenant

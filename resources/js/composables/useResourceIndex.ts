@@ -29,6 +29,7 @@ export interface UseResourceIndexConfig {
     searchPlaceholder?: string;
     addButtonLabel?: string;
     addButtonRoute?: string;
+    addButtonBehavior?: 'link' | 'dialog';
     editRoute?: (item: any) => string;
     deleteRoute?: (item: any) => { url: string };
     itemKey?: (item: any) => string;
@@ -60,9 +61,10 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
     const filterConfig = {
         searchPlaceholder: config.searchPlaceholder || `Search ${config.resourceNamePlural.toLowerCase()}...`,
         searchFields: config.searchFields,
-        showAddButton: !!config.addButtonRoute,
+        showAddButton: !!config.addButtonRoute || config.addButtonBehavior === 'dialog',
         addButtonLabel: config.addButtonLabel || `Add ${config.resourceName.toLowerCase()}`,
         addButtonRoute: config.addButtonRoute,
+        addButtonBehavior: config.addButtonBehavior,
         showSearch: config.showSearch ?? true,
     };
 

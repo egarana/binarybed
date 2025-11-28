@@ -21,7 +21,11 @@ const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tab
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            <ResourceTableFilter :refresh="refresh" v-bind="filterConfig" />
+            <ResourceTableFilter :refresh="refresh" v-bind="filterConfig">
+                <template #dialog-content>
+                    <slot name="filter-dialog-content" />
+                </template>
+            </ResourceTableFilter>
             <ResourceTable
                 v-if="showTable"
                 :data="resource"

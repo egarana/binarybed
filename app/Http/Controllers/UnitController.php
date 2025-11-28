@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateUnitRequest;
 use App\Models\Unit;
 use App\Services\TenantService;
 use App\Services\UnitService;
+use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +17,8 @@ class UnitController extends Controller
 {
     public function __construct(
         protected UnitService $unitService,
-        protected TenantService $tenantService
+        protected TenantService $tenantService,
+        protected UserService $userService
     ) {}
 
     public function index(Request $request): Response
@@ -43,7 +45,7 @@ class UnitController extends Controller
     public function edit(string $tenantId, string $slug): Response
     {
         $unit = $this->unitService->getForEdit($tenantId, $slug);
-        
+
         return Inertia::render('units/Edit', compact('unit'));
     }
 
@@ -61,10 +63,11 @@ class UnitController extends Controller
         return redirect()->route('units.index');
     }
 
-    public function users(string $tenantId, string $slug): Response
+    public function users(Request $request, string $tenantId, string $slug): Response
     {
-        // $units = $this->unitService->getAllFromAllTenantsPaginated($request);
+        $unit = $this->unitService->getForEdit($tenantId, $slug);
+        $users = $this->userService->search($request->input('search'));
 
-        return Inertia::render('units/users/Index');
+        return Inertia::render('units/users/Index', compact('unit', 'users'));
     }
 }

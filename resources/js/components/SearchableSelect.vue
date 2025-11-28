@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { debounce } from 'lodash-es';
-import draggable from 'vuedraggable';
+import Draggable from 'vuedraggable';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -95,6 +95,8 @@ interface Props {
     defaultIcon?: any;
     /** Jika true, tampilkan defaultIcon sebagai fallback */
     showDefaultIcon?: boolean;
+    /** Disable portal rendering - use when inside Dialog to prevent freeze */
+    disablePortal?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -107,6 +109,7 @@ const props = withDefaults(defineProps<Props>(), {
     debounceMs: 300,
     showDefaultIcon: false,
     required: false,
+    disablePortal: false,
 });
 
 const emit = defineEmits<{
@@ -381,7 +384,7 @@ const hasSelection = computed(() => {
                 </ComboboxAnchor>
 
                 <!-- Dropdown List -->
-                <ComboboxList align="start" class="w-full min-w-[200px]">
+                <ComboboxList :avoid-collisions="false" :disable-portal="disablePortal" align="start" class="w-full min-w-[200px]">
                     <!-- Search Input -->
                     <div class="relative w-full max-w-sm items-center combobox-input-wrapper">
                         <ComboboxInput
@@ -447,7 +450,7 @@ const hasSelection = computed(() => {
         <!-- Selected Items Display (Multiple Mode) -->
         <template v-if="mode === 'multiple' && selectedMultiple.length > 0">
             <!-- With Draggable -->
-            <draggable
+            <Draggable
                 v-if="draggable"
                 v-model="selectedMultiple"
                 item-key="value"
@@ -496,7 +499,7 @@ const hasSelection = computed(() => {
                         </div>
                     </div>
                 </template>
-            </draggable>
+            </Draggable>
             
             <!-- Without Draggable -->
             <div 

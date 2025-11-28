@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 class UserService
 {
     public function __construct(
-        protected UserRepository $repository,
+        protected UserRepository $userRepository,
         protected CreateUser $createUser,
         protected UpdateUser $updateUser,
         protected DeleteUser $deleteUser,
@@ -20,18 +20,23 @@ class UserService
 
     public function getAllPaginated(Request $request)
     {
-        return $this->repository->getAllPaginated($request);
+        return $this->userRepository->getAllPaginated($request);
     }
 
     public function getForEdit(User $user): array
     {
-        $user = $this->repository->getForEdit($user);
-        
+        $user = $this->userRepository->getForEdit($user);
+
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
         ];
+    }
+
+    public function search(?string $search = null, int $limit = 5): array
+    {
+        return $this->userRepository->search($search, $limit);
     }
 
     public function create(array $data): User

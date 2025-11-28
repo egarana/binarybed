@@ -14,6 +14,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -62,6 +67,7 @@ interface Props {
     showAddButton?: boolean;
     addButtonLabel?: string;
     addButtonRoute?: NonNullable<InertiaLinkProps['href']>;
+    addButtonBehavior?: 'link' | 'dialog';
     disabled?: boolean;
     refresh?: (params?: Record<string, any>) => void;
     searchField?: string; // Single field name to search, e.g., 'name'
@@ -76,6 +82,7 @@ const props = withDefaults(defineProps<Props>(), {
     showSearch: true,
     showAddButton: false,
     addButtonLabel: 'Add',
+    addButtonBehavior: 'link',
     disabled: false,
 });
 
@@ -107,8 +114,8 @@ const calendarEnabled = computed(() => props.calendar?.enabled ?? false);
 
 // Date of selector state
 const dateOf = ref<DateOfOption | undefined>(
-    props.calendar?.dateOfOptions && props.calendar.initialDateOf
-        ? props.calendar.dateOfOptions.find(opt => opt.value === props.calendar.initialDateOf)
+    props.calendar?.dateOfOptions && props.calendar?.initialDateOf
+        ? props.calendar.dateOfOptions.find(opt => opt.value === props.calendar?.initialDateOf)
         : props.calendar?.dateOfOptions?.[0]
 );
 
@@ -125,6 +132,17 @@ const toDate = ref<DateValue | undefined>(
 const openFrom = ref(false);
 const openTo = ref(false);
 
+// Computed properties with explicit typing for Calendar v-model
+const fromDateComputed = computed({
+    get: () => fromDate.value as DateValue | undefined,
+    set: (val) => { fromDate.value = val as DateValue | undefined; }
+});
+
+const toDateComputed = computed({
+    get: () => toDate.value as DateValue | undefined,
+    set: (val) => { toDate.value = val as DateValue | undefined; }
+});
+
 // Format date for API
 const formatDate = (date: DateValue | undefined): string | null => {
     return date ? dayjs(date.toDate(getLocalTimeZone())).format('YYYY-MM-DD') : null;
@@ -133,30 +151,32 @@ const formatDate = (date: DateValue | undefined): string | null => {
 // Handle From Date selection
 const handleFromSelect = (date: DateValue | undefined) => {
     if (!date) return;
-    fromDate.value = date;
+    const dateValue = date as DateValue;
+    fromDate.value = dateValue;
     openFrom.value = false;
 
     if (!toDate.value) {
         // If toDate not set yet → set toDate = fromDate + 1 day
-        toDate.value = date.add({ days: 1 });
-    } else if (date.compare(toDate.value) > 0) {
+        toDate.value = dateValue.add({ days: 1 });
+    } else if (dateValue.compare(toDate.value as DateValue) > 0) {
         // If fromDate > toDate → shift toDate = fromDate + 1 day
-        toDate.value = date.add({ days: 1 });
+        toDate.value = dateValue.add({ days: 1 });
     }
 };
 
 // Handle To Date selection
 const handleToSelect = (date: DateValue | undefined) => {
     if (!date) return;
-    toDate.value = date;
+    const dateValue = date as DateValue;
+    toDate.value = dateValue;
     openTo.value = false;
 
     if (!fromDate.value) {
         // If fromDate not set yet → set fromDate = toDate - 1 day
-        fromDate.value = date.subtract({ days: 1 });
-    } else if (date.compare(fromDate.value) < 0) {
+        fromDate.value = dateValue.subtract({ days: 1 });
+    } else if (dateValue.compare(fromDate.value as DateValue) < 0) {
         // If toDate < fromDate → shift fromDate = toDate - 1 day
-        fromDate.value = date.subtract({ days: 1 });
+        fromDate.value = dateValue.subtract({ days: 1 });
     }
 };
 
@@ -310,10 +330,10 @@ const buildFilterParams = () => {
         }
 
         // Add from date
-        filterParams[fromFieldName] = formatDate(fromDate.value);
+        filterParams[fromFieldName] = formatDate(fromDate.value as DateValue | undefined);
 
         // Add to date
-        filterParams[toFieldName] = formatDate(toDate.value);
+        filterParams[toFieldName] = formatDate(toDate.value as DateValue | undefined);
     }
 
     return filterParams;
@@ -492,8 +512,9 @@ const hasActiveFilters = computed(() => {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent align="start" class="w-auto p-0">
+                    <!-- @ts-expect-error Type inference issue with Calendar v-model -->
                     <Calendar
-                        v-model="fromDate"
+                        v-model="fromDateComputed"
                         initial-focus
                         @update:model-value="handleFromSelect"
                     />
@@ -514,8 +535,9 @@ const hasActiveFilters = computed(() => {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent align="start" class="w-auto p-0">
+                    <!-- @ts-expect-error Type inference issue with Calendar v-model -->
                     <Calendar
-                        v-model="toDate"
+                        v-model="toDateComputed"
                         initial-focus
                         @update:model-value="handleToSelect"
                     />
@@ -536,14 +558,27 @@ const hasActiveFilters = computed(() => {
         </Button>
 
         <!-- Add Button -->
-        <Link
-            v-if="showAddButton && addButtonRoute"
-            :href="addButtonRoute"
-            class="ms-auto"
-        >
-            <Button class="w-full md:w-auto" :disabled="disabled">
-                <PlusCircle /> {{ addButtonLabel }}
-            </Button>
-        </Link>
+        <template v-if="showAddButton">
+            <Link
+                v-if="addButtonBehavior === 'link' && addButtonRoute"
+                :href="addButtonRoute"
+                class="ms-auto"
+            >
+                <Button class="w-full md:w-auto" :disabled="disabled">
+                    <PlusCircle /> {{ addButtonLabel }}
+                </Button>
+            </Link>
+
+            <Dialog v-else-if="addButtonBehavior === 'dialog'">
+                <DialogTrigger as-child>
+                    <Button class="w-full md:w-auto ms-auto" :disabled="disabled">
+                        <PlusCircle /> {{ addButtonLabel }}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <slot name="dialog-content" />
+                </DialogContent>
+            </Dialog>
+        </template>
     </div>
 </template>
