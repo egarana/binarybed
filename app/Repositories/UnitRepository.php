@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class UnitRepository
 {
     use HasMultiTenantSearch;
-    
+
     public function __construct(
         protected PaginationService $pagination
     ) {}
@@ -33,7 +33,10 @@ class UnitRepository
                 AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'slug'])),
             ])
             ->allowedSorts([
-                'name', 'slug', 'created_at', 'updated_at',
+                'name',
+                'slug',
+                'created_at',
+                'updated_at',
                 // AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
             ->defaultSort('name');
@@ -154,6 +157,29 @@ class UnitRepository
     }
 
     /**
+     * Get all users attached to a unit.
+     *
+     * @param Unit $unit
+     * @return array
+     */
+    public function getAttachedUsers(Unit $unit): array
+    {
+        return $unit->users()
+            ->orderBy('name')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'global_id' => $user->global_id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'assigned_at' => $user->pivot->assigned_at,
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
      * Search units for combobox (with limit).
      * Returns units in format: [{ value: id, label: name }]
      *
@@ -179,9 +205,9 @@ class UnitRepository
 
         // Search by name or slug
         return $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%");
-            })
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('slug', 'like', "%{$search}%");
+        })
             ->orderBy('name')
             ->limit($limit)
             ->get()

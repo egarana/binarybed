@@ -6,11 +6,13 @@ use App\Actions\Units\AttachUserToUnit;
 use App\Actions\Units\CreateUnit;
 use App\Actions\Units\DeleteUnit;
 use App\Actions\Units\FindUnitByTenantAndSlug;
+use App\Actions\Units\GetAttachedUsersForUnit;
 use App\Actions\Units\UpdateUnit;
 use App\HasCrossTenantsQuery;
 use App\Models\Unit;
 use App\Repositories\UnitRepository;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class UnitService
 {
@@ -20,7 +22,8 @@ class UnitService
         protected UpdateUnit $updateUnit,
         protected DeleteUnit $deleteUnit,
         protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug,
-        protected AttachUserToUnit $attachUserToUnit
+        protected AttachUserToUnit $attachUserToUnit,
+        protected GetAttachedUsersForUnit $getAttachedUsersForUnit
     ) {}
 
     public function getAllFromAllTenantsPaginated(Request $request)
@@ -51,5 +54,10 @@ class UnitService
     public function attachUserToUnit(string $tenantId, string $slug, array $data): void
     {
         $this->attachUserToUnit->execute($tenantId, $slug, $data);
+    }
+
+    public function getAttachedUsers(string $tenantId, string $slug): LengthAwarePaginator
+    {
+        return $this->getAttachedUsersForUnit->execute($tenantId, $slug);
     }
 }

@@ -25,6 +25,13 @@ interface Props {
         slug: string;
     };
     users?: ComboboxOption[];
+    attachedUsers?: Array<{
+        global_id: string;
+        name: string;
+        email: string;
+        assigned_at: string;
+        created_at: string;
+    }>;
 }
 
 const props = defineProps<Props>();
@@ -36,13 +43,14 @@ const config = {
     resourceName: 'User',
     resourceNamePlural: 'Users',
     endpoint: units.users.url([props.unit.tenant_id, props.unit.slug]),
-    resourceKey: 'users',
+    resourceKey: 'attachedUsers',
     columns: [
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'email', label: 'Email', sortable: true },
-        { key: 'created_at', label: 'Created At', sortable: true },
+        { key: 'assigned_at', label: 'Assigned At', sortable: true },
     ],
     searchFields: ['name', 'email'],
+    showTable: true,
     addButtonLabel: 'Assign user',
     addButtonBehavior: 'dialog' as const,
     breadcrumbs: [

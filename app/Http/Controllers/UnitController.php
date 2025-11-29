@@ -68,8 +68,9 @@ class UnitController extends Controller
     {
         $unit = $this->unitService->getForEdit($tenantId, $slug);
         $users = $this->userService->search($request->input('search'));
+        $attachedUsers = $this->unitService->getAttachedUsers($tenantId, $slug);
 
-        return Inertia::render('units/users/Index', compact('unit', 'users'));
+        return Inertia::render('units/users/Index', compact('unit', 'users', 'attachedUsers'));
     }
 
     public function attachUser(AttachUserToUnitRequest $request, string $tenantId, string $slug): RedirectResponse
