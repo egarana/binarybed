@@ -87,6 +87,8 @@ interface Props {
     clearable?: boolean;
     /** Apakah items bisa di-drag untuk reorder (multiple mode) */
     draggable?: boolean;
+    /** Disabled state untuk form submission */
+    disabled?: boolean;
     
     // Icons (untuk multiple mode)
     /** Icon general yang akan dipakai untuk semua item jika tidak ada icon per-item */
@@ -110,6 +112,7 @@ const props = withDefaults(defineProps<Props>(), {
     showDefaultIcon: false,
     required: false,
     disablePortal: false,
+    disabled: false,
 });
 
 const emit = defineEmits<{
@@ -366,7 +369,7 @@ const hasSelection = computed(() => {
         
         <div class="flex items-center gap-2">
             <!-- Combobox -->
-            <Combobox v-model="selected" class="w-full">
+            <Combobox :disabled="disabled" v-model="selected" class="w-full">
                 <ComboboxAnchor as-child>
                     <ComboboxTrigger as-child>
                         <Button
@@ -441,6 +444,7 @@ const hasSelection = computed(() => {
                 type="button"
                 variant="outline"
                 @click="clear"
+                :disabled="disabled"
             >
                 Clear
                 <X class="mt-0.5" />

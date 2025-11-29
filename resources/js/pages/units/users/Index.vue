@@ -29,6 +29,9 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const user = ref<ComboboxOption | undefined>(undefined);
+const dialogOpen = ref(false);
+
 const config = {
     resourceName: 'User',
     resourceNamePlural: 'Users',
@@ -46,14 +49,13 @@ const config = {
         { title: 'Units', href: units.index.url() },
         { title: 'Manage Users', href: '#' },
     ],
+    dialogOpen,
 };
 
 const { onSuccess: notifySuccess, onError: notifyError } = useFormNotifications({
     resourceName: 'user',
     action: 'create',
 });
-
-const user = ref<ComboboxOption | undefined>(undefined);
 
 // Clear user after dialog closes
 const clearUser = () => {
@@ -62,10 +64,11 @@ const clearUser = () => {
     }, 400);
 };
 
-// Custom success handler that clears user after notification
+// Custom success handler that clears user after notification and closes dialog
 const onSuccess = (payload: any) => {
     notifySuccess(payload);
     user.value = undefined; // Clear user after successful assignment
+    dialogOpen.value = false; // Close dialog
 };
 
 const onError = notifyError;
@@ -74,7 +77,7 @@ const onError = notifyError;
 
 <template>
     <BaseIndexPage title="Manage Users" :config="config">
-        <template #filter-dialog-content>
+        <template #dialog-content>
             <DialogHeader>
                 <DialogTitle>Assign User</DialogTitle>
                 <DialogDescription>
@@ -105,6 +108,7 @@ const onError = notifyError;
                     :required="true"
                     :clearable="true"
                     :disable-portal="true"
+                    :disabled="processing"
                 />
 
                 <DialogFooter>
@@ -113,6 +117,7 @@ const onError = notifyError;
                             variant="outline" 
                             type="button" 
                             @click="clearUser"
+                            :disabled="processing"
                         >
                             Cancel
                         </Button>

@@ -1,6 +1,6 @@
 import { useFetcher } from '@/composables/useFetcher';
 import { useSorter } from '@/composables/useSorter';
-import { computed } from 'vue';
+import { computed, type Ref } from 'vue';
 
 import type { BreadcrumbItem } from '@/types';
 
@@ -37,6 +37,7 @@ export interface UseResourceIndexConfig {
     showTable?: boolean;
     breadcrumbs: BreadcrumbItem[];
     showSearch?: boolean;
+    dialogOpen?: Ref<boolean>;
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -66,6 +67,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         addButtonRoute: config.addButtonRoute,
         addButtonBehavior: config.addButtonBehavior,
         showSearch: config.showSearch ?? true,
+        dialogOpen: config.dialogOpen,
     };
 
     // Table config

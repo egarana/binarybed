@@ -58,6 +58,7 @@ const { slug } = useAutoSlug(name, {
                 :error="errors.tenant_id"
                 :required="true"
                 :clearable="true"
+                :disabled="processing"
             />
 
             <FormField

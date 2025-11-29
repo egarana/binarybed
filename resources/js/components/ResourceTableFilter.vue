@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, type Ref } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,6 +75,7 @@ interface Props {
     initialSearch?: string;
     filters?: FilterConfig[]; // Multi-select dropdown filters
     calendar?: CalendarConfig; // Calendar date range filters
+    dialogOpen?: Ref<boolean>; // External control for dialog open/close state
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -108,6 +109,17 @@ const search = ref(props.initialSearch || initSearchFromUrl());
 
 // Track selected filter values
 const selectedFilters = ref<Record<string, string[]>>({});
+
+// Computed property for dialog open state
+const dialogOpenComputed = computed(() => props.dialogOpen?.value ?? false);
+
+// Handler for dialog open state updates
+const handleDialogOpenUpdate = (val: boolean) => {
+    if (props.dialogOpen) {
+        // eslint-disable-next-line vue/no-mutating-props
+        props.dialogOpen.value = val;
+    }
+};
 
 // ===== Calendar State Management =====
 const calendarEnabled = computed(() => props.calendar?.enabled ?? false);
@@ -569,7 +581,11 @@ const hasActiveFilters = computed(() => {
                 </Button>
             </Link>
 
-            <Dialog v-else-if="addButtonBehavior === 'dialog'">
+            <Dialog 
+                v-else-if="addButtonBehavior === 'dialog'" 
+                :open="dialogOpenComputed"
+                @update:open="handleDialogOpenUpdate"
+            >
                 <DialogTrigger as-child>
                     <Button class="w-full md:w-auto ms-auto" :disabled="disabled">
                         <PlusCircle /> {{ addButtonLabel }}
