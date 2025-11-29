@@ -6,7 +6,7 @@ import { toast } from 'vue-sonner';
  */
 export function notifyActionResult(
     type: 'success' | 'error',
-    action: 'create' | 'update' | 'delete' | 'custom' = 'custom',
+    action: 'create' | 'update' | 'delete' | 'assign' | 'custom' = 'custom',
     entity: string = 'Record',
     payload?: any,
     options?: {
@@ -70,6 +70,7 @@ function getSuccessTitle(entity: string, action: string): string {
         create: 'created successfully',
         update: 'updated successfully',
         delete: 'deleted successfully',
+        assign: 'assigned successfully',
         custom: 'processed successfully',
     };
     return `${entity} ${verbs[action] || 'completed successfully'}`;
@@ -84,6 +85,7 @@ function getErrorTitle(entity: string, action: string, isValidation = false): st
         create: 'Error creating',
         update: 'Error updating',
         delete: 'Error deleting',
+        assign: 'Error assigning',
         custom: 'Error processing',
     };
 
@@ -98,6 +100,7 @@ function getDefaultSuccessDescription(action: string): string {
         create: 'Record has been successfully added to the system',
         update: 'Changes have been saved successfully',
         delete: 'Record has been removed from the system',
+        assign: 'Assignment completed successfully',
         custom: 'Operation completed successfully',
     };
     return desc[action] || 'Action completed successfully';
@@ -111,6 +114,7 @@ function getDefaultErrorDescription(action: string): string {
         create: 'There was a problem creating this record. Please try again',
         update: 'There was a problem updating this record. Please try again',
         delete: 'There was a problem deleting this record. Please try again',
+        assign: 'There was a problem with the assignment. Please try again',
         custom: 'Something went wrong while processing your request',
     };
     return desc[action] || 'Something went wrong';

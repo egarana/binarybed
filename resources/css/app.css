@@ -192,7 +192,7 @@
 }
 
 .toast-destructive {
-    @apply !bg-destructive;
+    @apply !bg-destructive !border-destructive;
     button {
         @apply !border-destructive;
         svg {

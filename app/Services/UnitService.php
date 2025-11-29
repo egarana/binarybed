@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Units\AttachUserToUnit;
 use App\Actions\Units\CreateUnit;
 use App\Actions\Units\DeleteUnit;
 use App\Actions\Units\FindUnitByTenantAndSlug;
@@ -18,7 +19,8 @@ class UnitService
         protected CreateUnit $createUnit,
         protected UpdateUnit $updateUnit,
         protected DeleteUnit $deleteUnit,
-        protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug
+        protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug,
+        protected AttachUserToUnit $attachUserToUnit
     ) {}
 
     public function getAllFromAllTenantsPaginated(Request $request)
@@ -44,5 +46,10 @@ class UnitService
     public function delete(string $tenantId, string $slug): void
     {
         $this->deleteUnit->execute($tenantId, $slug);
+    }
+
+    public function attachUserToUnit(string $tenantId, string $slug, array $data): void
+    {
+        $this->attachUserToUnit->execute($tenantId, $slug, $data);
     }
 }

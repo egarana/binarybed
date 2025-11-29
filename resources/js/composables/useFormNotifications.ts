@@ -3,7 +3,7 @@ import { capitalizeFirst } from '@/helpers/string';
 
 interface UseFormNotificationsConfig {
     resourceName: string;
-    action: 'create' | 'update';
+    action: 'create' | 'update' | 'assign';
     successDescription?: string;
     errorDescription?: string;
 }

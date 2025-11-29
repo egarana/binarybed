@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AttachUserToUnitRequest;
 use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
 use App\Models\Unit;
@@ -69,5 +70,16 @@ class UnitController extends Controller
         $users = $this->userService->search($request->input('search'));
 
         return Inertia::render('units/users/Index', compact('unit', 'users'));
+    }
+
+    public function attachUser(AttachUserToUnitRequest $request, string $tenantId, string $slug): RedirectResponse
+    {
+        $this->unitService->attachUserToUnit(
+            $tenantId,
+            $slug,
+            $request->validated()
+        );
+
+        return redirect()->route('units.users', [$tenantId, $slug]);
     }
 }

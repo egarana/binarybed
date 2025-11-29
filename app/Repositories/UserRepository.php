@@ -29,7 +29,10 @@ class UserRepository
                 AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'email'])),
             ])
             ->allowedSorts([
-                'name', 'email', 'created_at', 'updated_at',
+                'name',
+                'email',
+                'created_at',
+                'updated_at',
                 // AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
             ->defaultSort('name');
@@ -95,7 +98,7 @@ class UserRepository
 
     /**
      * Search users for combobox (with limit).
-     * Returns users in format: [{ value: id, label: name }]
+     * Returns users in format: [{ value: global_id, label: name }]
      *
      * @param string|null $search
      * @param int $limit
@@ -111,7 +114,7 @@ class UserRepository
                 ->limit($limit)
                 ->get()
                 ->map(fn($user) => [
-                    'value' => $user->id,
+                    'value' => $user->global_id,  // Use global_id instead of id for sync
                     'label' => $user->name,
                 ])
                 ->toArray();
@@ -119,14 +122,14 @@ class UserRepository
 
         // Search by name or id
         return $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        })
             ->orderBy('name')
             ->limit($limit)
             ->get()
             ->map(fn($user) => [
-                'value' => $user->id,
+                'value' => $user->global_id,  // Use global_id instead of id for sync
                 'label' => $user->name,
             ])
             ->toArray();

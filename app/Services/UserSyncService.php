@@ -16,11 +16,11 @@ class UserSyncService
     /**
      * Sync user from central to tenant database
      *
-     * @param int $centralUserId - ID dari central database (global_id)
+     * @param string $centralUserId - global_id dari central database (UUID string)
      * @return UserTenant
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
-    public static function syncToTenant(int $centralUserId): UserTenant
+    public static function syncToTenant(string $centralUserId): UserTenant
     {
         // Get user from central database
         $centralUser = User::on('central')->where('global_id', $centralUserId)->firstOrFail();
@@ -66,12 +66,12 @@ class UserSyncService
     /**
      * Attach unit to user dengan auto-sync
      *
-     * @param int $centralUserId - ID dari central database
+     * @param string $centralUserId - global_id dari central database (UUID string)
      * @param Unit $unit
      * @param array $pivotData - Additional pivot data
      * @return void
      */
-    public static function attachUnitToUser(int $centralUserId, Unit $unit, array $pivotData = []): void
+    public static function attachUnitToUser(string $centralUserId, Unit $unit, array $pivotData = []): void
     {
         // Sync user dulu dari central ke tenant
         $tenantUser = self::syncToTenant($centralUserId);
@@ -93,12 +93,12 @@ class UserSyncService
     /**
      * Attach multiple units to user dengan auto-sync
      *
-     * @param int $centralUserId
+     * @param string $centralUserId - global_id dari central database (UUID string)
      * @param array $unitIds - Array of unit IDs
      * @param array $pivotData - Additional pivot data (akan digunakan untuk semua units)
      * @return void
      */
-    public static function attachUnitsToUser(int $centralUserId, array $unitIds, array $pivotData = []): void
+    public static function attachUnitsToUser(string $centralUserId, array $unitIds, array $pivotData = []): void
     {
         // Sync user dulu
         $tenantUser = self::syncToTenant($centralUserId);
@@ -124,11 +124,11 @@ class UserSyncService
     /**
      * Detach unit from user
      *
-     * @param int $centralUserId
+     * @param string $centralUserId - global_id dari central database (UUID string)
      * @param Unit $unit
      * @return void
      */
-    public static function detachUnitFromUser(int $centralUserId, Unit $unit): void
+    public static function detachUnitFromUser(string $centralUserId, Unit $unit): void
     {
         // Cari user di tenant
         $tenantUser = UserTenant::where('global_id', $centralUserId)->first();
@@ -141,12 +141,12 @@ class UserSyncService
     /**
      * Sync assignment: hapus semua assignment lama dan buat yang baru
      *
-     * @param int $centralUserId
+     * @param string $centralUserId - global_id dari central database (UUID string)
      * @param array $unitIds
      * @param array $pivotData
      * @return void
      */
-    public static function syncUnitsForUser(int $centralUserId, array $unitIds, array $pivotData = []): void
+    public static function syncUnitsForUser(string $centralUserId, array $unitIds, array $pivotData = []): void
     {
         // Sync user dulu
         $tenantUser = self::syncToTenant($centralUserId);
