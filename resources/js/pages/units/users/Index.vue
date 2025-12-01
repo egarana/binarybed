@@ -16,7 +16,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Unlink } from 'lucide-vue-next';
+import { Unlink, CircleCheckBigIcon } from 'lucide-vue-next';
 import {
     Select,
     SelectContent,
@@ -169,6 +169,7 @@ const clearUser = () => {
                 :variant="item.role === 'partner' ? 'secondary' : 'outline'" 
                 class="capitalize"
             >
+                <CircleCheckBigIcon v-if="item.role === 'partner'" />
                 {{ item.role }}
             </Badge>
         </template>

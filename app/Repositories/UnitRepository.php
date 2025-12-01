@@ -214,6 +214,7 @@ class UnitRepository
             ->allowedSorts([
                 'name',
                 'email',
+                'role',
                 'assigned_at', // This works because the pivot is already joined in the relationship
             ])
             ->defaultSort('-assigned_at');
