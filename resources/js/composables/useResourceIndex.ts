@@ -38,6 +38,11 @@ export interface UseResourceIndexConfig {
     breadcrumbs: BreadcrumbItem[];
     showSearch?: boolean;
     dialogOpen?: Ref<boolean>;
+    deleteIcon?: any;
+    deleteActionLabel?: string;
+    deleteTitle?: string;
+    deleteDescription?: string;
+    deleteConfirmLabel?: string;
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -78,6 +83,11 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         resourceName: config.resourceName.toLowerCase(),
         itemKey: config.itemKey,
         customActions: config.customActions,
+        deleteIcon: config.deleteIcon,
+        deleteActionLabel: config.deleteActionLabel,
+        deleteTitle: config.deleteTitle,
+        deleteDescription: config.deleteDescription,
+        deleteConfirmLabel: config.deleteConfirmLabel,
     };
 
     const showTable = computed(() => {

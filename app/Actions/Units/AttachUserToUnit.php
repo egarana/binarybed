@@ -31,7 +31,8 @@ class AttachUserToUnit
             // 3. Attach user ke unit via resource_users table
             UserSyncService::attachUnitToUser(
                 centralUserId: $data['user_id'],
-                unit: $unit
+                unit: $unit,
+                pivotData: ['role' => $data['role']]
             );
         });
     }

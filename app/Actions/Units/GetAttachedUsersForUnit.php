@@ -4,13 +4,20 @@ namespace App\Actions\Units;
 
 use App\HandlesTenancy;
 use App\Models\Unit;
+use App\Repositories\UnitRepository;
+use Illuminate\Http\Request;
 
 class GetAttachedUsersForUnit
 {
     use HandlesTenancy;
 
+    public function __construct(
+        protected UnitRepository $unitRepository,
+        protected Request $request
+    ) {}
+
     /**
-     * Get all users attached to a unit.
+     * Get all users attached to a unit with filtering and sorting support.
      *
      * @param string $tenantId
      * @param string $slug
@@ -21,19 +28,7 @@ class GetAttachedUsersForUnit
         return $this->executeInTenantContext($tenantId, function () use ($slug) {
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
-            // Use Laravel's built-in pagination
-            return $unit->users()
-                ->orderBy('name')
-                ->paginate(request()->input('per_page', 15))
-                ->through(function ($user) {
-                    return [
-                        'global_id' => $user->global_id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'assigned_at' => $user->pivot->assigned_at,
-                        'created_at' => $user->created_at,
-                    ];
-                });
+            return $this->unitRepository->getAttachedUsersPaginated($unit, $this->request);
         });
     }
 }

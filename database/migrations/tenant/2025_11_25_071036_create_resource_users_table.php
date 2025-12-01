@@ -26,6 +26,9 @@ return new class extends Migration
             $table->unsignedBigInteger('resourceable_id');
             $table->index(['resourceable_type', 'resourceable_id']);
 
+            // Role column: 'partner' or 'referrer'
+            $table->string('role')->nullable()->comment('partner, referrer');
+
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
 

@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { notifyActionResult } from '@/helpers/notifyActionResult';
 import { capitalizeFirst } from '@/helpers/string';
 
@@ -24,6 +24,8 @@ interface Props {
     title?: string;
     description?: string;
     tooltip?: string;
+    icon?: any;
+    confirmText?: string;
 }
 
 const props = defineProps<Props>();
@@ -33,6 +35,13 @@ const emit = defineEmits<{
 }>();
 
 const open = ref(false);
+const tooltipKey = ref(0);
+
+watch(open, (isOpen) => {
+    if (!isOpen) {
+        tooltipKey.value++;
+    }
+});
 
 const capitalizedEntityName = capitalizeFirst(props.entityName);
 
@@ -59,11 +68,11 @@ function handleDelete(): void {
 <template>
     <Dialog v-model:open="open">
         <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger>
+            <Tooltip :key="tooltipKey">
+                <TooltipTrigger class="ms-auto" as-child>
                     <DialogTrigger as-child>
                         <Button variant="outline" size="icon" @click="open = true">
-                            <Trash2 class="w-4 h-4 text-muted-foreground" />
+                            <component :is="props.icon || Trash2" class="w-4 h-4 text-muted-foreground" />
                         </Button>
                     </DialogTrigger>
                 </TooltipTrigger>
@@ -97,7 +106,7 @@ function handleDelete(): void {
                     variant="destructive"
                     @click="handleDelete"
                 >
-                    Delete {{ props.entityName }}
+                    {{ props.confirmText || `Delete ${props.entityName}` }}
                 </Button>
             </DialogFooter>
         </DialogContent>

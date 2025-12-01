@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class ResourceUser extends Pivot
 {
     protected $table = 'resource_users';
-    
+
     public $incrementing = true;
 
     protected $fillable = [
         'global_id',            // Foreign key ke users.global_id
         'resourceable_type',
         'resourceable_id',
+        'role',
         'assigned_at',
     ];
 

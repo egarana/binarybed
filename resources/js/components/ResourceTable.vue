@@ -40,6 +40,11 @@ const props = defineProps<{
         variant?: 'ghost' | 'outline' | 'default' | 'secondary' | 'destructive';
         condition?: (item: any) => boolean; // Optional condition to show/hide button
     }>;
+    deleteIcon?: any;
+    deleteActionLabel?: string;
+    deleteTitle?: string;
+    deleteDescription?: string;
+    deleteConfirmLabel?: string;
 }>();
 
 const items = computed(() => props.data?.data ?? []);
@@ -90,7 +95,9 @@ const snapped = perPageOptions.reduce((acc, v) =>
 const selectedPerPage = ref(String(snapped));
 
 watch(selectedPerPage, (v) => {
-    props.refresh && props.refresh({ per_page: v, page: 1 });
+    if (props.refresh) {
+        props.refresh({ per_page: v, page: 1 });
+    }
 });
 
 // Handle delete dengan logic untuk pindah ke page sebelumnya jika item terakhir di last page
@@ -196,19 +203,14 @@ const handleDelete = () => {
 
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog
-                                            v-bind="(() => {
-                                                try {
-                                                    const deleteConfig = deleteRoute(item);
-                                                    return {
-                                                        'delete-url': deleteConfig.url,
-                                                        'delete-data': deleteConfig.data,
-                                                        'entity-name': resourceName || 'item'
-                                                    };
-                                                } catch (error) {
-                                                    console.error('Error generating delete route:', error, 'Item:', item);
-                                                    return null;
-                                                }
-                                            })()"
+                                            :delete-url="deleteRoute(item).url"
+                                            :delete-data="deleteRoute(item).data"
+                                            :entity-name="resourceName || 'item'"
+                                            :icon="deleteIcon"
+                                            :tooltip="deleteActionLabel"
+                                            :title="deleteTitle"
+                                            :description="deleteDescription"
+                                            :confirm-text="deleteConfirmLabel"
                                             @deleted="handleDelete"
                                         />
                                     </template>
@@ -231,7 +233,7 @@ const handleDelete = () => {
                                         <template v-if="col.formatter">
                                             {{ col.formatter(item[col.key], item) }}
                                         </template>
-                                        <template v-else-if="['created_at', 'updated_at'].includes(col.key)">
+                                        <template v-else-if="['created_at', 'updated_at', 'assigned_at'].includes(col.key)">
                                             {{ dayjs(item[col.key]).fromNow() }}
                                         </template>
                                         <template v-else>
@@ -285,19 +287,14 @@ const handleDelete = () => {
 
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog
-                                            v-bind="(() => {
-                                                try {
-                                                    const deleteConfig = deleteRoute(item);
-                                                    return {
-                                                        'delete-url': deleteConfig.url,
-                                                        'delete-data': deleteConfig.data,
-                                                        'entity-name': resourceName || 'item'
-                                                    };
-                                                } catch (error) {
-                                                    console.error('Error generating delete route:', error, 'Item:', item);
-                                                    return null;
-                                                }
-                                            })()"
+                                            :delete-url="deleteRoute(item).url"
+                                            :delete-data="deleteRoute(item).data"
+                                            :entity-name="resourceName || 'item'"
+                                            :icon="deleteIcon"
+                                            :tooltip="deleteActionLabel"
+                                            :title="deleteTitle"
+                                            :description="deleteDescription"
+                                            :confirm-text="deleteConfirmLabel"
                                             @deleted="handleDelete"
                                         />
                                     </template>
@@ -334,7 +331,7 @@ const handleDelete = () => {
         </div>
         <div class="basis-2/3 flex items-center justify-end gap-2 md:basis-auto md:order-4">
             <!-- First page -->
-            <Link :href="pagination.first_page_url" v-if="!isFirstPage">
+            <Link :href="pagination.first_page_url ?? undefined" v-if="!isFirstPage">
                 <Button variant="outline" size="icon">
                     <ChevronsLeft class="w-4 h-4" />
                 </Button>
@@ -344,7 +341,7 @@ const handleDelete = () => {
             </Button>
 
             <!-- Prev -->
-            <Link :href="pagination.prev_page_url" v-if="pagination.prev_page_url">
+            <Link :href="pagination.prev_page_url ?? undefined" v-if="pagination.prev_page_url">
                 <Button variant="outline" size="icon">
                     <ChevronLeft class="w-4 h-4" />
                 </Button>
@@ -354,7 +351,7 @@ const handleDelete = () => {
             </Button>
 
             <!-- Next -->
-            <Link :href="pagination.next_page_url" v-if="pagination.next_page_url">
+            <Link :href="pagination.next_page_url ?? undefined" v-if="pagination.next_page_url">
                 <Button variant="outline" size="icon">
                     <ChevronRight class="w-4 h-4" />
                 </Button>
@@ -364,7 +361,7 @@ const handleDelete = () => {
             </Button>
 
             <!-- Last page -->
-            <Link :href="pagination.last_page_url" v-if="!isLastPage">
+            <Link :href="pagination.last_page_url ?? undefined" v-if="!isLastPage">
                 <Button variant="outline" size="icon">
                     <ChevronsRight class="w-4 h-4" />
                 </Button>

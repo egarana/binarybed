@@ -23,7 +23,7 @@ const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tab
         <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <ResourceTableFilter :refresh="refresh" v-bind="filterConfig">
                 <template #dialog-content>
-                    <slot name="dialog-content" />
+                    <slot name="dialog-content" :refresh="refresh" />
                 </template>
             </ResourceTableFilter>
             <ResourceTable
@@ -33,7 +33,11 @@ const { breadcrumbs, resource, refresh, sortState, handleSort, filterConfig, tab
                 :handleSort="handleSort"
                 :refresh="refresh"
                 v-bind="tableConfig"
-            />
+            >
+                <template v-for="(_, name) in $slots" v-slot:[name]="slotData">
+                    <slot :name="name" v-bind="slotData" />
+                </template>
+            </ResourceTable>
         </div>
     </AppLayout>
 </template>

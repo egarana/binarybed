@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Actions\Units\AttachUserToUnit;
 use App\Actions\Units\CreateUnit;
 use App\Actions\Units\DeleteUnit;
+use App\Actions\Units\DetachUserFromUnit;
 use App\Actions\Units\FindUnitByTenantAndSlug;
 use App\Actions\Units\GetAttachedUsersForUnit;
 use App\Actions\Units\UpdateUnit;
@@ -23,6 +24,7 @@ class UnitService
         protected DeleteUnit $deleteUnit,
         protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug,
         protected AttachUserToUnit $attachUserToUnit,
+        protected DetachUserFromUnit $detachUserFromUnit,
         protected GetAttachedUsersForUnit $getAttachedUsersForUnit
     ) {}
 
@@ -54,6 +56,11 @@ class UnitService
     public function attachUserToUnit(string $tenantId, string $slug, array $data): void
     {
         $this->attachUserToUnit->execute($tenantId, $slug, $data);
+    }
+
+    public function detachUserFromUnit(string $tenantId, string $slug, string $userGlobalId): void
+    {
+        $this->detachUserFromUnit->execute($tenantId, $slug, $userGlobalId);
     }
 
     public function getAttachedUsers(string $tenantId, string $slug): LengthAwarePaginator

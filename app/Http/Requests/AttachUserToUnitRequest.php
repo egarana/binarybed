@@ -26,6 +26,11 @@ class AttachUserToUnitRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'role' => [
+                'required',
+                'string',
+                'in:partner,referrer',
+            ],
         ];
     }
 

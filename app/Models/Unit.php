@@ -52,7 +52,7 @@ class Unit extends Model
             'id',                  // parentKey - primary key di Unit table
             'global_id'            // relatedKey - primary key di UserTenant table (global_id)
         )
-        ->withPivot(['assigned_at'])
-        ->withTimestamps();
+            ->withPivot(['assigned_at', 'role'])
+            ->withTimestamps();
     }
 }

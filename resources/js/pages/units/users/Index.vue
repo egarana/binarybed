@@ -5,6 +5,7 @@ import { Form } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
+import InputError from '@/components/InputError.vue';
 // import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import {
@@ -15,6 +16,16 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Unlink } from 'lucide-vue-next';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 interface Props {
     unit: {
@@ -25,18 +36,12 @@ interface Props {
         slug: string;
     };
     users?: ComboboxOption[];
-    attachedUsers?: Array<{
-        global_id: string;
-        name: string;
-        email: string;
-        assigned_at: string;
-        created_at: string;
-    }>;
 }
 
 const props = defineProps<Props>();
 
 const user = ref<ComboboxOption | undefined>(undefined);
+const role = ref<string>('partner');
 const dialogOpen = ref(false);
 
 const config = {
@@ -47,6 +52,7 @@ const config = {
     columns: [
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'email', label: 'Email', sortable: true },
+        { key: 'role', label: 'Role', sortable: true },
         { key: 'assigned_at', label: 'Assigned At', sortable: true },
     ],
     searchFields: ['name', 'email'],
@@ -58,34 +64,36 @@ const config = {
         { title: 'Manage Users', href: '#' },
     ],
     dialogOpen,
+    deleteRoute: (item: any) => ({ 
+        url: units.users.detach.url([props.unit.tenant_id, props.unit.slug, item.global_id])
+    }),
+    deleteIcon: Unlink,
+    deleteActionLabel: 'Remove user',
+    deleteTitle: 'Remove user from this unit?',
+    deleteDescription: 'If you remove this user, they will no longer be associated with this unit. You can add them back anytime.',
+    deleteConfirmLabel: 'Remove user',
 };
 
 const { onSuccess: notifySuccess, onError: notifyError } = useFormNotifications({
     resourceName: 'user',
-    action: 'create',
+    action: 'assign',
+    successDescription: 'User has been assigned to the unit successfully.',
+    errorDescription: 'An unexpected error occurred while assigning the user to the unit. Please try again.',
 });
 
 // Clear user after dialog closes
 const clearUser = () => {
     setTimeout(() => {
         user.value = undefined;
+        role.value = 'partner';
     }, 400);
 };
-
-// Custom success handler that clears user after notification and closes dialog
-const onSuccess = (payload: any) => {
-    notifySuccess(payload);
-    user.value = undefined; // Clear user after successful assignment
-    dialogOpen.value = false; // Close dialog
-};
-
-const onError = notifyError;
 
 </script>
 
 <template>
     <BaseIndexPage title="Manage Users" :config="config">
-        <template #dialog-content>
+        <template #dialog-content="{ refresh }">
             <DialogHeader>
                 <DialogTitle>Assign User</DialogTitle>
                 <DialogDescription>
@@ -96,8 +104,8 @@ const onError = notifyError;
             <Form
                 :action="units.users.attach.url([unit.tenant_id, unit.slug])"
                 method="post"
-                @success="onSuccess"
-                @error="onError"
+                @success="(payload) => { notifySuccess(payload); user = undefined; role = 'partner'; dialogOpen = false; refresh(); }"
+                @error="notifyError"
                 class="grid gap-4 py-4"
                 v-slot="{ errors, processing }"
             >
@@ -118,6 +126,20 @@ const onError = notifyError;
                     :disable-portal="true"
                     :disabled="processing"
                 />
+
+                <div class="grid gap-2">
+                    <Label>Role</Label>
+                    <Select v-model="role" name="role" :disabled="processing">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="partner">Partner</SelectItem>
+                            <SelectItem value="referrer">Referrer</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.role" />
+                </div>
 
                 <DialogFooter>
                     <DialogClose as-child>
@@ -140,6 +162,15 @@ const onError = notifyError;
                     />
                 </DialogFooter>
             </Form>
+        </template>
+
+        <template #cell-role="{ item }">
+            <Badge 
+                :variant="item.role === 'partner' ? 'secondary' : 'outline'" 
+                class="capitalize"
+            >
+                {{ item.role }}
+            </Badge>
         </template>
     </BaseIndexPage>
 </template>

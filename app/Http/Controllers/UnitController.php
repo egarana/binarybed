@@ -83,4 +83,11 @@ class UnitController extends Controller
 
         return redirect()->route('units.users', [$tenantId, $slug]);
     }
+
+    public function detachUser(string $tenantId, string $slug, string $userGlobalId): RedirectResponse
+    {
+        $this->unitService->detachUserFromUnit($tenantId, $slug, $userGlobalId);
+
+        return redirect()->route('units.users', [$tenantId, $slug]);
+    }
 }

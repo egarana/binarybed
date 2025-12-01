@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\HasMultiTenantSearch;
 use App\Models\Unit;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Services\PaginationService;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -173,10 +174,66 @@ class UnitRepository
                     'global_id' => $user->global_id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'assigned_at' => $user->pivot->assigned_at,
+                    'role' => $user->pivot->role,
+                    'assigned_at' => $user->pivot->assigned_at ? Carbon::parse($user->pivot->assigned_at) : null,
                 ];
             })
             ->toArray();
+    }
+
+    /**
+     * Get paginated users attached to a unit with filtering and sorting support.
+     *
+     * @param Unit $unit
+     * @param Request $request
+     * @return LengthAwarePaginator
+     */
+    public function getAttachedUsersPaginated(Unit $unit, Request $request): LengthAwarePaginator
+    {
+        $perPage = $this->pagination->resolvePerPage($request);
+
+        // Pre-process search parameters for QueryBuilder
+        $searchValue = $request->input('search');
+        if ($searchValue) {
+            $request->merge(['filter' => array_merge(
+                $request->input('filter', []),
+                ['search' => $searchValue]
+            )]);
+        }
+
+        // Get the base relationship query
+        $relationQuery = $unit->users();
+
+        // Build the QueryBuilder with filters and sorts
+        $query = QueryBuilder::for($relationQuery)
+            ->allowedFilters([
+                'name',
+                'email',
+                AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'email'])),
+            ])
+            ->allowedSorts([
+                'name',
+                'email',
+                'assigned_at', // This works because the pivot is already joined in the relationship
+            ])
+            ->defaultSort('-assigned_at');
+
+        // Get paginated results
+        $users = $query->paginate($perPage);
+
+        // Transform the data to include pivot information
+        $users->getCollection()->transform(function ($user) {
+            return [
+                'id' => $user->id,
+                'global_id' => $user->global_id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->pivot->role,
+                'assigned_at' => $user->pivot->assigned_at ? Carbon::parse($user->pivot->assigned_at) : null,
+            ];
+        });
+
+        return $users;
     }
 
     /**
