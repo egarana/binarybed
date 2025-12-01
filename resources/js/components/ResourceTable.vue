@@ -177,10 +177,21 @@ const handleDelete = () => {
                                         </Tooltip>
                                     </TooltipProvider>
 
+
                                     <!-- Custom Actions -->
                                     <TooltipProvider v-if="customActions">
                                         <template v-for="(action, index) in customActions" :key="index">
-                                            <Tooltip v-if="!action.condition || action.condition(item)">
+                                            <!-- Check if there's a custom slot for this action -->
+                                            <slot 
+                                                v-if="$slots[`custom-action-${index}`]"
+                                                :name="`custom-action-${index}`" 
+                                                :item="item" 
+                                                :action="action"
+                                                :refresh="refresh"
+                                            />
+                                            
+                                            <!-- Default rendering with Link if no custom slot -->
+                                            <Tooltip v-else-if="!action.condition || action.condition(item)">
                                                 <TooltipTrigger>
                                                     <Link :href="action.url(item)">
                                                         <Button
@@ -200,6 +211,7 @@ const handleDelete = () => {
                                             </Tooltip>
                                         </template>
                                     </TooltipProvider>
+
 
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog
@@ -246,7 +258,17 @@ const handleDelete = () => {
                                     <!-- Custom Actions -->
                                     <TooltipProvider v-if="customActions">
                                         <template v-for="(action, index) in customActions" :key="index">
-                                            <Tooltip v-if="!action.condition || action.condition(item)">
+                                            <!-- Check if there's a custom slot for this action -->
+                                            <slot 
+                                                v-if="$slots[`custom-action-${index}`]"
+                                                :name="`custom-action-${index}`" 
+                                                :item="item" 
+                                                :action="action"
+                                                :refresh="refresh"
+                                            />
+                                            
+                                            <!-- Default rendering with Link if no custom slot -->
+                                            <Tooltip v-else-if="!action.condition || action.condition(item)">
                                                 <TooltipTrigger>
                                                     <Link :href="action.url(item)">
                                                         <Button

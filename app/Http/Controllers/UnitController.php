@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AttachUserToUnitRequest;
 use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
+use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Unit;
 use App\Services\TenantService;
 use App\Services\UnitService;
@@ -87,6 +88,22 @@ class UnitController extends Controller
     public function detachUser(string $tenantId, string $slug, string $userGlobalId): RedirectResponse
     {
         $this->unitService->detachUserFromUnit($tenantId, $slug, $userGlobalId);
+
+        return redirect()->route('units.users', [$tenantId, $slug]);
+    }
+
+    public function updateUser(
+        UpdateUserAssignmentRequest $request,
+        string $tenantId,
+        string $slug,
+        string $userGlobalId
+    ): RedirectResponse {
+        $this->unitService->updateUserUnitRole(
+            $tenantId,
+            $slug,
+            $userGlobalId,
+            $request->validated()
+        );
 
         return redirect()->route('units.users', [$tenantId, $slug]);
     }

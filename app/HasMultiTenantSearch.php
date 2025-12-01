@@ -13,22 +13,22 @@ trait HasMultiTenantSearch
      * Fetch data from all tenant databases
      *
      * @param string $modelClass The fully qualified model class name
+     * @param callable $tenantDataMapper Callback to map tenant data to each item
+     *                                    Receives: ($item, $tenant)
+     *                                    Should return: array with tenant data added
      * @param callable|null $callback Callback to determine if we should fetch all records.
      *                                Returns true to fetch all, false to use query modifier.
      *                                Receives: ($query)
      * @param callable|null $queryModifier Callback to modify the query (e.g., add filters, eager loading)
      *                                      Receives: ($query)
      *                                      Should return: modified query or builder
-     * @param callable $tenantDataMapper Callback to map tenant data to each item
-     *                                    Receives: ($item, $tenant)
-     *                                    Should return: array with tenant data added
      * @return Collection Collection of items from all tenants
      */
     protected function fetchFromAllTenants(
         string $modelClass,
+        callable $tenantDataMapper,
         ?callable $callback = null,
-        ?callable $queryModifier = null,
-        callable $tenantDataMapper
+        ?callable $queryModifier = null
     ): Collection {
         $allItems = collect();
 

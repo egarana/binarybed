@@ -6,17 +6,19 @@ import { ref } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import InputError from '@/components/InputError.vue';
-// import FormField from '@/components/FormField.vue';
+import DisabledFormField from '@/components/DisabledFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import {
+    Dialog,
     DialogClose,
+    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Unlink, CircleCheckBigIcon } from 'lucide-vue-next';
+import { Unlink, CircleCheckBigIcon, Pencil } from 'lucide-vue-next';
 import {
     Select,
     SelectContent,
@@ -26,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Props {
     unit: {
@@ -43,6 +46,12 @@ const props = defineProps<Props>();
 const user = ref<ComboboxOption | undefined>(undefined);
 const role = ref<string>('partner');
 const dialogOpen = ref(false);
+
+// Edit user assignment state
+const editDialogOpen = ref(false);
+const editingUser = ref<any>(null);
+const editRole = ref<string>('partner');
+const editDialogKey = ref(0);
 
 const config = {
     resourceName: 'User',
@@ -72,6 +81,14 @@ const config = {
     deleteTitle: 'Remove user from this unit?',
     deleteDescription: 'If you remove this user, they will no longer be associated with this unit. You can add them back anytime.',
     deleteConfirmLabel: 'Remove user',
+    customActions: [
+        {
+            icon: Pencil,
+            tooltip: 'Edit assignment',
+            url: () => '#', // Placeholder, will use onClick via slot
+            variant: 'outline' as const,
+        },
+    ],
 };
 
 const { onSuccess: notifySuccess, onError: notifyError } = useFormNotifications({
@@ -88,6 +105,29 @@ const clearUser = () => {
         role.value = 'partner';
     }, 400);
 };
+
+// Open edit dialog
+const openEditDialog = (item: any) => {
+    editingUser.value = item;
+    editRole.value = item.role;
+    editDialogKey.value++; // Increment key to force re-render
+    editDialogOpen.value = true;
+};
+
+// Clear edit form
+const clearEditForm = () => {
+    setTimeout(() => {
+        editingUser.value = null;
+        editRole.value = 'partner';
+    }, 400);
+};
+
+const { onSuccess: notifyEditSuccess, onError: notifyEditError } = useFormNotifications({
+    resourceName: 'user assignment',
+    action: 'update',
+    successDescription: 'User assignment has been updated successfully.',
+    errorDescription: 'An unexpected error occurred while updating the user assignment. Please try again.',
+});
 
 </script>
 
@@ -173,5 +213,87 @@ const clearUser = () => {
                 {{ item.role }}
             </Badge>
         </template>
+
+        <!-- Custom action slot to override edit button behavior -->
+        <template #custom-action-0="{ item }">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger>
+                        <Button 
+                            variant="outline" 
+                            size="icon"
+                            @click="openEditDialog(item)"
+                        >
+                            <Pencil class="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Edit assignment</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </template>
     </BaseIndexPage>
+
+    <!-- Edit Assignment Dialog - Single instance outside the table loop -->
+    <Dialog :key="editDialogKey" v-model:open="editDialogOpen" @update:open="(val) => !val && clearEditForm()">
+        <DialogContent @escape-key-down.prevent>
+            <DialogHeader>
+                <DialogTitle>Edit User Assignment</DialogTitle>
+                <DialogDescription>
+                    Update the role for this user. Click save when you're done.
+                </DialogDescription>
+            </DialogHeader>
+
+            <Form
+                v-if="editingUser"
+                :action="units.users.update.url([unit.tenant_id, unit.slug, editingUser.global_id])"
+                method="put"
+                @success="(payload) => { notifyEditSuccess(payload); editDialogOpen = false; clearEditForm(); }"
+                @error="notifyEditError"
+                class="grid gap-4 py-4"
+                v-slot="{ errors, processing }"
+            >
+                <DisabledFormField
+                    label="User"
+                    :value="editingUser.name"
+                />
+
+                <div class="grid gap-2">
+                    <Label>Role</Label>
+                    <Select v-model="editRole" name="role" :disabled="processing">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent :modal="false">
+                            <SelectItem value="partner">Partner</SelectItem>
+                            <SelectItem value="referrer">Referrer</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="errors.role" />
+                </div>
+
+                <DialogFooter>
+                    <DialogClose as-child>
+                        <Button 
+                            variant="outline" 
+                            type="button" 
+                            @click="clearEditForm"
+                            :disabled="processing"
+                        >
+                            Cancel
+                        </Button>
+                    </DialogClose>
+
+                    <SubmitButton
+                        :processing="processing"
+                        :tabindex="2"
+                        test-id="update-user-assignment-button"
+                        label="Save"
+                        class="!pt-0"
+                    />
+                </DialogFooter>
+            </Form>
+        </DialogContent>
+    </Dialog>
 </template>

@@ -139,6 +139,26 @@ class UserSyncService
     }
 
     /**
+     * Update user's role for a specific unit
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param Unit $unit
+     * @param string $role - Role to set (partner/referrer)
+     * @return void
+     */
+    public static function updateUnitUserRole(string $centralUserId, Unit $unit, string $role): void
+    {
+        // Cari user di tenant
+        $tenantUser = UserTenant::where('global_id', $centralUserId)->firstOrFail();
+
+        // Update pivot data (role kolom di resource_users table)
+        $unit->users()->updateExistingPivot($tenantUser->global_id, [
+            'role' => $role,
+        ]);
+    }
+
+
+    /**
      * Sync assignment: hapus semua assignment lama dan buat yang baru
      *
      * @param string $centralUserId - global_id dari central database (UUID string)
