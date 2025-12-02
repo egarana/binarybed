@@ -4,7 +4,6 @@ import BaseIndexPage from '@/components/BaseIndexPage.vue';
 import { Form } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
-import { useResourceIndex } from '@/composables/useResourceIndex';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import InputError from '@/components/InputError.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
@@ -88,8 +87,8 @@ const config = {
     },
 };
 
-// Get refresh function from the composable
-const { refresh } = useResourceIndex(config);
+// useResourceIndex is called internally by BaseIndexPage
+// The refresh function is provided via the slot props
 
 const { onSuccess: notifySuccess, onError: notifyError } = useFormNotifications({
     resourceName: 'user',
