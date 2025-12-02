@@ -36,9 +36,29 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const tooltipKey = ref(0);
+const tooltipOpen = ref(false);
+const preventTooltipOpen = ref(false);
+
+// Prevent tooltip from opening immediately after dialog closes
+watch(tooltipOpen, (newVal) => {
+    if (newVal === true && preventTooltipOpen.value) {
+        tooltipOpen.value = false;
+    }
+});
 
 watch(open, (isOpen) => {
     if (!isOpen) {
+        // Close tooltip and prevent it from reopening while dialog is closing
+        tooltipOpen.value = false;
+        preventTooltipOpen.value = true;
+        
+        // Allow tooltip to open again after dialog animation completes
+        setTimeout(() => {
+            preventTooltipOpen.value = false;
+        }, 500);
+    } else {
+        // Close tooltip and remount when dialog opens
+        tooltipOpen.value = false;
         tooltipKey.value++;
     }
 });
@@ -68,7 +88,10 @@ function handleDelete(): void {
 <template>
     <Dialog v-model:open="open">
         <TooltipProvider>
-            <Tooltip :key="tooltipKey">
+            <Tooltip 
+                :key="tooltipKey" 
+                v-model:open="tooltipOpen"
+            >
                 <TooltipTrigger class="ms-auto" as-child>
                     <DialogTrigger as-child>
                         <Button variant="outline" size="icon" @click="open = true">

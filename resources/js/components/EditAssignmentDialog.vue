@@ -61,17 +61,38 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const tooltipKey = ref(0);
+const tooltipOpen = ref(false);
+const preventTooltipOpen = ref(false);
 const role = ref(props.currentRole);
 const dialogKey = ref(0);
 
+// Prevent tooltip from opening immediately after dialog closes
+watch(tooltipOpen, (newVal) => {
+    if (newVal === true && preventTooltipOpen.value) {
+        tooltipOpen.value = false;
+    }
+});
+
 watch(open, (isOpen) => {
     if (!isOpen) {
-        tooltipKey.value++;
+        // Close tooltip and prevent it from reopening while dialog is closing
+        tooltipOpen.value = false;
+        preventTooltipOpen.value = true;
+        
         // Reset role when dialog closes
         setTimeout(() => {
             role.value = props.currentRole;
         }, 400);
+        
+        // Allow tooltip to open again after dialog animation completes
+        setTimeout(() => {
+            preventTooltipOpen.value = false;
+        }, 500);
     } else {
+        // Close tooltip and remount when dialog opens
+        tooltipOpen.value = false;
+        tooltipKey.value++;
+        
         // Update role when dialog opens (in case currentRole changed)
         role.value = props.currentRole;
         dialogKey.value++;
@@ -95,20 +116,27 @@ const handleSuccess = (payload: any) => {
 <template>
     <Dialog v-model:open="open">
         <TooltipProvider>
-            <Tooltip :key="tooltipKey">
-                <TooltipTrigger class="ms-auto" as-child>
-                    <DialogTrigger as-child>
-                        <Button variant="outline" size="icon" @click="open = true">
-                            <component :is="props.icon || Pencil" class="w-4 h-4 text-muted-foreground" />
-                        </Button>
-                    </DialogTrigger>
-                </TooltipTrigger>
+                <Tooltip 
+                    :key="tooltipKey" 
+                    v-model:open="tooltipOpen"
+                >
+                    <TooltipTrigger class="ms-auto" as-child>
+                        <DialogTrigger as-child>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                @click="open = true"
+                            >
+                                <component :is="props.icon || Pencil" class="w-4 h-4 text-muted-foreground" />
+                            </Button>
+                        </DialogTrigger>
+                    </TooltipTrigger>
 
-                <TooltipContent>
-                    <p>{{ props.tooltip }}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                    <TooltipContent>
+                        <p>{{ props.tooltip }}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
         <DialogContent :key="dialogKey" @escape-key-down.prevent>
             <DialogHeader>
