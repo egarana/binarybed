@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronsUpDown, Pencil, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-vue-next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
+import EditAssignmentDialog from '@/components/EditAssignmentDialog.vue';
 import { Link } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -40,6 +41,19 @@ const props = defineProps<{
         variant?: 'ghost' | 'outline' | 'default' | 'secondary' | 'destructive';
         condition?: (item: any) => boolean; // Optional condition to show/hide button
     }>;
+    editAssignmentConfig?: {
+        getEditUrl: (item: any) => string;
+        getCurrentRole: (item: any) => string;
+        roleOptions: Array<{ value: string; label: string }>;
+        entityName?: string;
+        userDisplayField?: string;
+        roleFieldName?: string;
+        title?: string;
+        description?: string;
+        tooltip?: string;
+        icon?: any;
+        submitButtonLabel?: string;
+    };
     deleteIcon?: any;
     deleteActionLabel?: string;
     deleteTitle?: string;
@@ -212,6 +226,24 @@ const handleDelete = () => {
                                         </template>
                                     </TooltipProvider>
 
+                                    <!-- Edit Assignment Dialog -->
+                                    <template v-if="editAssignmentConfig">
+                                        <EditAssignmentDialog
+                                            :edit-url="editAssignmentConfig.getEditUrl(item)"
+                                            :item="item"
+                                            :current-role="editAssignmentConfig.getCurrentRole(item)"
+                                            :role-options="editAssignmentConfig.roleOptions"
+                                            :entity-name="editAssignmentConfig.entityName"
+                                            :user-display-field="editAssignmentConfig.userDisplayField"
+                                            :role-field-name="editAssignmentConfig.roleFieldName"
+                                            :title="editAssignmentConfig.title"
+                                            :description="editAssignmentConfig.description"
+                                            :tooltip="editAssignmentConfig.tooltip"
+                                            :icon="editAssignmentConfig.icon"
+                                            :submit-button-label="editAssignmentConfig.submitButtonLabel"
+                                            @updated="handleDelete"
+                                        />
+                                    </template>
 
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog
@@ -306,6 +338,25 @@ const handleDelete = () => {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
+
+                                    <!-- Edit Assignment Dialog -->
+                                    <template v-if="editAssignmentConfig">
+                                        <EditAssignmentDialog
+                                            :edit-url="editAssignmentConfig.getEditUrl(item)"
+                                            :item="item"
+                                            :current-role="editAssignmentConfig.getCurrentRole(item)"
+                                            :role-options="editAssignmentConfig.roleOptions"
+                                            :entity-name="editAssignmentConfig.entityName"
+                                            :user-display-field="editAssignmentConfig.userDisplayField"
+                                            :role-field-name="editAssignmentConfig.roleFieldName"
+                                            :title="editAssignmentConfig.title"
+                                            :description="editAssignmentConfig.description"
+                                            :tooltip="editAssignmentConfig.tooltip"
+                                            :icon="editAssignmentConfig.icon"
+                                            :submit-button-label="editAssignmentConfig.submitButtonLabel"
+                                            @updated="handleDelete"
+                                        />
+                                    </template>
 
                                     <template v-if="deleteRoute">
                                         <ConfirmDeleteDialog

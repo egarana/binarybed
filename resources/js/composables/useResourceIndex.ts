@@ -34,6 +34,19 @@ export interface UseResourceIndexConfig {
     deleteRoute?: (item: any) => { url: string };
     itemKey?: (item: any) => string;
     customActions?: CustomAction[];
+    editAssignmentConfig?: {
+        getEditUrl: (item: any) => string;
+        getCurrentRole: (item: any) => string;
+        roleOptions: Array<{ value: string; label: string }>;
+        entityName?: string;
+        userDisplayField?: string;
+        roleFieldName?: string;
+        title?: string;
+        description?: string;
+        tooltip?: string;
+        icon?: any;
+        submitButtonLabel?: string;
+    };
     showTable?: boolean;
     breadcrumbs: BreadcrumbItem[];
     showSearch?: boolean;
@@ -83,6 +96,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         resourceName: config.resourceName.toLowerCase(),
         itemKey: config.itemKey,
         customActions: config.customActions,
+        editAssignmentConfig: config.editAssignmentConfig,
         deleteIcon: config.deleteIcon,
         deleteActionLabel: config.deleteActionLabel,
         deleteTitle: config.deleteTitle,
