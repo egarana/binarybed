@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
+            FeatureSeeder::class,
         ]);
 
         $user = User::factory()

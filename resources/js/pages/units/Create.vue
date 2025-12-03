@@ -11,6 +11,7 @@ import SubmitButton from '@/components/SubmitButton.vue';
 
 defineProps<{
     tenants?: ComboboxOption[];
+    features?: ComboboxOption[];
 }>();
 
 const breadcrumbs = [
@@ -25,6 +26,7 @@ const { onSuccess, onError } = useFormNotifications({
 
 // Form fields
 const selectedTenant = ref<ComboboxOption>();
+const selectedFeatures = ref<ComboboxOption[]>([]);
 
 const name = ref('');
 const { slug } = useAutoSlug(name, {
@@ -83,9 +85,28 @@ const { slug } = useAutoSlug(name, {
                 :error="errors.slug"
             />
 
+            <!-- Features Selection -->
+            <SearchableSelect
+                mode="multiple"
+                v-model="selectedFeatures"
+                :options="features"
+                :fetch-url="() => units.create.url()"
+                response-key="features"
+                search-param="search"
+                label="Features"
+                placeholder="Select features"
+                search-placeholder="Search features..."
+                name="features"
+                :tabindex="4"
+                :error="errors.features"
+                :required="false"
+                :draggable="true"
+                :disabled="processing"
+            />
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="4"
+                :tabindex="5"
                 test-id="create-unit-button"
                 label="Create"
             />

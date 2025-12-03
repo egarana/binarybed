@@ -7,6 +7,7 @@ use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
 use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Unit;
+use App\Services\FeatureService;
 use App\Services\TenantService;
 use App\Services\UnitService;
 use App\Services\UserService;
@@ -20,7 +21,8 @@ class UnitController extends Controller
     public function __construct(
         protected UnitService $unitService,
         protected TenantService $tenantService,
-        protected UserService $userService
+        protected UserService $userService,
+        protected FeatureService $featureService
     ) {}
 
     public function index(Request $request): Response
@@ -33,8 +35,10 @@ class UnitController extends Controller
     public function create(Request $request): Response
     {
         $tenants = $this->tenantService->search($request->input('search'));
+        // Get features for SearchableSelect (with search support)
+        $features = $this->featureService->search($request->input('search'));
 
-        return Inertia::render('units/Create', compact('tenants'));
+        return Inertia::render('units/Create', compact('tenants', 'features'));
     }
 
     public function store(StoreUnitRequest $request): RedirectResponse
@@ -44,11 +48,17 @@ class UnitController extends Controller
         return redirect()->route('units.index', ['sort' => '-created_at']);
     }
 
-    public function edit(string $tenantId, string $slug): Response
+    public function edit(string $tenant, string $slug, Request $request): Response
     {
-        $unit = $this->unitService->getForEdit($tenantId, $slug);
+        $unit = $this->unitService->getForEdit($tenant, $slug);
 
-        return Inertia::render('units/Edit', compact('unit'));
+        // Get features for SearchableSelect (with search support)
+        $features = $this->featureService->search(
+            $request->input('search'),
+            100
+        );
+
+        return Inertia::render('units/Edit', compact('unit', 'features'));
     }
 
     public function update(UpdateUnitRequest $request, string $tenantId, string $slug): RedirectResponse

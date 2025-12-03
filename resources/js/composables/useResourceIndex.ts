@@ -3,6 +3,7 @@ import { useSorter } from '@/composables/useSorter';
 import { computed, type Ref } from 'vue';
 
 import type { BreadcrumbItem } from '@/types';
+import type { FilterConfig } from '@/components/ResourceTableFilter.vue';
 
 export interface ResourceColumn {
     key: string;
@@ -56,6 +57,7 @@ export interface UseResourceIndexConfig {
     deleteTitle?: string;
     deleteDescription?: string;
     deleteConfirmLabel?: string;
+    filters?: FilterConfig[];
 }
 
 export function useResourceIndex(config: UseResourceIndexConfig) {
@@ -86,6 +88,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         addButtonBehavior: config.addButtonBehavior,
         showSearch: config.showSearch ?? true,
         dialogOpen: config.dialogOpen,
+        filters: config.filters,
     };
 
     // Table config

@@ -27,6 +27,36 @@ class CreateUnit
         return $this->executeInTenantContext($tenantId, function () use ($data) {
             $unit = $this->unitRepository->create($data);
 
+            // Attach features if provided
+            if (isset($data['features']) && is_array($data['features'])) {
+                // Sync features from central to tenant database first
+                foreach ($data['features'] as $featureId) {
+                    $centralFeature = \App\Models\Feature::find($featureId);
+                    if ($centralFeature) {
+                        \App\Models\ResourceFeature::updateOrCreate(
+                            ['feature_id' => $centralFeature->id],
+                            [
+                                'name' => $centralFeature->name,
+                                'value' => $centralFeature->value,
+                                'description' => $centralFeature->description,
+                                'icon' => $centralFeature->icon,
+                                'category' => $centralFeature->category,
+                            ]
+                        );
+                    }
+                }
+
+                // Now attach with order
+                $features = collect($data['features'])->mapWithKeys(function ($featureId, $index) {
+                    return [$featureId => [
+                        'order' => $index,
+                        'assigned_at' => now(),
+                    ]];
+                })->toArray();
+
+                $unit->features()->sync($features);
+            }
+
             return $unit;
         });
     }

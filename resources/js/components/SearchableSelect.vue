@@ -145,6 +145,9 @@ const selectedMultiple = ref<ComboboxOption[]>(
         : []
 );
 
+// Control dropdown open state
+const isOpen = ref(false);
+
 // ========================================
 // Computed Properties
 // ========================================
@@ -257,6 +260,8 @@ const addItem = (item: ComboboxOption) => {
         if (!selectedMultiple.value.some(i => i.value === item.value)) {
             selectedMultiple.value.push(item);
         }
+        // Close dropdown after selection (like single mode)
+        isOpen.value = false;
     }
 };
 
@@ -369,7 +374,7 @@ const hasSelection = computed(() => {
         
         <div class="flex items-center gap-2">
             <!-- Combobox -->
-            <Combobox :disabled="disabled" v-model="selected" class="w-full">
+            <Combobox :disabled="disabled" v-model="selected" v-model:open="isOpen" class="w-full">
                 <ComboboxAnchor as-child>
                     <ComboboxTrigger as-child>
                         <Button

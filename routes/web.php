@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
@@ -16,7 +17,7 @@ foreach (config('tenancy.central_domains') as $domain) {
                 'canRegister' => Features::enabled(Features::registration()),
             ]);
         })->name('home');
-        
+
         Route::middleware(['auth', 'verified'])->group(function () {
 
             /*
@@ -64,7 +65,24 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::put('{tenant}', 'update')->name('update');
                     Route::delete('{tenant}', 'destroy')->name('destroy');
                 });
-            
+
+            /*
+            |--------------------------------------------------------------------------
+            | Features
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('features')
+                ->name('features.')
+                ->controller(FeatureController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{feature}/edit', 'edit')->name('edit');
+                    Route::put('{feature}', 'update')->name('update');
+                    Route::delete('{feature}', 'destroy')->name('destroy');
+                });
+
             /*
             |--------------------------------------------------------------------------
             | Units (Cross-Tenant)
@@ -88,8 +106,7 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
                 });
         });
-
     });
 }
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

@@ -55,4 +55,30 @@ class Unit extends Model
             ->withPivot(['assigned_at', 'role'])
             ->withTimestamps();
     }
+
+    /**
+     * Get all features assigned to this unit
+     */
+    public function features(): MorphToMany
+    {
+        return $this->morphToMany(
+            ResourceFeature::class,  // Related model dari tenant database (synced from central)
+            'featureable',           // Polymorphic name
+            'resource_features',     // Pivot table
+            'featureable_id',        // foreignPivotKey - foreign key untuk Unit di pivot
+            'feature_id',            // relatedPivotKey - foreign key untuk ResourceFeature  
+            'id',                    // parentKey - primary key di Unit table
+            'feature_id'             // relatedKey - feature_id di ResourceFeature table (bukan id!)
+        )
+            ->withPivot(['assigned_at', 'order'])
+            ->withTimestamps()
+            ->orderBy('resource_features.order');
+    }
+
+    /**
+     * The relationships that should be touched on save.
+     *
+     * @var array
+     */
+    protected $touches = [];
 }

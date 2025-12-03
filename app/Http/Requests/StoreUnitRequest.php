@@ -10,7 +10,7 @@ use Illuminate\Validation\Validator;
 class StoreUnitRequest extends FormRequest
 {
     use ValidatesTenantResourceUniqueness;
-    
+
     public function authorize(): bool
     {
         return true;
@@ -28,6 +28,8 @@ class StoreUnitRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'features'   => ['nullable', 'array'],
+            'features.*' => ['required', 'integer', 'exists:features,id'],
         ];
     }
 
@@ -55,7 +57,7 @@ class StoreUnitRequest extends FormRequest
             'tenant_id.required' => 'Please select a tenant',
             'tenant_id.string'   => 'Invalid tenant selection',
             'tenant_id.exists'   => 'The selected tenant does not exist',
-            
+
             'name.required'      => 'Please enter the unit name',
             'name.string'        => 'The unit name must be valid text',
             'name.min'           => 'The unit name must be at least 8 characters',

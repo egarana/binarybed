@@ -5,6 +5,7 @@ import { ref } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
+import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
@@ -16,7 +17,9 @@ interface Props {
         tenant_name: string;
         name: string;
         slug: string;
+        features?: ComboboxOption[];
     };
+    features?: ComboboxOption[];
 }
 
 const props = defineProps<Props>();
@@ -32,6 +35,8 @@ const { onSuccess, onError } = useFormNotifications({
 });
 
 // Form fields
+const selectedFeatures = ref<ComboboxOption[]>(props.unit.features || []);
+
 const name = ref(props.unit.name || '');
 const { slug } = useAutoSlug(name, {
     separator: '-',
@@ -80,9 +85,28 @@ const { slug } = useAutoSlug(name, {
                 :error="errors.slug"
             />
 
+            <!-- Features Selection -->
+            <SearchableSelect
+                mode="multiple"
+                v-model="selectedFeatures"
+                :options="features"
+                :fetch-url="() => units.edit.url([unit.tenant_id, unit.slug])"
+                response-key="features"
+                search-param="search"
+                label="Features"
+                placeholder="Select features"
+                search-placeholder="Search features..."
+                name="features"
+                :tabindex="3"
+                :error="errors.features"
+                :required="false"
+                :draggable="true"
+                :disabled="processing"
+            />
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="3"
+                :tabindex="4"
                 test-id="update-unit-button"
                 label="Save"
             />

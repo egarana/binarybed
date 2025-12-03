@@ -3,6 +3,7 @@
 namespace App\Actions\Units;
 
 use App\HandlesTenancy;
+use App\Models\Feature;
 use App\Models\Unit;
 
 class FindUnitByTenantAndSlug
@@ -19,7 +20,7 @@ class FindUnitByTenantAndSlug
     public function execute(string $tenantId, string $slug): array
     {
         return $this->executeInTenantContext($tenantId, function ($tenant) use ($slug) {
-            $unit = Unit::where('slug', $slug)->firstOrFail();
+            $unit = Unit::where('slug', $slug)->with('features')->firstOrFail();
 
             return [
                 'id' => $unit->id,
@@ -27,6 +28,13 @@ class FindUnitByTenantAndSlug
                 'tenant_name' => $tenant->name,
                 'name' => $unit->name,
                 'slug' => $unit->slug,
+                'features' => $unit->features->map(function ($feature) {
+                    return [
+                        'value' => (string) $feature->feature_id, // Use feature_id untuk SearchableSelect
+                        'label' => $feature->name,
+                        'icon' => $feature->icon,
+                    ];
+                })->toArray(),
             ];
         });
     }

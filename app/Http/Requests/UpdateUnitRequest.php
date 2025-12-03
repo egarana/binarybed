@@ -19,6 +19,7 @@ class UpdateUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'tenant_id' => ['required', 'string', 'exists:tenants,id'],
             'name'      => ['required', 'string', 'min:8', 'max:255'],
             'slug'      => [
                 'required',
@@ -27,6 +28,8 @@ class UpdateUnitRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'features'   => ['nullable', 'array'],
+            'features.*' => ['required', 'integer', 'exists:features,id'],
         ];
     }
 
