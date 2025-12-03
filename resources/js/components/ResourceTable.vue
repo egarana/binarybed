@@ -26,7 +26,7 @@ const props = defineProps<{
         last_page_url?: string | null;
         per_page?: number;
     };
-    columns: { key: string; label: string; sortable?: boolean; className?: string; formatter?: (value: any, item: any) => string }[];
+    columns: { key: string; label: string; sortable?: boolean; className?: string; headClassName?: string; formatter?: (value: any, item: any) => string }[];
     sortState?: { field: string; direction: 'asc' | 'desc' };
     handleSort?: (field: string) => void;
     refresh?: (params?: Record<string, any>, immediate?: boolean) => void;
@@ -140,6 +140,7 @@ const handleDelete = () => {
                             v-for="col in columns"
                             :key="col.key"
                             class="whitespace-nowrap"
+                            :class="col.headClassName"
                         >
                             <Button
                                 v-if="col.sortable && handleSort"
