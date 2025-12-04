@@ -89,6 +89,9 @@ class UserSyncService
         $unit->users()->syncWithoutDetaching([
             $tenantUser->global_id => $pivotData
         ]);
+
+        // Touch unit to update updated_at timestamp
+        $unit->touch();
     }
 
     /**
@@ -119,6 +122,9 @@ class UserSyncService
             $unit->users()->syncWithoutDetaching([
                 $tenantUser->global_id => $pivotData
             ]);
+
+            // Touch unit to update updated_at timestamp
+            $unit->touch();
         }
     }
 
@@ -136,6 +142,9 @@ class UserSyncService
 
         if ($tenantUser) {
             $unit->users()->detach($tenantUser->global_id);
+
+            // Touch unit to update updated_at timestamp
+            $unit->touch();
         }
     }
 
@@ -156,6 +165,9 @@ class UserSyncService
         $unit->users()->updateExistingPivot($tenantUser->global_id, [
             'role' => $role,
         ]);
+
+        // Touch unit to update updated_at timestamp
+        $unit->touch();
     }
 
 
@@ -198,6 +210,9 @@ class UserSyncService
         $units = Unit::whereIn('id', $unitIds)->get();
         foreach ($units as $unit) {
             $unit->users()->attach($tenantUser->global_id, $pivotData);
+
+            // Touch unit to update updated_at timestamp
+            $unit->touch();
         }
     }
 
@@ -226,6 +241,9 @@ class UserSyncService
         $activity->users()->syncWithoutDetaching([
             $tenantUser->global_id => $pivotData
         ]);
+
+        // Touch activity to update updated_at timestamp
+        $activity->touch();
     }
 
     /**
@@ -256,6 +274,9 @@ class UserSyncService
             $activity->users()->syncWithoutDetaching([
                 $tenantUser->global_id => $pivotData
             ]);
+
+            // Touch activity to update updated_at timestamp
+            $activity->touch();
         }
     }
 
@@ -273,6 +294,9 @@ class UserSyncService
 
         if ($tenantUser) {
             $activity->users()->detach($tenantUser->global_id);
+
+            // Touch activity to update updated_at timestamp
+            $activity->touch();
         }
     }
 
@@ -293,6 +317,9 @@ class UserSyncService
         $activity->users()->updateExistingPivot($tenantUser->global_id, [
             'role' => $role,
         ]);
+
+        // Touch activity to update updated_at timestamp
+        $activity->touch();
     }
 
 
@@ -335,6 +362,9 @@ class UserSyncService
         $activities = Activity::whereIn('id', $activityIds)->get();
         foreach ($activities as $activity) {
             $activity->users()->attach($tenantUser->global_id, $pivotData);
+
+            // Touch activity to update updated_at timestamp
+            $activity->touch();
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Activity;
 use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
@@ -104,6 +105,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Lotus Conference Hall', 'slug' => 'lotus-conference-hall'],
                     ['name' => 'Serenity Spa Room', 'slug' => 'serenity-spa-room'],
                 ],
+                'activities' => [
+                    ['name' => 'Balinese Massage', 'slug' => 'balinese-massage'],
+                    ['name' => 'Surfing Lessons', 'slug' => 'surfing-lessons'],
+                    ['name' => 'Yoga Class', 'slug' => 'yoga-class'],
+                    ['name' => 'Sunset Dinner Cruise', 'slug' => 'sunset-dinner-cruise'],
+                    ['name' => 'Snorkeling Trip', 'slug' => 'snorkeling-trip'],
+                ],
             ],
             [
                 'id' => 'sanurparadisehotel',
@@ -117,6 +125,12 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Presidential Suite', 'slug' => 'presidential-suite'],
                     ['name' => 'Frangipani Meeting Room', 'slug' => 'frangipani-meeting-room'],
                 ],
+                'activities' => [
+                    ['name' => 'Traditional Dance Show', 'slug' => 'traditional-dance-show'],
+                    ['name' => 'Hot Stone Therapy', 'slug' => 'hot-stone-therapy'],
+                    ['name' => 'Cooking Class', 'slug' => 'cooking-class'],
+                    ['name' => 'Temple Tour', 'slug' => 'temple-tour'],
+                ],
             ],
             [
                 'id' => 'balihaidiving',
@@ -128,6 +142,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Beach Bungalow', 'slug' => 'beach-bungalow'],
                     ['name' => 'Garden Cottage', 'slug' => 'garden-cottage'],
                     ['name' => 'Oceanfront Bungalow', 'slug' => 'oceanfront-bungalow'],
+                ],
+                'activities' => [
+                    ['name' => 'Scuba Diving', 'slug' => 'scuba-diving'],
+                    ['name' => 'Deep Sea Fishing', 'slug' => 'deep-sea-fishing'],
+                    ['name' => 'Glass Bottom Boat Tour', 'slug' => 'glass-bottom-boat-tour'],
+                    ['name' => 'Snorkeling Trip', 'slug' => 'snorkeling-trip'],
+                    ['name' => 'Kayaking Tour', 'slug' => 'kayaking-tour'],
                 ],
             ],
             [
@@ -141,6 +162,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Private Garden Villa', 'slug' => 'private-garden-villa'],
                     ['name' => 'Clifftop Villa', 'slug' => 'clifftop-villa'],
                     ['name' => 'Harmony Spa Suite', 'slug' => 'harmony-spa-suite'],
+                ],
+                'activities' => [
+                    ['name' => 'Couples Spa Package', 'slug' => 'couples-spa-package'],
+                    ['name' => 'Private Beach Dining', 'slug' => 'private-beach-dining'],
+                    ['name' => 'Romantic Photoshoot', 'slug' => 'romantic-photoshoot'],
+                    ['name' => 'Sunset Cocktail Ceremony', 'slug' => 'sunset-cocktail-ceremony'],
+                    ['name' => 'Beach Bonfire Night', 'slug' => 'beach-bonfire-night'],
                 ],
             ],
             [
@@ -156,6 +184,14 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Garden Spa Pavilion', 'slug' => 'garden-spa-pavilion'],
                     ['name' => 'Wooden Bungalow', 'slug' => 'wooden-bungalow'],
                 ],
+                'activities' => [
+                    ['name' => 'Aromatherapy Session', 'slug' => 'aromatherapy-session'],
+                    ['name' => 'Meditation Session', 'slug' => 'meditation-session'],
+                    ['name' => 'Reflexology Foot Massage', 'slug' => 'reflexology-foot-massage'],
+                    ['name' => 'Detox Body Wrap', 'slug' => 'detox-body-wrap'],
+                    ['name' => 'Rice Terrace Visit', 'slug' => 'rice-terrace-visit'],
+                    ['name' => 'Tai Chi Session', 'slug' => 'tai-chi-session'],
+                ],
             ],
             [
                 'id' => 'canggusurfresort',
@@ -168,6 +204,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Family Suite', 'slug' => 'family-suite'],
                     ['name' => 'Surf Bungalow', 'slug' => 'surf-bungalow'],
                     ['name' => 'Surf Shop Meeting Room', 'slug' => 'surf-shop-meeting-room'],
+                ],
+                'activities' => [
+                    ['name' => 'Surfing Lessons', 'slug' => 'surfing-lessons'],
+                    ['name' => 'Stand-Up Paddleboarding', 'slug' => 'stand-up-paddleboarding'],
+                    ['name' => 'Beach Bootcamp', 'slug' => 'beach-bootcamp'],
+                    ['name' => 'BBQ Beach Dinner', 'slug' => 'bbq-beach-dinner'],
+                    ['name' => 'Family Beach Games', 'slug' => 'family-beach-games'],
                 ],
             ],
             [
@@ -184,6 +227,14 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Grand Ballroom', 'slug' => 'grand-ballroom'],
                     ['name' => 'Nirvana Treatment Suite', 'slug' => 'nirvana-treatment-suite'],
                 ],
+                'activities' => [
+                    ['name' => 'Facial Treatment', 'slug' => 'facial-treatment'],
+                    ['name' => 'Wine Tasting Session', 'slug' => 'wine-tasting-session'],
+                    ['name' => 'Chef Table Experience', 'slug' => 'chef-table-experience'],
+                    ['name' => 'Parasailing Adventure', 'slug' => 'parasailing-adventure'],
+                    ['name' => 'Jet Ski Rental', 'slug' => 'jet-ski-rental'],
+                    ['name' => 'Live Music Night', 'slug' => 'live-music-night'],
+                ],
             ],
             [
                 'id' => 'jimbaranbayhotel',
@@ -197,6 +248,12 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Palm Bungalow', 'slug' => 'palm-bungalow'],
                     ['name' => 'Terrace Cottage', 'slug' => 'terrace-cottage'],
                 ],
+                'activities' => [
+                    ['name' => 'Seafood BBQ Night', 'slug' => 'seafood-bbq-night'],
+                    ['name' => 'Village Cultural Tour', 'slug' => 'village-cultural-tour'],
+                    ['name' => 'Market Tour', 'slug' => 'market-tour'],
+                    ['name' => 'Coffee Plantation Visit', 'slug' => 'coffee-plantation-visit'],
+                ],
             ],
             [
                 'id' => 'uluwatuoceanvilla',
@@ -208,6 +265,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Clifftop Villa', 'slug' => 'clifftop-villa'],
                     ['name' => 'Ocean View Villa', 'slug' => 'ocean-view-villa'],
                     ['name' => 'Sunset Villa', 'slug' => 'sunset-villa'],
+                ],
+                'activities' => [
+                    ['name' => 'Sunset Dinner Cruise', 'slug' => 'sunset-dinner-cruise'],
+                    ['name' => 'Clifftop Yoga', 'slug' => 'clifftop-yoga'],
+                    ['name' => 'Jungle Trekking', 'slug' => 'jungle-trekking'],
+                    ['name' => 'Stargazing Evening', 'slug' => 'stargazing-evening'],
+                    ['name' => 'Private Villa BBQ', 'slug' => 'private-villa-bbq'],
                 ],
             ],
             [
@@ -223,6 +287,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Beach Front Villa', 'slug' => 'beach-front-villa'],
                     ['name' => 'Jasmine Function Room', 'slug' => 'jasmine-function-room'],
                 ],
+                'activities' => [
+                    ['name' => 'Kids Club Activities', 'slug' => 'kids-club-activities'],
+                    ['name' => 'Banana Boat Ride', 'slug' => 'banana-boat-ride'],
+                    ['name' => 'Turtle Conservation Visit', 'slug' => 'turtle-conservation-visit'],
+                    ['name' => 'Aqua Aerobics', 'slug' => 'aqua-aerobics'],
+                    ['name' => 'Themed Dinner Night', 'slug' => 'themed-dinner-night'],
+                ],
             ],
             [
                 'id' => 'balitropicalgetaway',
@@ -235,6 +306,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Traditional Bungalow', 'slug' => 'traditional-bungalow'],
                     ['name' => 'Garden Pool Villa', 'slug' => 'garden-pool-villa'],
                     ['name' => 'Peaceful Wellness Room', 'slug' => 'peaceful-wellness-room'],
+                ],
+                'activities' => [
+                    ['name' => 'Batik Workshop', 'slug' => 'batik-workshop'],
+                    ['name' => 'Wood Carving Class', 'slug' => 'wood-carving-class'],
+                    ['name' => 'Waterfall Tour', 'slug' => 'waterfall-tour'],
+                    ['name' => 'Bird Watching Tour', 'slug' => 'bird-watching-tour'],
+                    ['name' => 'Pilates Class', 'slug' => 'pilates-class'],
                 ],
             ],
 
@@ -250,6 +328,12 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Executive Meeting Room', 'slug' => 'executive-meeting-room'],
                     ['name' => 'Pavilion Conference Room', 'slug' => 'pavilion-conference-room'],
                 ],
+                'activities' => [
+                    ['name' => 'Island Hopping Tour', 'slug' => 'island-hopping-tour'],
+                    ['name' => 'Volcano Trekking', 'slug' => 'volcano-trekking'],
+                    ['name' => 'Cultural Heritage Walk', 'slug' => 'cultural-heritage-walk'],
+                    ['name' => 'Traditional Cuisine Tasting', 'slug' => 'traditional-cuisine-tasting'],
+                ],
             ],
             [
                 'id' => 'archipelagotours',
@@ -262,6 +346,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Superior Suite', 'slug' => 'superior-suite'],
                     ['name' => 'Bamboo Cottage', 'slug' => 'bamboo-cottage'],
                     ['name' => 'Island Meeting Hall', 'slug' => 'island-meeting-hall'],
+                ],
+                'activities' => [
+                    ['name' => 'Snorkeling Trip', 'slug' => 'snorkeling-trip'],
+                    ['name' => 'Mangrove Kayaking', 'slug' => 'mangrove-kayaking'],
+                    ['name' => 'Fishing Village Tour', 'slug' => 'fishing-village-tour'],
+                    ['name' => 'Coral Reef Conservation', 'slug' => 'coral-reef-conservation'],
+                    ['name' => 'Sunset Sailing', 'slug' => 'sunset-sailing'],
                 ],
             ],
             [
@@ -277,6 +368,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Boardroom Nusantara', 'slug' => 'boardroom-nusantara'],
                     ['name' => 'Spa Room Relaxation', 'slug' => 'spa-room-relaxation'],
                 ],
+                'activities' => [
+                    ['name' => 'Archipelago Discovery', 'slug' => 'archipelago-discovery'],
+                    ['name' => 'Traditional Massage', 'slug' => 'traditional-massage'],
+                    ['name' => 'Local Market Experience', 'slug' => 'local-market-experience'],
+                    ['name' => 'Batik Making Class', 'slug' => 'batik-making-class'],
+                    ['name' => 'Gamelan Music Performance', 'slug' => 'gamelan-music-performance'],
+                ],
             ],
             [
                 'id' => 'garudahospitality',
@@ -289,6 +387,12 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Deluxe Suite', 'slug' => 'deluxe-suite'],
                     ['name' => 'Grand Ballroom Garuda', 'slug' => 'grand-ballroom-garuda'],
                     ['name' => 'Spa Suite Premium', 'slug' => 'spa-suite-premium'],
+                ],
+                'activities' => [
+                    ['name' => 'Executive Wellness Program', 'slug' => 'executive-wellness-program'],
+                    ['name' => 'Premium Tea Ceremony', 'slug' => 'premium-tea-ceremony'],
+                    ['name' => 'Heritage City Tour', 'slug' => 'heritage-city-tour'],
+                    ['name' => 'Luxury Spa Treatment', 'slug' => 'luxury-spa-treatment'],
                 ],
             ],
             [
@@ -304,6 +408,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Conference Hall Indonesia', 'slug' => 'conference-hall-indonesia'],
                     ['name' => 'Wellness Center', 'slug' => 'wellness-center'],
                 ],
+                'activities' => [
+                    ['name' => 'Mountain Biking', 'slug' => 'mountain-biking'],
+                    ['name' => 'Tea Plantation Tour', 'slug' => 'tea-plantation-tour'],
+                    ['name' => 'Organic Farming Experience', 'slug' => 'organic-farming-experience'],
+                    ['name' => 'Nature Photography Walk', 'slug' => 'nature-photography-walk'],
+                    ['name' => 'Wellness Retreat', 'slug' => 'wellness-retreat'],
+                ],
             ],
             [
                 'id' => 'indahtours',
@@ -315,6 +426,11 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Standard Room', 'slug' => 'standard-room'],
                     ['name' => 'Bungalow Indah', 'slug' => 'bungalow-indah'],
                     ['name' => 'Meeting Room Indah', 'slug' => 'meeting-room-indah'],
+                ],
+                'activities' => [
+                    ['name' => 'River Tubing', 'slug' => 'river-tubing'],
+                    ['name' => 'Traditional Performance', 'slug' => 'traditional-performance'],
+                    ['name' => 'Handicraft Workshop', 'slug' => 'handicraft-workshop'],
                 ],
             ],
             [
@@ -329,6 +445,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Villa Nusantara', 'slug' => 'villa-nusantara'],
                     ['name' => 'Function Hall Garuda', 'slug' => 'function-hall-garuda'],
                     ['name' => 'Spa Therapy Room', 'slug' => 'spa-therapy-room'],
+                ],
+                'activities' => [
+                    ['name' => 'Indonesian Cooking Class', 'slug' => 'indonesian-cooking-class'],
+                    ['name' => 'Spice Garden Tour', 'slug' => 'spice-garden-tour'],
+                    ['name' => 'Traditional Music Workshop', 'slug' => 'traditional-music-workshop'],
+                    ['name' => 'Herbal Spa Treatment', 'slug' => 'herbal-spa-treatment'],
+                    ['name' => 'Cultural Dance Class', 'slug' => 'cultural-dance-class'],
                 ],
             ],
 
@@ -346,6 +469,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Executive Boardroom', 'slug' => 'executive-boardroom'],
                     ['name' => 'Luxury Spa Suite', 'slug' => 'luxury-spa-suite'],
                 ],
+                'activities' => [
+                    ['name' => 'Private Yacht Charter', 'slug' => 'private-yacht-charter'],
+                    ['name' => 'Helicopter Island Tour', 'slug' => 'helicopter-island-tour'],
+                    ['name' => 'Premium Wine Pairing', 'slug' => 'premium-wine-pairing'],
+                    ['name' => 'Personal Butler Service', 'slug' => 'personal-butler-service'],
+                    ['name' => 'Luxury Sunset Cruise', 'slug' => 'luxury-sunset-cruise'],
+                ],
             ],
             [
                 'id' => 'tropicalgetawaysintl',
@@ -358,6 +488,12 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Beachfront Villa', 'slug' => 'beachfront-villa'],
                     ['name' => 'Premium Room', 'slug' => 'premium-room'],
                     ['name' => 'International Meeting Hall', 'slug' => 'international-meeting-hall'],
+                ],
+                'activities' => [
+                    ['name' => 'Champagne Beach Breakfast', 'slug' => 'champagne-beach-breakfast'],
+                    ['name' => 'Private Scuba Diving', 'slug' => 'private-scuba-diving'],
+                    ['name' => 'Gourmet Dining Experience', 'slug' => 'gourmet-dining-experience'],
+                    ['name' => 'Tropical Cocktail Class', 'slug' => 'tropical-cocktail-class'],
                 ],
             ],
             [
@@ -374,6 +510,14 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Royal Spa Center', 'slug' => 'royal-spa-center'],
                     ['name' => 'Premium Conference Room', 'slug' => 'premium-conference-room'],
                 ],
+                'activities' => [
+                    ['name' => 'Five-Star Fine Dining', 'slug' => 'five-star-fine-dining'],
+                    ['name' => 'Executive Golf Package', 'slug' => 'executive-golf-package'],
+                    ['name' => 'Royal Spa Experience', 'slug' => 'royal-spa-experience'],
+                    ['name' => 'Luxury Shopping Tour', 'slug' => 'luxury-shopping-tour'],
+                    ['name' => 'Premium Entertainment Night', 'slug' => 'premium-entertainment-night'],
+                    ['name' => 'Private Island Experience', 'slug' => 'private-island-experience'],
+                ],
             ],
             [
                 'id' => 'luxuryescapesworldwide',
@@ -387,6 +531,13 @@ class DummyDataSeeder extends Seeder
                     ['name' => 'Luxury Suite', 'slug' => 'luxury-suite'],
                     ['name' => 'Diamond Ballroom', 'slug' => 'diamond-ballroom'],
                     ['name' => 'Elite Spa Pavilion', 'slug' => 'elite-spa-pavilion'],
+                ],
+                'activities' => [
+                    ['name' => 'VIP Airport Transfer', 'slug' => 'vip-airport-transfer'],
+                    ['name' => 'Michelin Star Dining', 'slug' => 'michelin-star-dining'],
+                    ['name' => 'Exclusive Beach Club', 'slug' => 'exclusive-beach-club'],
+                    ['name' => 'Private Jet Tour', 'slug' => 'private-jet-tour'],
+                    ['name' => 'Celebrity Chef Experience', 'slug' => 'celebrity-chef-experience'],
                 ],
             ],
         ];
@@ -408,7 +559,7 @@ class DummyDataSeeder extends Seeder
                 'domain' => $tenantData['domain'],
             ]);
 
-            // Seed units in tenant context
+            // Seed units and activities in tenant context
             tenancy()->initialize($tenant);
 
             foreach ($tenantData['units'] as $unitData) {
@@ -418,9 +569,17 @@ class DummyDataSeeder extends Seeder
                 ]);
             }
 
+            // Seed activities from hardcoded tenant data
+            foreach ($tenantData['activities'] as $activityData) {
+                Activity::create([
+                    'name' => $activityData['name'],
+                    'slug' => $activityData['slug'],
+                ]);
+            }
+
             tenancy()->end();
 
-            echo "  ✓ Created tenant: {$tenant->name} with " . count($tenantData['units']) . " units\n";
+            echo "  ✓ Created tenant: {$tenant->name} with " . count($tenantData['units']) . " units and " . count($tenantData['activities']) . " activities\n";
         }
     }
 }

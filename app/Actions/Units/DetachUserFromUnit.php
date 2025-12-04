@@ -26,6 +26,9 @@ class DetachUserFromUnit
             // Detach user from unit using global_id
             // The users() relation uses global_id as the relatedPivotKey
             $unit->users()->detach($userGlobalId);
+
+            // Touch unit to update updated_at timestamp
+            $unit->touch();
         });
     }
 }

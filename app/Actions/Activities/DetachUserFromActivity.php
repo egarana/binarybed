@@ -26,6 +26,9 @@ class DetachUserFromActivity
             // Detach user from activity using global_id
             // The users() relation uses global_id as the relatedPivotKey
             $activity->users()->detach($userGlobalId);
+
+            // Touch activity to update updated_at timestamp
+            $activity->touch();
         });
     }
 }

@@ -42,13 +42,18 @@ trait HasMultiTenantSearch
                 // Determine if we should fetch all records or use query modifier
                 $shouldFetchAll = $callback ? $callback() : false;
 
-                if ($shouldFetchAll) {
-                    // Fetch all records for collection-level filtering
-                    $items = $modelClass::all();
+                // Always use query modifier if provided to preserve eager loading and withCount
+                // The difference is:
+                // - When shouldFetchAll=true: queryModifier is called without filters (for collection-level search)
+                // - When shouldFetchAll=false: queryModifier is called with filters (for DB-level search)
+                $query = $modelClass::query();
+
+                if ($queryModifier) {
+                    // Use queryModifier to apply withCount, eager loading, etc.
+                    $items = $queryModifier($query)->get();
                 } else {
-                    // Use query modifier for DB-level filtering
-                    $query = $modelClass::query();
-                    $items = $queryModifier ? $queryModifier($query)->get() : $query->get();
+                    // Fallback to simple query if no modifier provided
+                    $items = $query->get();
                 }
 
                 // Convert models to arrays and add tenant information
