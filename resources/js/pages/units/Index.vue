@@ -12,6 +12,7 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'slug', label: 'Slug', sortable: true },
         { key: 'tenant_name', label: 'Tenant', sortable: true },
+        { key: 'users_count', label: 'Users', sortable: true, headClassName: 'w-[50px]', className: 'text-center pe-6' },
         { key: 'created_at', label: 'Created At', sortable: true },
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],

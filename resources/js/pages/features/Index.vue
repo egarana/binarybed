@@ -57,7 +57,7 @@ const config = {
             </div>
         </template>
         <template #cell-category="{ item }">
-            <Badge variant="outline" class="capitalize">
+            <Badge variant="outline" class="capitalize rounded-full">
                 {{ item.category }}
             </Badge>
         </template>
