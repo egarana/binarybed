@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Activity;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserTenant;
@@ -197,6 +198,143 @@ class UserSyncService
         $units = Unit::whereIn('id', $unitIds)->get();
         foreach ($units as $unit) {
             $unit->users()->attach($tenantUser->global_id, $pivotData);
+        }
+    }
+
+    /**
+     * Attach activity to user dengan auto-sync
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param Activity $activity
+     * @param array $pivotData - Additional pivot data
+     * @return void
+     */
+    public static function attachActivityToUser(string $centralUserId, Activity $activity, array $pivotData = []): void
+    {
+        // Sync user dulu dari central ke tenant
+        $tenantUser = self::syncToTenant($centralUserId);
+
+        // Default pivot data
+        $defaultPivotData = [
+            'assigned_at' => now(),
+        ];
+
+        // Merge dengan pivot data yang diberikan
+        $pivotData = array_merge($defaultPivotData, $pivotData);
+
+        // Attach activity ke user (syncWithoutDetaching agar tidak hapus yang sudah ada)
+        $activity->users()->syncWithoutDetaching([
+            $tenantUser->global_id => $pivotData
+        ]);
+    }
+
+    /**
+     * Attach multiple activities to user dengan auto-sync
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param array $activityIds - Array of activity IDs
+     * @param array $pivotData - Additional pivot data (akan digunakan untuk semua activities)
+     * @return void
+     */
+    public static function attachActivitiesToUser(string $centralUserId, array $activityIds, array $pivotData = []): void
+    {
+        // Sync user dulu
+        $tenantUser = self::syncToTenant($centralUserId);
+
+        // Default pivot data
+        $defaultPivotData = [
+            'assigned_at' => now(),
+        ];
+
+        $pivotData = array_merge($defaultPivotData, $pivotData);
+
+        // Get all activities
+        $activities = Activity::whereIn('id', $activityIds)->get();
+
+        // Attach semua activities ke user
+        foreach ($activities as $activity) {
+            $activity->users()->syncWithoutDetaching([
+                $tenantUser->global_id => $pivotData
+            ]);
+        }
+    }
+
+    /**
+     * Detach activity from user
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param Activity $activity
+     * @return void
+     */
+    public static function detachActivityFromUser(string $centralUserId, Activity $activity): void
+    {
+        // Cari user di tenant
+        $tenantUser = UserTenant::where('global_id', $centralUserId)->first();
+
+        if ($tenantUser) {
+            $activity->users()->detach($tenantUser->global_id);
+        }
+    }
+
+    /**
+     * Update user's role for a specific activity
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param Activity $activity
+     * @param string $role - Role to set (partner/referrer)
+     * @return void
+     */
+    public static function updateActivityUserRole(string $centralUserId, Activity $activity, string $role): void
+    {
+        // Cari user di tenant
+        $tenantUser = UserTenant::where('global_id', $centralUserId)->firstOrFail();
+
+        // Update pivot data (role kolom di resource_users table)
+        $activity->users()->updateExistingPivot($tenantUser->global_id, [
+            'role' => $role,
+        ]);
+    }
+
+
+    /**
+     * Sync assignment: hapus semua assignment lama dan buat yang baru
+     *
+     * @param string $centralUserId - global_id dari central database (UUID string)
+     * @param array $activityIds
+     * @param array $pivotData
+     * @return void
+     */
+    public static function syncActivitiesForUser(string $centralUserId, array $activityIds, array $pivotData = []): void
+    {
+        // Sync user dulu
+        $tenantUser = self::syncToTenant($centralUserId);
+
+        // Default pivot data
+        $defaultPivotData = [
+            'assigned_at' => now(),
+        ];
+
+        $pivotData = array_merge($defaultPivotData, $pivotData);
+
+        // Prepare sync data
+        $syncData = [];
+        foreach ($activityIds as $activityId) {
+            $syncData[$activityId] = $pivotData;
+        }
+
+        // Sync akan otomatis:
+        // 1. Detach activities yang tidak ada di array
+        // 2. Attach activities yang baru
+        // 3. Update pivot data untuk yang sudah ada
+        DB::table('resource_users')
+            ->where('global_id', $tenantUser->global_id)
+            ->where('resourceable_type', Activity::class)
+            ->delete();
+
+        // Kemudian attach semua yang baru
+        $activities = Activity::whereIn('id', $activityIds)->get();
+        foreach ($activities as $activity) {
+            $activity->users()->attach($tenantUser->global_id, $pivotData);
         }
     }
 }

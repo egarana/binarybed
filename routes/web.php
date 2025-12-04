@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\TenantController;
@@ -91,6 +92,29 @@ foreach (config('tenancy.central_domains') as $domain) {
             Route::prefix('units')
                 ->name('units.')
                 ->controller(UnitController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{tenant}/{slug}/edit', 'edit')->name('edit');
+                    Route::put('{tenant}/{slug}', 'update')->name('update');
+                    Route::delete('{tenant}/{slug}', 'destroy')->name('destroy');
+
+                    // User attachment routes
+                    Route::get('{tenant}/{slug}/users', 'users')->name('users');
+                    Route::post('{tenant}/{slug}/users', 'attachUser')->name('users.attach');
+                    Route::delete('{tenant}/{slug}/users/{user}', 'detachUser')->name('users.detach');
+                    Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
+                });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Activities (Cross-Tenant)
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('activities')
+                ->name('activities.')
+                ->controller(ActivityController::class)
                 ->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::get('create', 'create')->name('create');
