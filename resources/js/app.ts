@@ -9,7 +9,18 @@ import { initializeTheme } from './composables/useAppearance';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => {
+        // Check if this is a tenant page (pages under tenants/ directory)
+        const isTenantPage = window.location.hostname !== 'binarybed.test';
+
+        if (isTenantPage) {
+            // Tenant pages: return title as-is without appName suffix
+            return title || appName;
+        }
+
+        // Central/admin pages: include appName suffix
+        return title ? `${title} - ${appName}` : appName;
+    },
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.vue`,
