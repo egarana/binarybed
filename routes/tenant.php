@@ -65,6 +65,17 @@ Route::middleware([
      * - URL: kebab-case (dive-courses, rooms-and-suites)
      * - Vue Component: PascalCase (DiveCourses.vue, RoomsAndSuites.vue)
      */
+
+    // Nested route handler (must be defined BEFORE single-level route)
+    // Handles: /dining/bali-tower-bistro → dining/BaliTowerBistro.vue
+    Route::get('/{parent}/{child}', [TenantPageController::class, 'showNested'])
+        ->name('tenant.page.nested')
+        ->where([
+            'parent' => '[a-z0-9]+(?:-[a-z0-9]+)*',
+            'child' => '[a-z0-9]+(?:-[a-z0-9]+)*'
+        ]);
+
+    // Single-level route handler
     Route::get('/{slug}', [TenantPageController::class, 'show'])
         ->name('tenant.page')
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*'); // kebab-case only

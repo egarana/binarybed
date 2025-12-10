@@ -60,6 +60,13 @@ import tenantRoutes from '@/routes/tenant';
                 >
                     Terms & Conditions
                 </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('weddings')" 
+                    class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Weddings
+                </Link>
             </nav>
         </div>
     </TenantLayout>

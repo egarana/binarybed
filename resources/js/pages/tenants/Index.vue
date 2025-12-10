@@ -22,9 +22,21 @@ const config = {
     addButtonRoute: tenants.create.url(),
     editRoute: (item: any) => tenants.edit.url(item.id),
     deleteRoute: (item: any) => ({ url: tenants.destroy.url(item.id) }),
+    useDomainHttps: false,
 };
 </script>
 
 <template>
-    <BaseIndexPage title="Tenants" :config="config" />
+    <BaseIndexPage title="Tenants" :config="config">
+        <template #cell-domain="{ value }">
+            <a 
+                :href="`${config.useDomainHttps ? 'https' : 'http'}://${value}`" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="text-primary hover:underline"
+            >
+                {{ value }}
+            </a>
+        </template>
+    </BaseIndexPage>
 </template>

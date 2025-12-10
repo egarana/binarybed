@@ -2,6 +2,7 @@
 import TenantLayout from '@/layouts/TenantLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import tenantRoutes from '@/routes/tenant';
+import { nested } from '@/routes/tenant/page';
 </script>
 
 <template>
@@ -59,6 +60,34 @@ import tenantRoutes from '@/routes/tenant';
                     class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
                 >
                     Terms & Conditions
+                </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('dining')" 
+                    class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Dining
+                </Link>
+
+                <Link 
+                    :href="nested({ parent: 'dining', child: 'bali-tower-bistro' })" 
+                    class="lg:col-start-1 px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Bali Tower Bistro
+                </Link>
+
+                <Link 
+                    :href="nested({ parent: 'dining', child: 'pantai-restaurant' })" 
+                    class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Pantai Restaurant
+                </Link>
+
+                <Link 
+                    :href="nested({ parent: 'dining', child: 'kijang-restaurant' })" 
+                    class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Kijang Restaurant
                 </Link>
             </nav>
         </div>

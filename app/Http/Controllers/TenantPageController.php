@@ -85,6 +85,34 @@ class TenantPageController extends Controller
     }
 
     /**
+     * Handle nested/two-level dynamic routes
+     * 
+     * Uses subfolder structure:
+     * - /dining/bali-tower-bistro → dining/BaliTowerBistro.vue
+     * - /courses/advanced-open-water → courses/AdvancedOpenWater.vue
+     * 
+     * @param string $parent - First level slug (e.g., 'dining', 'courses')
+     * @param string $child - Second level slug (e.g., 'bali-tower-bistro')
+     */
+    public function showNested(string $parent, string $child): Response
+    {
+        // Convert child slug to PascalCase for component name
+        // bali-tower-bistro → BaliTowerBistro
+        $childPascal = str($child)
+            ->kebab()
+            ->replace('-', ' ')
+            ->title()
+            ->replace(' ', '')
+            ->toString();
+
+        // Build page path: parent/ChildComponent
+        // e.g., "dining/BaliTowerBistro"
+        $pageName = $parent . '/' . $childPascal;
+
+        return $this->renderPage($pageName);
+    }
+
+    /**
      * Helper method to render tenant page
      * 
      * @param string $pageName - Vue component name (e.g., 'About', 'DiveCourses')

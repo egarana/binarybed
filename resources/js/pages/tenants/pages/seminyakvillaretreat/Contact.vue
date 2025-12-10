@@ -12,54 +12,14 @@ import tenantRoutes from '@/routes/tenant';
             <p class="text-gray-600 dark:text-gray-400 mb-8">{{ tenant.domain }}</p>
             
             <nav class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
-                <Link 
-                    :href="tenantRoutes.home()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    Home
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.about()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    About Us
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.contact()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    Contact Us
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.faq()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    FAQ
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.privacyPolicy()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    Privacy Policy
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.cancellationPolicy()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    Cancellation Policy
-                </Link>
-                
-                <Link 
-                    :href="tenantRoutes.termsAndConditions()" 
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors"
-                >
-                    Terms & Conditions
-                </Link>
+                <Link :href="tenantRoutes.home()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Home</Link>
+                <Link :href="tenantRoutes.about()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">About Us</Link>
+               <Link :href="tenantRoutes.contact()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Contact Us</Link>
+                <Link :href="tenantRoutes.faq()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">FAQ</Link>
+                <Link :href="tenantRoutes.privacyPolicy()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Privacy Policy</Link>
+                <Link :href="tenantRoutes.cancellationPolicy()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Cancellation Policy</Link>
+                <Link :href="tenantRoutes.termsAndConditions()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Terms & Conditions</Link>
+                <Link :href="tenantRoutes.page('area-guide')" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-center transition-colors">Area Guide</Link>
             </nav>
         </div>
     </TenantLayout>
