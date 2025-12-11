@@ -19,6 +19,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'data',
     ];
 
+    protected $casts = [
+        'data' => 'array',
+    ];
+
     /**
      * Pastikan 'domain' muncul di hasil JSON.
      */
@@ -46,11 +50,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(
-            User::class, 
-            'tenant_users', 
-            'tenant_id', 
-            'global_user_id', 
-            'id', 
+            User::class,
+            'tenant_users',
+            'tenant_id',
+            'global_user_id',
+            'id',
             'global_id'
         )->using(TenantPivot::class);
     }

@@ -67,6 +67,13 @@ import tenantRoutes from '@/routes/tenant';
                 >
                     Surf Spots
                 </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('lessons')" 
+                    class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Lessons
+                </Link>
             </nav>
         </div>
     </TenantLayout>

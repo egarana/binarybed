@@ -20,6 +20,8 @@ import tenantRoutes from '@/routes/tenant';
                 <Link :href="tenantRoutes.cancellationPolicy()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Cancellation Policy</Link>
                 <Link :href="tenantRoutes.termsAndConditions()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-center transition-colors">Terms & Conditions</Link>
                 <Link :href="tenantRoutes.page('area-guide')" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-center transition-colors">Area Guide</Link>
+                <Link :href="tenantRoutes.page('villas')" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors">Villas</Link>
+                <Link :href="tenantRoutes.page('experiences')" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors">Experiences</Link>
             </nav>
         </div>
     </TenantLayout>

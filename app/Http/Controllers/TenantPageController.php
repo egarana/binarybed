@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
+use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -71,6 +74,14 @@ class TenantPageController extends Controller
      */
     public function show(string $slug): Response
     {
+        // Check if this is a resource route first
+        $resourceRoutes = $this->getResourceRoutes();
+
+        if (isset($resourceRoutes[$slug])) {
+            // This is a resource route - load data from database
+            return $this->renderResourcePage($slug, $resourceRoutes[$slug]);
+        }
+
         // Convert slug to PascalCase for Vue component
         // dive-courses → DiveCourses
         // rooms-and-suites → RoomsAndSuites
@@ -85,17 +96,83 @@ class TenantPageController extends Controller
     }
 
     /**
+     * Get resource routes configuration from tenant data
+     * 
+     * @return array<string, string> Map of route slug to resource type (units|activities)
+     */
+    protected function getResourceRoutes(): array
+    {
+        // Use Stancl Tenancy's dynamic attribute access
+        return tenant()->resource_routes ?? [];
+    }
+
+    /**
+     * Render a resource page with data from database
+     * 
+     * @param string $slug - Route slug (e.g., 'accommodations', 'dive-courses')
+     * @param string $resourceType - Resource type ('units' or 'activities')
+     */
+    protected function renderResourcePage(string $slug, string $resourceType): Response
+    {
+        $tenantSlug = $this->getTenantId();
+
+        // Load data from appropriate model
+        $resources = match ($resourceType) {
+            'units' => Unit::select(['id', 'name', 'slug', 'created_at'])->orderBy('name')->get(),
+            'activities' => Activity::select(['id', 'name', 'slug', 'created_at'])->orderBy('name')->get(),
+            default => collect([]),
+        };
+
+        // Convert slug to PascalCase for Vue component
+        $pageName = str($slug)
+            ->kebab()
+            ->replace('-', ' ')
+            ->title()
+            ->replace(' ', '')
+            ->toString();
+
+        // Check if page exists
+        if (!$this->tenantHasPage($pageName)) {
+            abort(404, "Resource page '{$pageName}' not found for tenant '{$tenantSlug}'");
+        }
+
+        return Inertia::render("tenants/pages/{$tenantSlug}/{$pageName}", [
+            'tenant' => [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'domain' => request()->getHost(),
+            ],
+            'resources' => $resources,
+            'resourceType' => $resourceType,
+            'resourceSlug' => $slug,
+        ]);
+    }
+
+    /**
      * Handle nested/two-level dynamic routes
      * 
      * Uses subfolder structure:
      * - /dining/bali-tower-bistro → dining/BaliTowerBistro.vue
      * - /courses/advanced-open-water → courses/AdvancedOpenWater.vue
      * 
-     * @param string $parent - First level slug (e.g., 'dining', 'courses')
-     * @param string $child - Second level slug (e.g., 'bali-tower-bistro')
+     * For resource routes (tours, rooms, etc):
+     * - /tours/atv-riding-adventure → loads Activity from DB
+     * - /rooms/deluxe-suite → loads Unit from DB
+     * 
+     * @param string $parent - First level slug (e.g., 'dining', 'tours')
+     * @param string $child - Second level slug (e.g., 'bali-tower-bistro', 'atv-riding-adventure')
      */
     public function showNested(string $parent, string $child): Response
     {
+        // Check if parent is a resource route (e.g., 'tours' => 'activities')
+        $resourceRoutes = $this->getResourceRoutes();
+
+        if (isset($resourceRoutes[$parent])) {
+            // This is a resource detail page - load from database
+            return $this->renderResourceDetailPage($parent, $child, $resourceRoutes[$parent]);
+        }
+
+        // Fallback: static nested pages (e.g., dining/BaliTowerBistro.vue)
         // Convert child slug to PascalCase for component name
         // bali-tower-bistro → BaliTowerBistro
         $childPascal = str($child)
@@ -110,6 +187,66 @@ class TenantPageController extends Controller
         $pageName = $parent . '/' . $childPascal;
 
         return $this->renderPage($pageName);
+    }
+
+    /**
+     * Render a resource detail page with single resource data from database
+     * 
+     * @param string $parentSlug - Parent route slug (e.g., 'tours', 'rooms')
+     * @param string $resourceSlug - Resource slug (e.g., 'atv-riding-adventure')
+     * @param string $resourceType - Resource type ('units' or 'activities')
+     */
+    protected function renderResourceDetailPage(string $parentSlug, string $resourceSlug, string $resourceType): Response
+    {
+        $tenantSlug = $this->getTenantId();
+
+        // Load single resource by slug
+        $resource = match ($resourceType) {
+            'units' => Unit::where('slug', $resourceSlug)->first(),
+            'activities' => Activity::where('slug', $resourceSlug)->first(),
+            default => null,
+        };
+
+        if (!$resource) {
+            abort(404, "Resource '{$resourceSlug}' not found");
+        }
+
+        // Check for tenant-specific detail component first
+        // e.g., tenants/pages/baliadvtours/tours/AtvRidingAdventure.vue
+        $childPascal = str($resourceSlug)
+            ->kebab()
+            ->replace('-', ' ')
+            ->title()
+            ->replace(' ', '')
+            ->toString();
+
+        $specificPage = $parentSlug . '/' . $childPascal;
+
+        if ($this->tenantHasPage($specificPage)) {
+            // Render tenant-specific detail page
+            return Inertia::render("tenants/pages/{$tenantSlug}/{$specificPage}", [
+                'tenant' => [
+                    'id' => tenant('id'),
+                    'name' => tenant('name'),
+                    'domain' => request()->getHost(),
+                ],
+                'resource' => $resource,
+                'resourceType' => $resourceType,
+                'parentSlug' => $parentSlug,
+            ]);
+        }
+
+        // Fallback to shared ResourceDetail component
+        return Inertia::render("tenants/pages/_shared/ResourceDetail", [
+            'tenant' => [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'domain' => request()->getHost(),
+            ],
+            'resource' => $resource,
+            'resourceType' => $resourceType,
+            'parentSlug' => $parentSlug,
+        ]);
     }
 
     /**

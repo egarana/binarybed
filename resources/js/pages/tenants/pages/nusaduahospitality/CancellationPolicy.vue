@@ -67,6 +67,20 @@ import tenantRoutes from '@/routes/tenant';
                 >
                     Event Services
                 </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('services')" 
+                    class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Services
+                </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('venues')" 
+                    class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Venues
+                </Link>
             </nav>
         </div>
     </TenantLayout>

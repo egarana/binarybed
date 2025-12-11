@@ -67,6 +67,20 @@ import tenantRoutes from '@/routes/tenant';
                 >
                     Weddings
                 </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('accommodations')" 
+                    class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Accommodations
+                </Link>
+                
+                <Link 
+                    :href="tenantRoutes.page('experiences')" 
+                    class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center transition-colors"
+                >
+                    Experiences
+                </Link>
             </nav>
         </div>
     </TenantLayout>
