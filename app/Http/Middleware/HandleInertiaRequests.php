@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Activity;
+use App\Models\Unit;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,6 +48,52 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+
+            // Tenant shared data (only when in tenant context)
+            // Uses lazy loading via closures - only executed when accessed
+            'tenant' => fn() => $this->getTenantData(),
+            'sharedResources' => fn() => $this->getSharedResources(),
+        ];
+    }
+
+    /**
+     * Get tenant data (lazy loaded per request)
+     */
+    protected function getTenantData(): ?array
+    {
+        if (!function_exists('tenant') || !tenant()) {
+            return null;
+        }
+
+        return [
+            'id' => tenant('id'),
+            'name' => tenant('name'),
+            'domain' => request()->getHost(),
+            'type' => tenant()->type ?? null,
+            'industry' => tenant()->industry ?? null,
+            'location' => tenant()->location ?? null,
+            'resource_routes' => tenant()->resource_routes ?? [],
+        ];
+    }
+
+    /**
+     * Get shared resources (units and activities) - lazy loaded per request
+     */
+    protected function getSharedResources(): ?array
+    {
+        if (!function_exists('tenant') || !tenant()) {
+            return null;
+        }
+
+        return [
+            'units' => Unit::select(['id', 'name', 'slug', 'created_at'])
+                ->orderBy('name')
+                ->get()
+                ->toArray(),
+            'activities' => Activity::select(['id', 'name', 'slug', 'created_at'])
+                ->orderBy('name')
+                ->get()
+                ->toArray(),
         ];
     }
 }
