@@ -12,7 +12,7 @@ import SubmitButton from '@/components/SubmitButton.vue';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Plus, Tag } from 'lucide-vue-next';
+import { Plus, Star } from 'lucide-vue-next';
 
 interface Props {
     activity: {
@@ -114,7 +114,7 @@ const { slug } = useAutoSlug(name, {
                 <Empty v-if="!showFeatures && !hasFeatures" class="border border-dashed">
                     <EmptyHeader>
                         <EmptyMedia variant="icon">
-                            <Tag />
+                            <Star />
                         </EmptyMedia>
                         <EmptyTitle>No features selected</EmptyTitle>
                         <EmptyDescription>
