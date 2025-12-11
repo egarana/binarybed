@@ -15,12 +15,12 @@ interface Props {
     helpText?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
     type: 'text',
 });
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: string): void;
+    (e: 'update:modelValue', value: string | number): void;
 }>();
 </script>
 

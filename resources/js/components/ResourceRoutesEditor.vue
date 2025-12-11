@@ -8,10 +8,7 @@ import {
     Item,
     ItemActions,
     ItemContent,
-    ItemDescription,
     ItemGroup,
-    ItemMedia,
-    ItemTitle,
 } from '@/components/ui/item';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import InputError from '@/components/InputError.vue';
@@ -108,9 +105,9 @@ const removeEntry = (index: number) => {
 };
 
 // Format key (kebab-case, lowercase) and update entry
-const updateEntryKey = (index: number, value: string) => {
+const updateEntryKey = (index: number, value: string | number) => {
     // Convert to kebab-case: lowercase, replace spaces with hyphens
-    entries.value[index].key = value
+    entries.value[index].key = String(value)
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
