@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import units from '@/routes/units';
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
@@ -9,6 +9,10 @@ import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSe
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Plus, Tag } from 'lucide-vue-next';
 
 interface Props {
     unit: {
@@ -36,6 +40,17 @@ const { onSuccess, onError } = useFormNotifications({
 
 // Form fields
 const selectedFeatures = ref<ComboboxOption[]>(props.unit.features || []);
+
+// Control features visibility
+const showFeatures = ref(selectedFeatures.value.length > 0);
+const hasFeatures = computed(() => selectedFeatures.value.length > 0);
+
+// Reset showFeatures if all features are removed
+watch(selectedFeatures, (newFeatures) => {
+    if (newFeatures.length === 0) {
+        showFeatures.value = false;
+    }
+}, { deep: true });
 
 const name = ref(props.unit.name || '');
 const { slug } = useAutoSlug(name, {
@@ -86,23 +101,61 @@ const { slug } = useAutoSlug(name, {
             />
 
             <!-- Features Selection -->
-            <SearchableSelect
-                mode="multiple"
-                v-model="selectedFeatures"
-                :options="features"
-                :fetch-url="() => units.edit.url([unit.tenant_id, unit.slug])"
-                response-key="features"
-                search-param="search"
-                label="Features"
-                placeholder="Select features"
-                search-placeholder="Search features..."
-                name="features"
-                :tabindex="3"
-                :error="errors.features"
-                :required="false"
-                :draggable="true"
-                :disabled="processing"
-            />
+            <div class="grid gap-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <Label>Features <span class="text-muted-foreground">(Optional)</span></Label>
+                        <p class="text-xs text-muted-foreground mt-1">
+                            Add features to highlight your unit's amenities and characteristics.
+                        </p>
+                    </div>
+                </div>
+
+                <Empty v-if="!showFeatures && !hasFeatures" class="border border-dashed">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <Tag />
+                        </EmptyMedia>
+                        <EmptyTitle>No features selected</EmptyTitle>
+                        <EmptyDescription>
+                            Add features to enhance your unit listing.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                        <Button type="button" variant="outline" @click="showFeatures = true">
+                            <Plus /> Add Features
+                        </Button>
+                    </EmptyContent>
+                </Empty>
+
+                <SearchableSelect
+                    v-if="showFeatures || hasFeatures"
+                    mode="multiple"
+                    v-model="selectedFeatures"
+                    :options="features"
+                    :fetch-url="() => units.edit.url([unit.tenant_id, unit.slug])"
+                    response-key="features"
+                    search-param="search"
+                    label="Features"
+                    placeholder="Select features"
+                    search-placeholder="Search features..."
+                    name="features"
+                    :tabindex="3"
+                    :error="errors.features"
+                    :required="false"
+                    :draggable="true"
+                    :disabled="processing"
+                    :show-label="false"
+                />
+
+                <!-- Flag to indicate features have been cleared (for empty array detection) -->
+                <input
+                    v-if="selectedFeatures.length === 0"
+                    type="hidden"
+                    name="_features_cleared"
+                    value="1"
+                />
+            </div>
 
             <SubmitButton
                 :processing="processing"

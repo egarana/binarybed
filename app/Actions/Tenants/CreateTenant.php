@@ -19,9 +19,19 @@ class CreateTenant
             $domain = $data['domain'];
             unset($data['domain']);
 
+            // Extract resource_routes before creating tenant
+            $resourceRoutes = $data['resource_routes'] ?? null;
+            unset($data['resource_routes']);
+
             $tenant = $this->tenantRepository->create($data);
 
             $this->domainRepository->create($domain, $tenant->id);
+
+            // Set resource_routes as dynamic attribute (stored in 'data' JSON column)
+            if ($resourceRoutes !== null) {
+                $tenant->resource_routes = $resourceRoutes;
+                $tenant->save();
+            }
 
             return $tenant;
         });

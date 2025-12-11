@@ -24,9 +24,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     ];
 
     /**
-     * Pastikan 'domain' muncul di hasil JSON.
+     * Pastikan 'domain' dan 'resource_routes' muncul di hasil JSON.
      */
-    protected $appends = ['domain'];
+    protected $appends = ['domain', 'resource_routes'];
 
     /**
      * Opsional: otomatis eager load 'domains'
@@ -68,5 +68,19 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         // Gunakan data relasi yang sudah di-load, hindari query tambahan
         return $this->relations['domains'][0]->domain
             ?? $this->domains()->first()?->domain;
+    }
+
+    /**
+     * Accessor untuk resource_routes dari data JSON.
+     * Stancl/Tenancy menyimpan dynamic attributes di kolom 'data'.
+     */
+    public function getResourceRoutesAttribute(): array
+    {
+        $rawData = $this->getRawOriginal('data');
+        if (is_string($rawData)) {
+            $decoded = json_decode($rawData, true);
+            return $decoded['resource_routes'] ?? [];
+        }
+        return [];
     }
 }

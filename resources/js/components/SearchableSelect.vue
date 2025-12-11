@@ -99,6 +99,8 @@ interface Props {
     showDefaultIcon?: boolean;
     /** Disable portal rendering - use when inside Dialog to prevent freeze */
     disablePortal?: boolean;
+    /** Show/hide label - default true */
+    showLabel?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -113,6 +115,7 @@ const props = withDefaults(defineProps<Props>(), {
     required: false,
     disablePortal: false,
     disabled: false,
+    showLabel: true,
 });
 
 const emit = defineEmits<{
@@ -365,7 +368,7 @@ const hasSelection = computed(() => {
 <template>
     <div class="grid gap-2">
         <!-- Label -->
-        <div v-if="label">
+        <div v-if="label && showLabel">
             <Label :for="inputId" class="inline-block">
                 {{ label }}
                 <span v-if="!required" class="text-muted-foreground">(Optional)</span>
@@ -556,6 +559,15 @@ const hasSelection = computed(() => {
                 </div>
             </div>
         </template>
+        
+        <!-- Hidden input for empty array (multiple mode) -->
+        <!-- This ensures that when all items are removed, server receives features=[] -->
+        <input
+            v-if="mode === 'multiple' && selectedMultiple.length === 0 && inputName"
+            type="hidden"
+            :name="`${inputName}[]`"
+            value=""
+        />
         
         <!-- Hidden Input (Single Mode) -->
         <input

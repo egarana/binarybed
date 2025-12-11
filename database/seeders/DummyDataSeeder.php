@@ -98,7 +98,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'karmabeachresort',
                 'name' => 'Karma Beach Resort',
                 'domain' => 'karmabeachresort.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'accommodations' => 'units',
                     'experiences' => 'activities',
@@ -123,7 +122,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'sanurparadisehotel',
                 'name' => 'Sanur Paradise Hotel',
                 'domain' => 'sanurparadisehotel.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'rooms' => 'units',
                     'experiences' => 'activities',
@@ -146,7 +144,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'seminyakvillaretreat',
                 'name' => 'Seminyak Villa Retreat',
                 'domain' => 'seminyakvillaretreat.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'villas' => 'units',
                     'experiences' => 'activities',
@@ -170,7 +167,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'ubudgardenspa',
                 'name' => 'Ubud Garden Spa',
                 'domain' => 'ubudgardenspa.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'spa-rooms' => 'units',
                     'treatments' => 'activities',
@@ -196,7 +192,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'nusaduahospitality',
                 'name' => 'Nusa Dua Hospitality',
                 'domain' => 'nusaduahospitality.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'venues' => 'units',
                     'services' => 'activities',
@@ -225,7 +220,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'balihaidiving',
                 'name' => 'Bali Hai Diving Center',
                 'domain' => 'balihaidiving.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'dive-courses' => 'activities',
                 ],
@@ -243,7 +237,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'canggusurfschool',
                 'name' => 'Canggu Surf School',
                 'domain' => 'canggusurfschool.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'lessons' => 'activities',
                 ],
@@ -260,7 +253,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'baliadvtours',
                 'name' => 'Bali Adventure Tours',
                 'domain' => 'baliadvtours.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'tours' => 'activities',
                 ],
@@ -278,7 +270,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'ubudculturalexp',
                 'name' => 'Ubud Cultural Experiences',
                 'domain' => 'ubudculturalexp.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'classes' => 'activities',
                 ],
@@ -296,7 +287,6 @@ class DummyDataSeeder extends Seeder
                 'id' => 'baliwellness',
                 'name' => 'Bali Wellness Hub',
                 'domain' => 'baliwellness.test',
-                'type' => 'bali',
                 'resource_routes' => [
                     'programs' => 'activities',
                 ],
@@ -321,9 +311,6 @@ class DummyDataSeeder extends Seeder
 
             // Set custom attributes using Stancl Tenancy's dynamic attribute style
             // These are stored in the 'data' JSON column automatically
-            $tenant->type = $tenantData['type'];
-            $tenant->industry = 'tourism';
-            $tenant->location = $tenantData['type'] === 'bali' ? 'Bali, Indonesia' : ($tenantData['type'] === 'indonesian' ? 'Indonesia' : 'International');
             $tenant->resource_routes = $tenantData['resource_routes'] ?? [];
             $tenant->save();
 

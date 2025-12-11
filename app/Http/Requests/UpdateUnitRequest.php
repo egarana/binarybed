@@ -16,6 +16,30 @@ class UpdateUnitRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // If _features_cleared flag is set, explicitly set features to empty array
+        if ($this->has('_features_cleared') && $this->input('_features_cleared') === '1') {
+            $this->merge(['features' => []]);
+            return;
+        }
+
+        // Filter out empty values from features array
+        if ($this->has('features')) {
+            $features = $this->input('features');
+            if (is_array($features)) {
+                // Filter out empty strings and null values
+                $features = array_values(array_filter($features, function ($value) {
+                    return $value !== '' && $value !== null;
+                }));
+            }
+            $this->merge(['features' => $features]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -29,7 +53,7 @@ class UpdateUnitRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'features'   => ['nullable', 'array'],
-            'features.*' => ['required', 'integer', 'exists:features,id'],
+            'features.*' => ['integer', 'exists:features,id'],
         ];
     }
 

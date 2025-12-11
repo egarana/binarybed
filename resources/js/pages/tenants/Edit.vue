@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import tenants from '@/routes/tenants';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
+import ResourceRoutesEditor from '@/components/ResourceRoutesEditor.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+
+type ResourceType = 'units' | 'activities';
 
 interface Props {
     tenant: {
         id: string;
         name: string;
         domain: string;
+        resource_routes?: Record<string, ResourceType>;
     };
 }
 
@@ -31,6 +35,10 @@ const { onSuccess, onError } = useFormNotifications({
 // Form fields
 const name = ref(props.tenant.name || '');
 const domain = ref(props.tenant.domain || '');
+const resourceRoutes = ref<Record<string, ResourceType>>(props.tenant.resource_routes ?? {});
+
+// Serialize resourceRoutes for form submission
+const resourceRoutesJson = computed(() => JSON.stringify(resourceRoutes.value));
 </script>
 
 <template>
@@ -70,6 +78,14 @@ const domain = ref(props.tenant.domain || '');
                 v-model="domain"
                 :error="errors.domain"
             />
+
+            <ResourceRoutesEditor
+                v-model="resourceRoutes"
+                :error="errors.resource_routes"
+            />
+
+            <!-- Hidden input to send resource_routes as JSON -->
+            <input type="hidden" name="resource_routes" :value="resourceRoutesJson" />
 
             <SubmitButton
                 :processing="processing"

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import tenants from '@/routes/tenants';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
+import ResourceRoutesEditor from '@/components/ResourceRoutesEditor.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+
+type ResourceType = 'units' | 'activities';
 
 const breadcrumbs = [
     { title: 'Tenants', href: tenants.index.url() },
@@ -21,6 +24,10 @@ const { onSuccess, onError } = useFormNotifications({
 const id = ref('');
 const name = ref('');
 const domain = ref('');
+const resourceRoutes = ref<Record<string, ResourceType>>({});
+
+// Serialize resourceRoutes for form submission
+const resourceRoutesJson = computed(() => JSON.stringify(resourceRoutes.value));
 </script>
 
 <template>
@@ -65,6 +72,14 @@ const domain = ref('');
                 v-model="domain"
                 :error="errors.domain"
             />
+
+            <ResourceRoutesEditor
+                v-model="resourceRoutes"
+                :error="errors.resource_routes"
+            />
+
+            <!-- Hidden input to send resource_routes as JSON -->
+            <input type="hidden" name="resource_routes" :value="resourceRoutesJson" />
 
             <SubmitButton
                 :processing="processing"

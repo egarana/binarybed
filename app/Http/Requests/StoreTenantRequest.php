@@ -17,6 +17,20 @@ class StoreTenantRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Decode resource_routes if it's a JSON string from hidden input
+        if ($this->has('resource_routes') && is_string($this->resource_routes)) {
+            $decoded = json_decode($this->resource_routes, true);
+            $this->merge([
+                'resource_routes' => is_array($decoded) ? $decoded : null,
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -25,20 +39,22 @@ class StoreTenantRequest extends FormRequest
     {
         return [
             'id'     => [
-                'required', 
-                'string', 
-                'max:30', 
-                'unique:tenants,id', 
-                'regex:/^[a-z0-9]+$/', 
+                'required',
+                'string',
+                'max:30',
+                'unique:tenants,id',
+                'regex:/^[a-z0-9]+$/',
                 new TenantDatabaseNotExists
             ],
             'name'   => ['required', 'string', 'max:255'],
             'domain' => [
-                'required', 
-                'string', 
+                'required',
+                'string',
                 'unique:domains,domain',
                 new ValidDomain,
             ],
+            'resource_routes' => ['nullable', 'array'],
+            'resource_routes.*' => ['string', 'in:units,activities'],
         ];
     }
 
@@ -67,6 +83,10 @@ class StoreTenantRequest extends FormRequest
             'domain.string'   => 'The domain must be written in plain text without symbols or spaces',
             'domain.unique'   => 'This domain is already assigned to another tenant',
             'domain.regex'    => 'The domain must be a valid domain format (e.g., example.com or subdomain.example.com)',
+
+            // Resource Routes
+            'resource_routes.array' => 'Resource routes must be a valid configuration',
+            'resource_routes.*.in'  => 'Each resource route must be either "units" or "activities"',
         ];
     }
 }

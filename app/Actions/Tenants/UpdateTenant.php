@@ -22,6 +22,14 @@ class UpdateTenant
                 unset($data['domain']);
             }
 
+            // Extract resource_routes before updating
+            $resourceRoutes = null;
+            $hasResourceRoutes = array_key_exists('resource_routes', $data);
+            if ($hasResourceRoutes) {
+                $resourceRoutes = $data['resource_routes'];
+                unset($data['resource_routes']);
+            }
+
             if (!empty($data)) {
                 $tenant = $this->tenantRepository->update($tenant, $data);
             }
@@ -37,6 +45,12 @@ class UpdateTenant
 
                 // Touch tenant to update updated_at when domain changes
                 $tenant->touch();
+            }
+
+            // Update resource_routes as dynamic attribute (stored in 'data' JSON column)
+            if ($hasResourceRoutes) {
+                $tenant->resource_routes = $resourceRoutes ?? [];
+                $tenant->save();
             }
 
             return $this->tenantRepository->findWithDomains($tenant->id);
