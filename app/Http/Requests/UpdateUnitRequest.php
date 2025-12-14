@@ -54,6 +54,10 @@ class UpdateUnitRequest extends FormRequest
             ],
             'features'   => ['nullable', 'array'],
             'features.*' => ['integer', 'exists:features,id'],
+            'existing_images'   => ['nullable', 'array'],
+            'existing_images.*' => ['integer'],
+            'new_images'        => ['nullable', 'array', 'max:10'],
+            'new_images.*'      => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
     }
 

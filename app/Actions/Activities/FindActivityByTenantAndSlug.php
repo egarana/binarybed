@@ -35,6 +35,14 @@ class FindActivityByTenantAndSlug
                         'icon' => $feature->icon,
                     ];
                 })->toArray(),
+                'images' => $activity->getMedia('images')->map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'url' => $media->getUrl(),
+                        'name' => $media->file_name,
+                        'size' => $media->size,
+                    ];
+                })->toArray(),
             ];
         });
     }

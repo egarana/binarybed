@@ -9,6 +9,7 @@ import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSe
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ interface Props {
         name: string;
         slug: string;
         features?: ComboboxOption[];
+        images?: ExistingImage[];
     };
     features?: ComboboxOption[];
 }
@@ -58,6 +60,19 @@ const { slug } = useAutoSlug(name, {
     lowercase: true,
     initialValue: props.unit.slug || ''
 });
+
+// Image management
+const existingImages = ref<ExistingImage[]>(props.unit.images || []);
+const newImages = ref<File[]>([]);
+
+// Transform function to prepare data for submission
+function transformFormData(data: Record<string, any>) {
+    return {
+        ...data,
+        existing_images: existingImages.value.map(img => img.id),
+        new_images: newImages.value,
+    };
+}
 </script>
 
 <template>
@@ -68,6 +83,7 @@ const { slug } = useAutoSlug(name, {
         method="put"
         :onSuccess="onSuccess"
         :onError="onError"
+        :transform="transformFormData"
     >
         <template #default="{ errors, processing }">
             <input type="hidden" name="tenant_id" :value="unit.tenant_id" />
@@ -98,6 +114,19 @@ const { slug } = useAutoSlug(name, {
                 placeholder="e.g. unit-name"
                 v-model="slug"
                 :error="errors.slug"
+            />
+
+            <ImageUploader
+                v-model="newImages"
+                :existing-images="existingImages"
+                @update:existing-images="existingImages = $event"
+                label="Images"
+                name="images"
+                :multiple="true"
+                :max-files="10"
+                :error="errors.images || errors.new_images || errors.existing_images"
+                :tabindex="3"
+                :disabled="processing"
             />
 
             <!-- Features Selection -->
@@ -140,7 +169,7 @@ const { slug } = useAutoSlug(name, {
                     placeholder="Select features"
                     search-placeholder="Search features..."
                     name="features"
-                    :tabindex="3"
+                    :tabindex="4"
                     :error="errors.features"
                     :required="false"
                     :draggable="true"
@@ -159,7 +188,7 @@ const { slug } = useAutoSlug(name, {
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="4"
+                :tabindex="5"
                 test-id="update-unit-button"
                 label="Save"
             />

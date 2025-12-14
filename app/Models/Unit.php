@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Unit extends Model
+class Unit extends Model implements HasMedia
 {
+    use InteractsWithMedia;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -73,6 +77,14 @@ class Unit extends Model
             ->withPivot(['assigned_at', 'order'])
             ->withTimestamps()
             ->orderBy('resource_features.order');
+    }
+
+    /**
+     * Register the media collections for this model.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images');  // Changed from 'image' to 'images', removed singleFile()
     }
 
     /**

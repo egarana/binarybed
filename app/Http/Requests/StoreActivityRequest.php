@@ -30,6 +30,8 @@ class StoreActivityRequest extends FormRequest
             ],
             'features'   => ['nullable', 'array'],
             'features.*' => ['required', 'integer', 'exists:features,id'],
+            'images'     => ['nullable', 'array', 'max:10'], // Max 10 images
+            'images.*'   => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'], // 10MB each
         ];
     }
 

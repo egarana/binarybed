@@ -8,6 +8,7 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
+import ImageUploader from '@/components/ImageUploader.vue';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -48,6 +49,9 @@ const { slug } = useAutoSlug(name, {
     separator: '-',
     lowercase: true
 });
+
+const images = ref<File[]>([]);
+
 </script>
 
 <template>
@@ -58,6 +62,7 @@ const { slug } = useAutoSlug(name, {
         method="post"
         :onSuccess="onSuccess"
         :onError="onError"
+        :transform="(data) => ({ ...data, images: images })"
     >
         <template #default="{ errors, processing }">
             <!-- Tenant Selection -->
@@ -100,6 +105,17 @@ const { slug } = useAutoSlug(name, {
                 :error="errors.slug"
             />
 
+            <ImageUploader
+                v-model="images"
+                label="Images"
+                name="images"
+                :multiple="true"
+                :max-files="10"
+                :error="errors.images"
+                :tabindex="4"
+                :disabled="processing"
+            />
+
             <!-- Features Selection -->
             <div class="grid gap-4">
                 <div class="flex items-center justify-between">
@@ -140,7 +156,7 @@ const { slug } = useAutoSlug(name, {
                     placeholder="Select features"
                     search-placeholder="Search features..."
                     name="features"
-                    :tabindex="4"
+                    :tabindex="5"
                     :error="errors.features"
                     :required="false"
                     :draggable="true"
@@ -159,7 +175,7 @@ const { slug } = useAutoSlug(name, {
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="5"
+                :tabindex="6"
                 test-id="create-unit-button"
                 label="Create"
             />

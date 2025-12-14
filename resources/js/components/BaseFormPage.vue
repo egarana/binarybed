@@ -12,6 +12,7 @@ interface Props {
     method: 'post' | 'put';
     onSuccess: (payload: any) => void;
     onError: (payload: any) => void;
+    transform?: (data: Record<string, any>) => Record<string, any>;
 }
 
 defineProps<Props>();
@@ -36,6 +37,7 @@ useShortcut({
                 ref="formRef"
                 :action="action"
                 :method="method"
+                :transform="transform"
                 @success="onSuccess"
                 @error="onError"
                 class="space-y-6 h-full flex flex-col"

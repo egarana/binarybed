@@ -57,6 +57,16 @@ class CreateActivity
                 $activity->features()->sync($features);
             }
 
+            // Handle multiple images upload if provided
+            if (isset($data['images']) && is_array($data['images'])) {
+                foreach ($data['images'] as $image) {
+                    if ($image instanceof \Illuminate\Http\UploadedFile) {
+                        $activity->addMedia($image)
+                            ->toMediaCollection('images');
+                    }
+                }
+            }
+
             return $activity;
         });
     }
