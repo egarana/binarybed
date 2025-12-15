@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Pencil, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-vue-next';
+import { ChevronsUpDown, Pencil, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, EllipsisVertical } from 'lucide-vue-next';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import EditAssignmentDialog from '@/components/EditAssignmentDialog.vue';
@@ -174,25 +180,6 @@ const handleDelete = () => {
                                     <slot name="item" :item="item"></slot>
                                 </TableCell>
                                 <TableCell class="text-right flex items-center">
-                                    <TooltipProvider>
-                                        <Tooltip v-if="editRoute">
-                                            <TooltipTrigger>
-                                                <Link
-                                                    :href="editRoute(item)"
-                                                    class="ms-auto"
-                                                >
-                                                    <Button variant="ghost" size="icon">
-                                                        <Pencil class="w-4 h-4 text-muted-foreground" />
-                                                    </Button>
-                                                </Link>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Edit {{ resourceName || 'item' }}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-
-
                                     <!-- Custom Actions -->
                                     <TooltipProvider v-if="customActions">
                                         <template v-for="(action, index) in customActions" :key="index">
@@ -259,6 +246,22 @@ const handleDelete = () => {
                                             @deleted="handleDelete"
                                         />
                                     </template>
+
+                                    <DropdownMenu v-if="editRoute">
+                                        <DropdownMenuTrigger as-child>
+                                            <Button variant="ghost" size="icon" class="ms-auto">
+                                                <EllipsisVertical class="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem as-child>
+                                                <Link :href="editRoute(item)" class="flex items-center gap-2">
+                                                    <Pencil class="w-4 h-4" />
+                                                    Edit
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </template>
 
@@ -287,7 +290,7 @@ const handleDelete = () => {
                                     </slot>
                                 </TableCell>
 
-                                <TableCell class="text-right flex items-center gap-1.5">
+                                <TableCell class="text-right flex items-center gap-0">
                                     <!-- Custom Actions -->
                                     <TooltipProvider v-if="customActions">
                                         <template v-for="(action, index) in customActions" :key="index">
@@ -322,24 +325,6 @@ const handleDelete = () => {
                                         </template>
                                     </TooltipProvider>
 
-                                    <TooltipProvider>
-                                        <Tooltip v-if="editRoute">
-                                            <TooltipTrigger>
-                                                <Link
-                                                    :href="editRoute(item)"
-                                                    class="ms-auto"
-                                                >
-                                                    <Button variant="ghost" size="icon">
-                                                        <Pencil class="w-4 h-4 text-muted-foreground" />
-                                                    </Button>
-                                                </Link>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Edit {{ resourceName || 'item' }}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-
                                     <!-- Edit Assignment Dialog -->
                                     <template v-if="editAssignmentConfig">
                                         <EditAssignmentDialog
@@ -372,6 +357,22 @@ const handleDelete = () => {
                                             @deleted="handleDelete"
                                         />
                                     </template>
+
+                                    <DropdownMenu v-if="editRoute">
+                                        <DropdownMenuTrigger as-child>
+                                            <Button variant="ghost" size="icon" class="ms-auto">
+                                                <EllipsisVertical class="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem as-child>
+                                                <Link :href="editRoute(item)" class="flex items-center gap-2">
+                                                    <Pencil class="w-4 h-4" />
+                                                    Edit
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </template>
                         </TableRow>
