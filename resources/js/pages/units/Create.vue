@@ -50,7 +50,8 @@ const { slug } = useAutoSlug(name, {
     lowercase: true
 });
 
-const images = ref<File[]>([]);
+// Track uploaded media IDs from ImageUploader
+const uploadedMediaIds = ref<number[]>([]);
 
 </script>
 
@@ -62,7 +63,7 @@ const images = ref<File[]>([]);
         method="post"
         :onSuccess="onSuccess"
         :onError="onError"
-        :transform="(data) => ({ ...data, images: images })"
+        :transform="(data) => ({ ...data, uploaded_media_ids: uploadedMediaIds })"
     >
         <template #default="{ errors, processing }">
             <!-- Tenant Selection -->
@@ -106,14 +107,14 @@ const images = ref<File[]>([]);
             />
 
             <ImageUploader
-                v-model="images"
                 label="Images"
                 name="images"
                 :multiple="true"
                 :max-files="10"
-                :error="errors.images"
+                :error="errors.images || errors.uploaded_media_ids"
                 :tabindex="4"
                 :disabled="processing"
+                @update:uploaded-media-ids="uploadedMediaIds = $event"
             />
 
             <!-- Features Selection -->

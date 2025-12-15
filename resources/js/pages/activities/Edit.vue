@@ -63,14 +63,14 @@ const { slug } = useAutoSlug(name, {
 
 // Image management
 const existingImages = ref<ExistingImage[]>(props.activity.images || []);
-const newImages = ref<File[]>([]);
+const uploadedMediaIds = ref<number[]>([]);
 
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
     return {
         ...data,
         existing_images: existingImages.value.map(img => img.id),
-        new_images: newImages.value,
+        uploaded_media_ids: uploadedMediaIds.value,
     };
 }
 </script>
@@ -117,14 +117,14 @@ function transformFormData(data: Record<string, any>) {
             />
 
             <ImageUploader
-                v-model="newImages"
                 :existing-images="existingImages"
                 @update:existing-images="existingImages = $event"
+                @update:uploaded-media-ids="uploadedMediaIds = $event"
                 label="Images"
                 name="images"
                 :multiple="true"
                 :max-files="10"
-                :error="errors.images || errors.new_images || errors.existing_images"
+                :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
                 :tabindex="3"
                 :disabled="processing"
             />

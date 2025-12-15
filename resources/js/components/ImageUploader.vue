@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemHeader } from '@/components/ui/item';
-import { X, ImageIcon, ImagePlus } from 'lucide-vue-next';
+import { X, ImageIcon, ImagePlus, Loader2, AlertCircle } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
 
 // Existing image from server (has id and url)
@@ -16,18 +16,30 @@ export interface ExistingImage {
     size: number;
 }
 
-// Unified preview item that can be either existing or new
-interface PreviewItem {
-    type: 'existing' | 'new';
-    id?: number;        // For existing images
-    file?: File;        // For new images
-    url: string;
+// Uploaded media item (after immediate upload)
+export interface UploadedMedia {
+    id: number;           // TemporaryUpload ID
+    media_id: number;     // Media ID
+    url: string;          // Preview URL
     name: string;
     size: number;
 }
 
+// Unified preview item that can be existing, uploading, or uploaded
+interface PreviewItem {
+    type: 'existing' | 'uploading' | 'uploaded';
+    id?: number;              // For existing images (media id) or uploaded (tempUpload id)
+    media_id?: number;        // For uploaded items
+    file?: File;              // For uploading items
+    url: string;
+    name: string;
+    size: number;
+    progress?: number;        // Upload progress (0-100)
+    error?: string;           // Upload error message
+    abortController?: AbortController; // To cancel upload
+}
+
 interface Props {
-    modelValue?: File | File[] | null;
     existingImages?: ExistingImage[];
     error?: string;
     label?: string;
@@ -40,7 +52,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    modelValue: null,
     existingImages: () => [],
     error: '',
     label: 'Image',
@@ -53,31 +64,35 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: File | File[] | null): void;
     (e: 'update:existingImages', value: ExistingImage[]): void;
+    (e: 'update:uploadedMediaIds', value: number[]): void;
 }>();
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const isDragging = ref(false);
+const isDraggingExternal = ref(false);
+const isReordering = ref(false);
 
-// Unified previews list containing both existing and new images
+// Unified previews list
 const previews = ref<PreviewItem[]>([]);
 
 // Track existing images separately
 const localExistingImages = ref<ExistingImage[]>([]);
 
-// Computed for new files only
-const newFiles = computed(() => {
-    if (props.multiple) {
-        return Array.isArray(props.modelValue) ? props.modelValue : [];
-    }
-    return props.modelValue ? [props.modelValue] : [];
-});
+// Track uploaded media IDs
+const uploadedMediaIds = computed(() => 
+    previews.value
+        .filter(p => p.type === 'uploaded' && p.id)
+        .map(p => p.id!)
+);
 
-// Total files count (existing + new)
-const totalFilesCount = computed(() => localExistingImages.value.length + newFiles.value.length);
+// Total files count
+const totalFilesCount = computed(() => previews.value.length);
 const canAddMore = computed(() => props.multiple && totalFilesCount.value < props.maxFiles);
 const isMaxReached = computed(() => props.multiple && totalFilesCount.value >= props.maxFiles);
+
+// Check if any uploads are in progress
+const isUploading = computed(() => previews.value.some(p => p.type === 'uploading'));
 
 // Initialize from props
 watch(() => props.existingImages, (newExisting) => {
@@ -85,15 +100,18 @@ watch(() => props.existingImages, (newExisting) => {
     rebuildPreviews();
 }, { immediate: true, deep: true });
 
-// Watch for new files changes
-watch(() => props.modelValue, () => {
-    rebuildPreviews();
-}, { immediate: true, deep: true });
+// Emit uploaded media IDs when they change
+watch(uploadedMediaIds, (ids) => {
+    emit('update:uploadedMediaIds', ids);
+}, { deep: true });
 
 /**
- * Rebuild unified previews from existing + new files
+ * Rebuild previews from existing images only
+ * Uploaded and uploading items are managed separately
  */
 function rebuildPreviews() {
+    if (isReordering.value) return;
+    
     const existingPreviews: PreviewItem[] = localExistingImages.value.map(img => ({
         type: 'existing' as const,
         id: img.id,
@@ -102,52 +120,34 @@ function rebuildPreviews() {
         size: img.size,
     }));
     
-    const currentNewFiles = Array.isArray(props.modelValue) 
-        ? props.modelValue 
-        : props.modelValue ? [props.modelValue] : [];
+    // Keep uploading and uploaded items
+    const nonExisting = previews.value.filter(p => p.type !== 'existing');
     
-    const newPreviews: PreviewItem[] = currentNewFiles.map(file => ({
-        type: 'new' as const,
-        file,
-        url: '', // Will be loaded
-        name: file.name,
-        size: file.size,
-    }));
-    
-    // Check if we need to reload URLs for new files
-    const existingNewUrls = new Map(
-        previews.value
-            .filter(p => p.type === 'new' && p.file && p.url)
-            .map(p => [p.file!, p.url])
-    );
-    
-    // Reuse existing URLs where possible
-    newPreviews.forEach(preview => {
-        if (preview.file) {
-            const existingUrl = existingNewUrls.get(preview.file);
-            if (existingUrl) {
-                preview.url = existingUrl;
-            }
-        }
-    });
-    
-    previews.value = [...existingPreviews, ...newPreviews];
-    
-    // Load URLs for new files that don't have them
-    newPreviews.forEach(preview => {
-        if (preview.file && !preview.url) {
-            loadFilePreview(preview);
-        }
-    });
+    previews.value = [...existingPreviews, ...nonExisting];
 }
 
-function loadFilePreview(preview: PreviewItem) {
-    if (!preview.file || !preview.file.type.startsWith('image/')) return;
+/**
+ * Upload a file immediately
+ */
+async function uploadFile(file: File): Promise<void> {
+    const abortController = new AbortController();
     
+    // Create preview item for uploading state
+    const previewItem: PreviewItem = {
+        type: 'uploading',
+        file,
+        url: '',
+        name: file.name,
+        size: file.size,
+        progress: 0,
+        abortController,
+    };
+    
+    // Load local preview immediately
     const reader = new FileReader();
     reader.onload = (e) => {
         const index = previews.value.findIndex(p => 
-            p.type === 'new' && p.file === preview.file
+            p.type === 'uploading' && p.file === file
         );
         if (index !== -1) {
             previews.value[index] = {
@@ -156,25 +156,114 @@ function loadFilePreview(preview: PreviewItem) {
             };
         }
     };
-    reader.readAsDataURL(preview.file);
+    reader.readAsDataURL(file);
+    
+    previews.value.push(previewItem);
+    
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('collection', 'images');
+        
+        // Use relative path to avoid protocol-relative URL issues
+        const uploadUrl = '/api/uploads/temp';
+        
+        const response = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+            signal: abortController.signal,
+            headers: {
+                'X-XSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin',
+        });
+        
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update preview to uploaded state
+            const index = previews.value.findIndex(p => 
+                p.type === 'uploading' && p.file === file
+            );
+            if (index !== -1) {
+                previews.value[index] = {
+                    type: 'uploaded',
+                    id: result.data.id,
+                    media_id: result.data.media_id,
+                    url: result.data.url,
+                    name: result.data.name,
+                    size: result.data.size,
+                };
+            }
+        } else {
+            throw new Error(result.message || 'Upload failed');
+        }
+    } catch (error: any) {
+        if (error.name === 'AbortError') {
+            // Upload was cancelled, remove the preview
+            const index = previews.value.findIndex(p => 
+                p.type === 'uploading' && p.file === file
+            );
+            if (index !== -1) {
+                previews.value.splice(index, 1);
+            }
+            return;
+        }
+        
+        // Update preview with error
+        const index = previews.value.findIndex(p => 
+            p.type === 'uploading' && p.file === file
+        );
+        if (index !== -1) {
+            previews.value[index] = {
+                ...previews.value[index],
+                error: error.message || 'Upload failed',
+            };
+        }
+    }
 }
 
+/**
+ * Get CSRF token from cookie
+ */
+function getCsrfToken(): string {
+    const name = 'XSRF-TOKEN=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length);
+        }
+    }
+    return '';
+}
+
+/**
+ * Handle file selection
+ */
 function handleFileSelect(event: Event) {
     const target = event.target as HTMLInputElement;
     const selectedFiles = Array.from(target.files || []);
     
     if (selectedFiles.length === 0) return;
-
+    
     if (props.multiple) {
-        const currentFiles = Array.isArray(props.modelValue) ? props.modelValue : [];
-        const availableSlots = props.maxFiles - localExistingImages.value.length;
-        const totalFiles = [...currentFiles, ...selectedFiles].slice(0, availableSlots);
-        emit('update:modelValue', totalFiles);
+        const availableSlots = props.maxFiles - totalFilesCount.value;
+        const filesToUpload = selectedFiles.slice(0, availableSlots);
+        filesToUpload.forEach(file => uploadFile(file));
     } else {
-        // For single mode, clear existing and use new
+        // For single mode, clear existing and upload new
         localExistingImages.value = [];
         emit('update:existingImages', []);
-        emit('update:modelValue', selectedFiles[0]);
+        // Remove any existing uploaded/uploading items
+        previews.value = [];
+        uploadFile(selectedFiles[0]);
     }
     
     if (fileInputRef.value) {
@@ -182,65 +271,96 @@ function handleFileSelect(event: Event) {
     }
 }
 
+/**
+ * Handle file drop
+ */
 function handleDrop(event: DragEvent) {
     isDragging.value = false;
+    isDraggingExternal.value = false;
     
     const droppedFiles = Array.from(event.dataTransfer?.files || [])
         .filter(file => file.type.startsWith('image/'));
     
     if (droppedFiles.length === 0) return;
-
+    
     if (props.multiple) {
-        const currentFiles = Array.isArray(props.modelValue) ? props.modelValue : [];
-        const availableSlots = props.maxFiles - localExistingImages.value.length;
-        const totalFiles = [...currentFiles, ...droppedFiles].slice(0, availableSlots);
-        emit('update:modelValue', totalFiles);
+        const availableSlots = props.maxFiles - totalFilesCount.value;
+        const filesToUpload = droppedFiles.slice(0, availableSlots);
+        filesToUpload.forEach(file => uploadFile(file));
     } else {
         localExistingImages.value = [];
         emit('update:existingImages', []);
-        emit('update:modelValue', droppedFiles[0]);
+        previews.value = [];
+        uploadFile(droppedFiles[0]);
     }
 }
 
 function handleDragOver(event: DragEvent) {
     event.preventDefault();
+    
+    const hasFiles = event.dataTransfer?.types?.includes('Files') ?? false;
+    
     if (props.multiple && !isMaxReached.value) {
         isDragging.value = true;
+        isDraggingExternal.value = hasFiles;
     } else if (!props.multiple && totalFilesCount.value === 0) {
         isDragging.value = true;
+        isDraggingExternal.value = hasFiles;
     }
 }
 
 function handleDragLeave(event: DragEvent) {
-    // Only set isDragging to false if we're actually leaving the drop zone
-    // Check if relatedTarget is null (left the window) or not a child of currentTarget
     const target = event.currentTarget as HTMLElement;
     const related = event.relatedTarget as HTMLElement;
     
     if (!related || !target.contains(related)) {
         isDragging.value = false;
+        isDraggingExternal.value = false;
     }
 }
 
-function removeFile(index: number) {
+/**
+ * Remove a file/image
+ */
+async function removeFile(index: number) {
     const preview = previews.value[index];
     
     if (preview.type === 'existing') {
-        // Remove existing image
         localExistingImages.value = localExistingImages.value.filter(img => img.id !== preview.id);
+        previews.value.splice(index, 1);
         emit('update:existingImages', localExistingImages.value);
-    } else {
-        // Remove new file
-        if (props.multiple) {
-            const currentFiles = Array.isArray(props.modelValue) ? [...props.modelValue] : [];
-            const fileIndex = currentFiles.findIndex(f => f === preview.file);
-            if (fileIndex !== -1) {
-                currentFiles.splice(fileIndex, 1);
-                emit('update:modelValue', currentFiles.length > 0 ? currentFiles : null);
-            }
-        } else {
-            emit('update:modelValue', null);
+    } else if (preview.type === 'uploading') {
+        // Cancel the upload
+        preview.abortController?.abort();
+        previews.value.splice(index, 1);
+    } else if (preview.type === 'uploaded') {
+        // Delete from server
+        try {
+            await fetch(`/api/uploads/temp/${preview.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+        } catch (error) {
+            console.error('Failed to delete upload:', error);
         }
+        previews.value.splice(index, 1);
+    }
+}
+
+/**
+ * Retry a failed upload
+ */
+function retryUpload(index: number) {
+    const preview = previews.value[index];
+    if (preview.type === 'uploading' && preview.error && preview.file) {
+        // Remove the failed preview
+        previews.value.splice(index, 1);
+        // Re-upload
+        uploadFile(preview.file);
     }
 }
 
@@ -248,26 +368,35 @@ function openFileDialog() {
     fileInputRef.value?.click();
 }
 
-function handleReorder(event: any) {
+function handleReorder() {
     if (!props.multiple) return;
-    if (!event.moved) return;
     
-    // Separate back into existing and new
+    isReordering.value = true;
+    
     const newExisting: ExistingImage[] = [];
-    const newNewFiles: File[] = [];
     
     previews.value.forEach(preview => {
         if (preview.type === 'existing' && preview.id !== undefined) {
             const original = localExistingImages.value.find(img => img.id === preview.id);
             if (original) newExisting.push(original);
-        } else if (preview.type === 'new' && preview.file) {
-            newNewFiles.push(preview.file);
         }
     });
     
     localExistingImages.value = newExisting;
     emit('update:existingImages', newExisting);
-    emit('update:modelValue', newNewFiles.length > 0 ? newNewFiles : null);
+    
+    setTimeout(() => {
+        isReordering.value = false;
+    }, 0);
+}
+
+/**
+ * Format file size
+ */
+function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 </script>
 
@@ -284,9 +413,12 @@ function handleReorder(event: any) {
                     Upload images to showcase your listing visually.
                 </p>
             </div>
-            <span v-if="multiple && totalFilesCount > 0" class="text-xs text-muted-foreground">
-                {{ totalFilesCount }} of {{ maxFiles }} images
-            </span>
+            <div class="flex items-center gap-2">
+                <Loader2 v-if="isUploading" class="w-4 h-4 animate-spin text-muted-foreground" />
+                <span v-if="multiple && totalFilesCount > 0" class="text-xs text-muted-foreground">
+                    {{ totalFilesCount }} of {{ maxFiles }} images
+                </span>
+            </div>
         </div>
 
         <!-- Hidden file input -->
@@ -294,7 +426,6 @@ function handleReorder(event: any) {
             :id="name"
             ref="fileInputRef"
             type="file"
-            :name="multiple ? `${name}[]` : name"
             accept="image/jpeg,image/jpg,image/png,image/webp"
             :multiple="multiple"
             class="sr-only"
@@ -339,83 +470,114 @@ function handleReorder(event: any) {
             @dragover.prevent="handleDragOver"
             @dragleave="handleDragLeave"
         >
-            <div class="grid grid-cols-6 gap-4">
-                <draggable
-                    v-model="previews"
-                    :item-key="(item: PreviewItem) => item.type === 'existing' ? `existing-${item.id}` : `new-${item.name}-${item.size}`"
-                    :disabled="!multiple || disabled"
-                    @change="handleReorder"
-                    class="contents"
-                >
-                    <template #item="{ element: preview, index }">
-                        <Item 
-                            variant="outline" 
-                            as-child
-                            role="listitem"
-                            class="bg-background hover:cursor-move aspect-[12/16]"
-                            :class="isDragging ? 'opacity-40' : ''"
-                        >
-                            <div>
-                                <ItemHeader>
-                                    <img
-                                        :src="preview.url"
-                                        :alt="preview.name"
-                                        width="128"
-                                        height="128"
-                                        class="aspect-square w-full rounded-sm object-cover"
-                                    >
-                                </ItemHeader>
-                                <ItemContent class="truncate">
-                                    <ItemTitle class="w-auto">
-                                        <div class="truncate">{{ preview.name }}</div>
-                                    </ItemTitle>
-                                    <div class="flex justify-between items-center">
-                                        <ItemDescription>
-                                            {{ (preview.size / 1024).toFixed(2) }} KB
-                                        </ItemDescription>
-                                        <Button 
-                                            variant="outline" 
-                                            size="icon" 
-                                            @click="removeFile(index)"
-                                            class="w-auto h-auto border-0 hover:bg-transparent opacity-50 hover:opacity-100"
-                                        >
-                                            <X class="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </div>
-                                </ItemContent>
-                            </div>
-                        </Item>
-                    </template>
-                </draggable>
-
-                <!-- Add More Button -->
-                <Item
-                    v-if="multiple && canAddMore && !disabled"
-                    variant="outline"
-                    as-child
-                    role="button"
-                    class="cursor-pointer aspect-[12/16] hover:border-primary/50 hover:bg-muted"
-                    @click="openFileDialog"
-                >
-                    <button
-                        type="button"
-                        class="border-dashed group"
+            <draggable
+                v-model="previews"
+                :item-key="(item: PreviewItem) => item.type === 'existing' ? `existing-${item.id}` : item.type === 'uploaded' ? `uploaded-${item.id}` : `uploading-${item.name}-${item.size}`"
+                :disabled="!multiple || disabled || isUploading"
+                ghost-class="opacity-30"
+                @change="handleReorder"
+                class="grid grid-cols-6 gap-4"
+            >
+                <template #item="{ element: preview, index }">
+                    <Item 
+                        variant="outline" 
+                        as-child
+                        role="listitem"
+                        class="bg-background aspect-[12/16] relative"
+                        :class="[
+                            isDraggingExternal ? 'opacity-40' : '',
+                            preview.type === 'uploading' && !preview.error ? '' : 'hover:cursor-move',
+                            preview.error ? 'border-destructive' : ''
+                        ]"
                     >
-                        <ItemHeader class="aspect-square flex items-center justify-center p-4">
-                            <div 
-                                class="flex flex-col items-center gap-2 text-center opacity-40 group-hover:opacity-90"
-                            >
-                                <div class="mb-2">
-                                    <ImagePlus class="w-7 h-7 stroke-[1px] text-muted-foreground" />
+                        <div>
+                            <ItemHeader class="relative">
+                                <img
+                                    :src="preview.url"
+                                    :alt="preview.name"
+                                    width="128"
+                                    height="128"
+                                    class="aspect-square w-full rounded-sm object-cover"
+                                    :class="preview.type === 'uploading' ? 'opacity-50' : ''"
+                                >
+                                <!-- Uploading overlay -->
+                                <div 
+                                    v-if="preview.type === 'uploading' && !preview.error" 
+                                    class="absolute inset-0 flex items-center justify-center bg-background/50"
+                                >
+                                    <Loader2 class="w-6 h-6 animate-spin text-primary" />
                                 </div>
-                                <p class="text-muted-foreground text-sm/snug italic font-thin">
-                                    Add images
-                                </p>
-                            </div>
-                        </ItemHeader>
-                    </button>
-                </Item>
-            </div>
+                                <!-- Error overlay -->
+                                <div 
+                                    v-if="preview.error"
+                                    class="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 p-2"
+                                >
+                                    <AlertCircle class="w-6 h-6 text-destructive mb-1" />
+                                    <p class="text-[10px] text-destructive text-center line-clamp-2">{{ preview.error }}</p>
+                                    <Button 
+                                        type="button"
+                                        variant="outline" 
+                                        size="sm"
+                                        @click="retryUpload(index)"
+                                        class="mt-1 h-6 text-xs"
+                                    >
+                                        Retry
+                                    </Button>
+                                </div>
+                            </ItemHeader>
+                            <ItemContent class="truncate">
+                                <ItemTitle class="w-auto">
+                                    <div class="truncate">{{ preview.name }}</div>
+                                </ItemTitle>
+                                <div class="flex justify-between items-center">
+                                    <ItemDescription>
+                                        {{ formatSize(preview.size) }}
+                                    </ItemDescription>
+                                    <Button 
+                                        type="button"
+                                        variant="outline" 
+                                        size="icon" 
+                                        @click="removeFile(index)"
+                                        class="w-auto h-auto border-0 hover:bg-transparent opacity-50 hover:opacity-100"
+                                    >
+                                        <X class="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </div>
+                            </ItemContent>
+                        </div>
+                    </Item>
+                </template>
+                
+                <!-- Add More Button as footer slot -->
+                <template #footer>
+                    <Item
+                        v-if="multiple && canAddMore && !disabled"
+                        variant="outline"
+                        as-child
+                        role="button"
+                        class="cursor-pointer aspect-[12/16] hover:border-primary/50 hover:bg-muted"
+                        @click="openFileDialog"
+                    >
+                        <button
+                            type="button"
+                            class="border-dashed group"
+                        >
+                            <ItemHeader class="aspect-square flex items-center justify-center p-4">
+                                <div 
+                                    class="flex flex-col items-center gap-2 text-center opacity-40 group-hover:opacity-90"
+                                >
+                                    <div class="mb-2">
+                                        <ImagePlus class="w-7 h-7 stroke-[1px] text-muted-foreground" />
+                                    </div>
+                                    <p class="text-muted-foreground text-sm/snug italic font-thin">
+                                        Add images
+                                    </p>
+                                </div>
+                            </ItemHeader>
+                        </button>
+                    </Item>
+                </template>
+            </draggable>
         </div>
 
         <!-- Error Message -->

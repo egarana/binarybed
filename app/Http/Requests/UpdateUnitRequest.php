@@ -56,6 +56,10 @@ class UpdateUnitRequest extends FormRequest
             'features.*' => ['integer', 'exists:features,id'],
             'existing_images'   => ['nullable', 'array'],
             'existing_images.*' => ['integer'],
+            // Support for immediate upload (new way)
+            'uploaded_media_ids'   => ['nullable', 'array', 'max:10'],
+            'uploaded_media_ids.*' => ['integer', 'exists:temporary_uploads,id'],
+            // Legacy support for direct file upload
             'new_images'        => ['nullable', 'array', 'max:10'],
             'new_images.*'      => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
