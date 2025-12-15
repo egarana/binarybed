@@ -123,7 +123,7 @@ const handleSuccess = (payload: any) => {
                     <TooltipTrigger class="ms-auto" as-child>
                         <DialogTrigger as-child>
                             <Button 
-                                variant="outline" 
+                                variant="ghost" 
                                 size="icon" 
                                 @click="open = true"
                             >

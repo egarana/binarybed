@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Pencil, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, EllipsisVertical } from 'lucide-vue-next';
+import { ChevronsUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, EllipsisVertical } from 'lucide-vue-next';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import EditAssignmentDialog from '@/components/EditAssignmentDialog.vue';
 import { Link } from '@inertiajs/vue3';
@@ -180,40 +181,6 @@ const handleDelete = () => {
                                     <slot name="item" :item="item"></slot>
                                 </TableCell>
                                 <TableCell class="text-right flex items-center">
-                                    <!-- Custom Actions -->
-                                    <TooltipProvider v-if="customActions">
-                                        <template v-for="(action, index) in customActions" :key="index">
-                                            <!-- Check if there's a custom slot for this action -->
-                                            <slot 
-                                                v-if="$slots[`custom-action-${index}`]"
-                                                :name="`custom-action-${index}`" 
-                                                :item="item" 
-                                                :action="action"
-                                                :refresh="refresh"
-                                            />
-                                            
-                                            <!-- Default rendering with Link if no custom slot -->
-                                            <Tooltip v-else-if="!action.condition || action.condition(item)">
-                                                <TooltipTrigger>
-                                                    <Link :href="action.url(item)">
-                                                        <Button
-                                                            :variant="action.variant || 'ghost'"
-                                                            size="icon"
-                                                        >
-                                                            <component
-                                                                :is="action.icon"
-                                                                class="w-4 h-4 text-muted-foreground"
-                                                            />
-                                                        </Button>
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{{ action.tooltip }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </template>
-                                    </TooltipProvider>
-
                                     <!-- Edit Assignment Dialog -->
                                     <template v-if="editAssignmentConfig">
                                         <EditAssignmentDialog
@@ -247,19 +214,30 @@ const handleDelete = () => {
                                         />
                                     </template>
 
-                                    <DropdownMenu v-if="editRoute">
+                                    <DropdownMenu v-if="editRoute || customActions">
                                         <DropdownMenuTrigger as-child>
                                             <Button variant="ghost" size="icon" class="ms-auto">
                                                 <EllipsisVertical class="w-4 h-4 text-muted-foreground" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem as-child>
-                                                <Link :href="editRoute(item)" class="flex items-center gap-2">
-                                                    <Pencil class="w-4 h-4" />
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem v-if="editRoute" as-child>
+                                                <Link :href="editRoute(item)">
                                                     Edit
                                                 </Link>
                                             </DropdownMenuItem>
+                                            <!-- Custom Actions -->
+                                            <template v-if="customActions">
+                                                <DropdownMenuSeparator />
+                                                <template v-for="(action, index) in customActions" :key="index">
+                                                    <DropdownMenuItem v-if="!action.condition || action.condition(item)" as-child>
+                                                        <Link :href="action.url(item)">
+                                                            {{ action.tooltip }}
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </template>
+                                            </template>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -291,40 +269,6 @@ const handleDelete = () => {
                                 </TableCell>
 
                                 <TableCell class="text-right flex items-center gap-0">
-                                    <!-- Custom Actions -->
-                                    <TooltipProvider v-if="customActions">
-                                        <template v-for="(action, index) in customActions" :key="index">
-                                            <!-- Check if there's a custom slot for this action -->
-                                            <slot 
-                                                v-if="$slots[`custom-action-${index}`]"
-                                                :name="`custom-action-${index}`" 
-                                                :item="item" 
-                                                :action="action"
-                                                :refresh="refresh"
-                                            />
-                                            
-                                            <!-- Default rendering with Link if no custom slot -->
-                                            <Tooltip v-else-if="!action.condition || action.condition(item)">
-                                                <TooltipTrigger>
-                                                    <Link :href="action.url(item)">
-                                                        <Button
-                                                            :variant="action.variant || 'ghost'"
-                                                            size="icon"
-                                                        >
-                                                            <component
-                                                                :is="action.icon"
-                                                                class="w-4 h-4 text-muted-foreground"
-                                                            />
-                                                        </Button>
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{{ action.tooltip }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </template>
-                                    </TooltipProvider>
-
                                     <!-- Edit Assignment Dialog -->
                                     <template v-if="editAssignmentConfig">
                                         <EditAssignmentDialog
@@ -358,19 +302,30 @@ const handleDelete = () => {
                                         />
                                     </template>
 
-                                    <DropdownMenu v-if="editRoute">
+                                    <DropdownMenu v-if="editRoute || customActions">
                                         <DropdownMenuTrigger as-child>
                                             <Button variant="ghost" size="icon" class="ms-auto">
                                                 <EllipsisVertical class="w-4 h-4 text-muted-foreground" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem as-child>
-                                                <Link :href="editRoute(item)" class="flex items-center gap-2">
-                                                    <Pencil class="w-4 h-4" />
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem v-if="editRoute" as-child>
+                                                <Link :href="editRoute(item)">
                                                     Edit
                                                 </Link>
                                             </DropdownMenuItem>
+                                            <!-- Custom Actions -->
+                                            <template v-if="customActions">
+                                                <DropdownMenuSeparator />
+                                                <template v-for="(action, index) in customActions" :key="index">
+                                                    <DropdownMenuItem v-if="!action.condition || action.condition(item)" as-child>
+                                                        <Link :href="action.url(item)">
+                                                            {{ action.tooltip }}
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </template>
+                                            </template>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
