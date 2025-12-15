@@ -30,8 +30,12 @@ class StoreActivityRequest extends FormRequest
             ],
             'features'   => ['nullable', 'array'],
             'features.*' => ['required', 'integer', 'exists:features,id'],
-            'images'     => ['nullable', 'array', 'max:10'], // Max 10 images
-            'images.*'   => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'], // 10MB each
+            // Support for immediate upload (new way)
+            'uploaded_media_ids'   => ['nullable', 'array', 'max:10'],
+            'uploaded_media_ids.*' => ['required', 'integer', 'exists:temporary_uploads,id'],
+            // Legacy support for direct file upload
+            'images'     => ['nullable', 'array', 'max:10'],
+            'images.*'   => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
     }
 

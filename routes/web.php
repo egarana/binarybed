@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\TemporaryUploadController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,20 @@ foreach (config('tenancy.central_domains') as $domain) {
                 ->group(function () {
                     Route::get('/', 'index');
                 });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Temporary Uploads API
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('api/uploads')
+                ->name('uploads.')
+                ->controller(TemporaryUploadController::class)
+                ->group(function () {
+                    Route::post('temp', 'store')->name('temp.store');
+                    Route::delete('temp/{id}', 'destroy')->name('temp.destroy');
+                });
+
 
             /*
             |--------------------------------------------------------------------------
