@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import activities from '@/routes/activities';
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
@@ -43,16 +43,16 @@ const { onSuccess, onError } = useFormNotifications({
 // Form fields
 const selectedFeatures = ref<ComboboxOption[]>(props.activity.features || []);
 
-// Control features visibility
-const showFeatures = ref(selectedFeatures.value.length > 0);
+// Ref for SearchableSelect
+const featuresSelectRef = ref<InstanceType<typeof SearchableSelect>>();
+
+// Control features visibility - only hide empty state when features are selected
 const hasFeatures = computed(() => selectedFeatures.value.length > 0);
 
-// Reset showFeatures if all features are removed
-watch(selectedFeatures, (newFeatures) => {
-    if (newFeatures.length === 0) {
-        showFeatures.value = false;
-    }
-}, { deep: true });
+// Open features dropdown
+const openFeaturesDropdown = () => {
+    featuresSelectRef.value?.open();
+};
 
 const name = ref(props.activity.name || '');
 const { slug } = useAutoSlug(name, {
@@ -116,18 +116,6 @@ function transformFormData(data: Record<string, any>) {
                 :error="errors.slug"
             />
 
-            <ImageUploader
-                :existing-images="existingImages"
-                @update:existing-images="existingImages = $event"
-                @update:uploaded-media-ids="uploadedMediaIds = $event"
-                label="Images"
-                name="images"
-                :multiple="true"
-                :max-files="10"
-                :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
-                :tabindex="3"
-                :disabled="processing"
-            />
 
             <!-- Features Selection -->
             <div class="grid gap-4">
@@ -140,25 +128,8 @@ function transformFormData(data: Record<string, any>) {
                     </div>
                 </div>
 
-                <Empty v-if="!showFeatures && !hasFeatures" class="border border-dashed">
-                    <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                            <Star />
-                        </EmptyMedia>
-                        <EmptyTitle>No features selected</EmptyTitle>
-                        <EmptyDescription>
-                            Add features to enhance your activity listing.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                    <EmptyContent>
-                        <Button type="button" variant="outline" @click="showFeatures = true">
-                            <Plus /> Add Features
-                        </Button>
-                    </EmptyContent>
-                </Empty>
-
                 <SearchableSelect
-                    v-if="showFeatures || hasFeatures"
+                    ref="featuresSelectRef"
                     mode="multiple"
                     v-model="selectedFeatures"
                     :options="features"
@@ -177,6 +148,27 @@ function transformFormData(data: Record<string, any>) {
                     :show-label="false"
                 />
 
+                <Empty 
+                    v-if="!hasFeatures" 
+                    class="border border-dashed cursor-pointer hover:border-primary/50 transition-colors"
+                    @click="openFeaturesDropdown"
+                >
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <Star />
+                        </EmptyMedia>
+                        <EmptyTitle>No features selected</EmptyTitle>
+                        <EmptyDescription>
+                            Click to add features to enhance your activity listing.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                        <Button type="button" variant="outline" @click.stop="openFeaturesDropdown">
+                            <Plus /> Add Features
+                        </Button>
+                    </EmptyContent>
+                </Empty>
+
                 <!-- Flag to indicate features have been cleared (for empty array detection) -->
                 <input
                     v-if="selectedFeatures.length === 0"
@@ -185,6 +177,19 @@ function transformFormData(data: Record<string, any>) {
                     value="1"
                 />
             </div>
+
+            <ImageUploader
+                :existing-images="existingImages"
+                @update:existing-images="existingImages = $event"
+                @update:uploaded-media-ids="uploadedMediaIds = $event"
+                label="Images"
+                name="images"
+                :multiple="true"
+                :max-files="25"
+                :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
+                :tabindex="4"
+                :disabled="processing"
+            />
 
             <SubmitButton
                 :processing="processing"

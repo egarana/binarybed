@@ -6,6 +6,13 @@ import Draggable from 'vuedraggable';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
+import {
+    Item,
+    ItemMedia,
+    ItemContent,
+    ItemTitle,
+    ItemActions,
+} from '@/components/ui/item';
 import { 
     Check, 
     ChevronsUpDown, 
@@ -363,6 +370,17 @@ const hasSelection = computed(() => {
         return selectedMultiple.value.length > 0;
     }
 });
+
+// Method to programmatically open the dropdown
+const open = () => {
+    isOpen.value = true;
+};
+
+// Expose methods for parent component
+defineExpose({
+    open,
+    isOpen,
+});
 </script>
 
 <template>
@@ -471,44 +489,47 @@ const hasSelection = computed(() => {
                 handle=".drag-handle"
             >
                 <template #item="{ element, index }">
-                    <div class="h-auto bg-muted rounded">
-                        <div class="flex items-center justify-start gap-2 ps-2 pe-3 py-2">
-                            <GripVertical 
-                                class="h-3 w-3 opacity-30 hover:opacity-100 hover:cursor-move drag-handle" 
-                            />
-                            
-                            <!-- Icon Rendering -->
-                            <template v-if="getSafeIcon(element)">
+                    <div class="group/drag drag-handle cursor-move">
+                        <Item variant="outline" size="sm">
+                            <ItemMedia>
+                                <GripVertical 
+                                    class="size-4 opacity-30 group-hover/drag:opacity-100 text-muted-foreground" 
+                                />
+                            </ItemMedia>
+                            <ItemMedia v-if="getSafeIcon(element)">
                                 <!-- SVG String -->
                                 <span 
                                     v-if="isSvgString(getSafeIcon(element))"
                                     v-html="getSafeIcon(element)"
-                                    class="h-4 w-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:stroke-current"
+                                    class="size-4 [&>svg]:size-4 [&>svg]:stroke-current"
                                 />
                                 <!-- Component Icon -->
                                 <component 
                                     v-else-if="isValidComponent(getSafeIcon(element))"
                                     :is="getSafeIcon(element)" 
-                                    class="h-4 w-4 stroke-1" 
+                                    class="size-4 stroke-1" 
                                 />
-                            </template>
-                            
-                            <span class="me-4">{{ element.label }}</span>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                class="h-auto w-auto mt-0.5 bg-transparent shadow-none border-none opacity-50 hover:opacity-100"
-                                @click="removeItem(element)"
-                            >
-                                <X class="w-4 h-4" />
-                            </Button>
+                            </ItemMedia>
+                            <ItemContent>
+                                <ItemTitle>{{ element.label }}</ItemTitle>
+                            </ItemContent>
+                            <ItemActions>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="size-6 opacity-50 hover:opacity-100"
+                                    @click="removeItem(element)"
+                                >
+                                    <X class="size-4" />
+                                </Button>
+                            </ItemActions>
                             <input 
                                 type="hidden" 
                                 :name="`${inputName}[${index}]`" 
                                 :value="element.value" 
                             />
-                        </div>
+                        </Item>
                     </div>
                 </template>
             </Draggable>
@@ -518,45 +539,46 @@ const hasSelection = computed(() => {
                 v-else 
                 class="flex items-center flex-wrap gap-2 mt-2 text-sm"
             >
-                <div 
+                <Item 
                     v-for="(element, index) in selectedMultiple" 
                     :key="element.value"
-                    class="h-auto bg-muted rounded"
+                    variant="outline" 
+                    size="sm"
                 >
-                    <div class="flex items-center justify-start gap-2 ps-3 pe-3 py-2">
-                        <!-- Icon Rendering -->
-                        <template v-if="getSafeIcon(element)">
-                            <!-- SVG String -->
-                            <span 
-                                v-if="isSvgString(getSafeIcon(element))"
-                                v-html="getSafeIcon(element)"
-                                class="h-4 w-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:stroke-current"
-                            />
-                            <!-- Component Icon -->
-                            <component 
-                                v-else-if="isValidComponent(getSafeIcon(element))"
-                                :is="getSafeIcon(element)" 
-                                class="h-4 w-4 stroke-1" 
-                            />
-                        </template>
-                        
-                        <span class="me-4">{{ element.label }}</span>
+                    <ItemMedia v-if="getSafeIcon(element)">
+                        <!-- SVG String -->
+                        <span 
+                            v-if="isSvgString(getSafeIcon(element))"
+                            v-html="getSafeIcon(element)"
+                            class="size-4 [&>svg]:size-4 [&>svg]:stroke-current"
+                        />
+                        <!-- Component Icon -->
+                        <component 
+                            v-else-if="isValidComponent(getSafeIcon(element))"
+                            :is="getSafeIcon(element)" 
+                            class="size-4 stroke-1" 
+                        />
+                    </ItemMedia>
+                    <ItemContent>
+                        <ItemTitle>{{ element.label }}</ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            class="h-auto w-auto mt-0.5 bg-transparent shadow-none border-none opacity-50 hover:opacity-100"
+                            class="size-6 opacity-50 hover:opacity-100"
                             @click="removeItem(element)"
                         >
-                            <X class="w-4 h-4" />
+                            <X class="size-4" />
                         </Button>
-                        <input 
-                            type="hidden" 
-                            :name="`${inputName}[${index}]`" 
-                            :value="element.value" 
-                        />
-                    </div>
-                </div>
+                    </ItemActions>
+                    <input 
+                        type="hidden" 
+                        :name="`${inputName}[${index}]`" 
+                        :value="element.value" 
+                    />
+                </Item>
             </div>
         </template>
         

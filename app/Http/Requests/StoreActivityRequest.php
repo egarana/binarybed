@@ -31,7 +31,7 @@ class StoreActivityRequest extends FormRequest
             'features'   => ['nullable', 'array'],
             'features.*' => ['required', 'integer', 'exists:features,id'],
             // Support for immediate upload (new way)
-            'uploaded_media_ids'   => ['nullable', 'array', 'max:10'],
+            'uploaded_media_ids'   => ['nullable', 'array', 'max:25'],
             'uploaded_media_ids.*' => ['required', 'integer', 'exists:temporary_uploads,id'],
             // Legacy support for direct file upload
             'images'     => ['nullable', 'array', 'max:10'],

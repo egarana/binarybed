@@ -36,7 +36,7 @@ class ActivityController extends Controller
     {
         $tenants = $this->tenantService->search($request->input('search'));
         // Get features for SearchableSelect (with search support)
-        $features = $this->featureService->search($request->input('search'));
+        $features = $this->featureService->search($request->input('search'), 5);
 
         return Inertia::render('activities/Create', compact('tenants', 'features'));
     }
@@ -55,7 +55,7 @@ class ActivityController extends Controller
         // Get features for SearchableSelect (with search support)
         $features = $this->featureService->search(
             $request->input('search'),
-            100
+            5
         );
 
         return Inertia::render('activities/Edit', compact('activity', 'features'));
