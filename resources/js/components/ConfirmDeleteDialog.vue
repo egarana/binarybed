@@ -94,7 +94,7 @@ function handleDelete(): void {
             >
                 <TooltipTrigger class="ms-auto" as-child>
                     <DialogTrigger as-child>
-                        <Button variant="outline" size="icon" @click="open = true">
+                        <Button variant="ghost" size="icon" @click="open = true">
                             <component :is="props.icon || Trash2" class="w-4 h-4 text-muted-foreground" />
                         </Button>
                     </DialogTrigger>
@@ -122,7 +122,7 @@ function handleDelete(): void {
 
             <DialogFooter>
                 <DialogClose as-child>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="ghost">Cancel</Button>
                 </DialogClose>
 
                 <Button

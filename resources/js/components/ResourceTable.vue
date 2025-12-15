@@ -329,7 +329,7 @@ const handleDelete = () => {
                                                     :href="editRoute(item)"
                                                     class="ms-auto"
                                                 >
-                                                    <Button variant="outline" size="icon">
+                                                    <Button variant="ghost" size="icon">
                                                         <Pencil class="w-4 h-4 text-muted-foreground" />
                                                     </Button>
                                                 </Link>
@@ -406,41 +406,41 @@ const handleDelete = () => {
         <div class="basis-2/3 flex items-center justify-end gap-2 md:basis-auto md:order-4">
             <!-- First page -->
             <Link :href="pagination.first_page_url ?? undefined" v-if="!isFirstPage">
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon">
                     <ChevronsLeft class="w-4 h-4" />
                 </Button>
             </Link>
-            <Button v-else variant="outline" size="icon" disabled class="bg-muted">
+            <Button v-else variant="ghost" size="icon" disabled class="bg-muted">
                 <ChevronsLeft class="w-4 h-4 text-muted-foreground/50" />
             </Button>
 
             <!-- Prev -->
             <Link :href="pagination.prev_page_url ?? undefined" v-if="pagination.prev_page_url">
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon">
                     <ChevronLeft class="w-4 h-4" />
                 </Button>
             </Link>
-            <Button v-else variant="outline" size="icon" disabled class="bg-muted">
+            <Button v-else variant="ghost" size="icon" disabled class="bg-muted">
                 <ChevronLeft class="w-4 h-4 text-muted-foreground/50" />
             </Button>
 
             <!-- Next -->
             <Link :href="pagination.next_page_url ?? undefined" v-if="pagination.next_page_url">
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon">
                     <ChevronRight class="w-4 h-4" />
                 </Button>
             </Link>
-            <Button v-else variant="outline" size="icon" disabled class="bg-muted">
+            <Button v-else variant="ghost" size="icon" disabled class="bg-muted">
                 <ChevronRight class="w-4 h-4 text-muted-foreground/50" />
             </Button>
 
             <!-- Last page -->
             <Link :href="pagination.last_page_url ?? undefined" v-if="!isLastPage">
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon">
                     <ChevronsRight class="w-4 h-4" />
                 </Button>
             </Link>
-            <Button v-else variant="outline" size="icon" disabled class="bg-muted">
+            <Button v-else variant="ghost" size="icon" disabled class="bg-muted">
                 <ChevronsRight class="w-4 h-4 text-muted-foreground/50" />
             </Button>
         </div>
