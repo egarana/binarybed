@@ -105,6 +105,21 @@ watch(uploadedMediaIds, (ids) => {
     emit('update:uploadedMediaIds', ids);
 }, { deep: true });
 
+// When disabled becomes true (form submitting), cancel all in-progress uploads silently
+watch(() => props.disabled, (newDisabled) => {
+    if (newDisabled && isUploading.value) {
+        // Cancel all in-progress uploads
+        previews.value.forEach(preview => {
+            if (preview.type === 'uploading' && preview.abortController) {
+                preview.abortController.abort();
+            }
+        });
+        
+        // Remove uploading items from previews (silently, no error shown)
+        previews.value = previews.value.filter(p => p.type !== 'uploading');
+    }
+});
+
 /**
  * Rebuild previews from existing images only
  * Uploaded and uploading items are managed separately
@@ -551,20 +566,29 @@ function formatSize(bytes: number): string {
                 <!-- Add More Button as footer slot -->
                 <template #footer>
                     <Item
-                        v-if="multiple && canAddMore && !disabled"
+                        v-if="multiple && canAddMore"
                         variant="outline"
                         as-child
                         role="button"
-                        class="cursor-pointer aspect-[12/16] hover:border-primary/50 hover:bg-muted"
-                        @click="openFileDialog"
+                        :class="[
+                            'aspect-[12/16]',
+                            disabled 
+                                ? 'opacity-50 cursor-not-allowed' 
+                                : 'cursor-pointer hover:border-primary/50 hover:bg-muted'
+                        ]"
+                        @click="!disabled && openFileDialog()"
                     >
                         <button
                             type="button"
                             class="border-dashed group"
+                            :disabled="disabled"
                         >
                             <ItemHeader class="aspect-square flex items-center justify-center p-4">
                                 <div 
-                                    class="flex flex-col items-center gap-2 text-center opacity-40 group-hover:opacity-90"
+                                    :class="[
+                                        'flex flex-col items-center gap-2 text-center',
+                                        disabled ? 'opacity-30' : 'opacity-40 group-hover:opacity-90'
+                                    ]"
                                 >
                                     <div class="mb-2">
                                         <ImagePlus class="w-7 h-7 stroke-[1px] text-muted-foreground" />
