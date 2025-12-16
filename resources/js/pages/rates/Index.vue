@@ -13,6 +13,7 @@ const config = {
         { key: 'currency', label: 'Currency', sortable: true },
         { key: 'tenant_name', label: 'Tenant', sortable: true },
         { key: 'is_active', label: 'Active', sortable: true },
+        { key: 'created_at', label: 'Created At', sortable: true },
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
     searchFields: ['name', 'slug', 'tenant_name'],

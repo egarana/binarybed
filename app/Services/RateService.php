@@ -30,7 +30,7 @@ class RateService
         return $this->findRateByTenantAndSlug->execute($tenantId, $slug);
     }
 
-    public function create(array $data): Rate
+    public function create(array $data): array
     {
         return $this->createRate->execute($data);
     }

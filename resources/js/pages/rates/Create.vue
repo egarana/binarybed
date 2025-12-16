@@ -1,28 +1,38 @@
 <script setup lang="ts">
 import rates from '@/routes/rates';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
+import NumberFormField from '@/components/NumberFormField.vue';
+import CurrencyFormField from '@/components/CurrencyFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
 import DisabledFormField from '@/components/DisabledFormField.vue';
+import InputError from '@/components/InputError.vue';
+
+interface ResourceOption extends ComboboxOption {
+    type: string;
+    id: number;
+    tenant_id: string;
+    tenant_name: string;
+    resource_name: string;
+}
 
 const props = defineProps<{
-    tenants?: ComboboxOption[];
-    resourceType?: string;
-    resourceId?: number;
-    resourceName?: string;
+    resources?: ResourceOption[];
 }>();
 
 // Get query params from URL for resource attachment
 const urlParams = new URLSearchParams(window.location.search);
-const resourceTypeFromUrl = urlParams.get('resource_type') || props.resourceType;
-const resourceIdFromUrl = urlParams.get('resource_id') || props.resourceId;
+const resourceTypeFromUrl = urlParams.get('resource_type');
+const resourceIdFromUrl = urlParams.get('resource_id');
 const tenantIdFromUrl = urlParams.get('tenant_id');
 
 const isResourceAttachment = Boolean(resourceTypeFromUrl && resourceIdFromUrl);
@@ -38,14 +48,15 @@ const { onSuccess, onError } = useFormNotifications({
 });
 
 // Form fields
-const selectedTenant = ref<ComboboxOption>();
+const selectedResource = ref<ResourceOption>();
 
-// Pre-select tenant if from resource context
+// Pre-select resource if from resource context
 onMounted(() => {
-    if (tenantIdFromUrl && props.tenants) {
-        const foundTenant = props.tenants.find(t => t.value === tenantIdFromUrl);
-        if (foundTenant) {
-            selectedTenant.value = foundTenant;
+    if (isResourceAttachment && props.resources) {
+        const valueToFind = `${resourceTypeFromUrl}:${tenantIdFromUrl}:${resourceIdFromUrl}`;
+        const foundResource = props.resources.find(r => r.value === valueToFind);
+        if (foundResource) {
+            selectedResource.value = foundResource;
         }
     }
 });
@@ -61,11 +72,41 @@ const price = ref(0);
 const currency = ref('IDR');
 const isActive = ref(true);
 
-// Resource type mapping for display
-const resourceTypeDisplay: Record<string, string> = {
-    'Unit': 'Unit',
-    'Activity': 'Activity',
-};
+// Computed values derived from selected resource
+const tenantId = computed(() => {
+    if (tenantIdFromUrl) return tenantIdFromUrl;
+    return selectedResource.value?.tenant_id ?? '';
+});
+
+const rateableType = computed(() => {
+    if (resourceTypeFromUrl) {
+        return `App\\Models\\${resourceTypeFromUrl}`;
+    }
+    if (selectedResource.value) {
+        return `App\\Models\\${selectedResource.value.type}`;
+    }
+    return '';
+});
+
+const rateableId = computed(() => {
+    if (resourceIdFromUrl) {
+        return resourceIdFromUrl;
+    }
+    if (selectedResource.value) {
+        return selectedResource.value.id;
+    }
+    return '';
+});
+
+// Transform form data before submission
+const transformData = (data: Record<string, any>) => ({
+    ...data,
+    tenant_id: tenantId.value,
+    rateable_type: rateableType.value,
+    rateable_id: rateableId.value,
+    redirect_to_resource: isResourceAttachment ? '1' : '0',
+    is_active: isActive.value ? '1' : '0',
+});
 </script>
 
 <template>
@@ -74,49 +115,48 @@ const resourceTypeDisplay: Record<string, string> = {
         :breadcrumbs="breadcrumbs"
         :action="rates.store.url()"
         method="post"
+        :transform="transformData"
         :onSuccess="onSuccess"
         :onError="onError"
     >
         <template #default="{ errors, processing }">
-            <!-- Hidden fields for resource attachment -->
-            <input 
-                v-if="resourceTypeFromUrl" 
-                type="hidden" 
-                name="rateable_type" 
-                :value="`App\\Models\\${resourceTypeFromUrl}`" 
-            />
-            <input 
-                v-if="resourceIdFromUrl" 
-                type="hidden" 
-                name="rateable_id" 
-                :value="resourceIdFromUrl" 
-            />
 
-            <!-- Show resource info if attaching to a resource -->
+            <!-- Show resource info if attaching from resource page -->
             <DisabledFormField
                 v-if="isResourceAttachment"
                 label="Attaching to"
-                :value="`${resourceTypeDisplay[resourceTypeFromUrl!] || resourceTypeFromUrl} #${resourceIdFromUrl}`"
+                :value="`${resourceTypeFromUrl} #${resourceIdFromUrl}`"
                 help-text="This rate will be created for this resource"
             />
 
-            <!-- Tenant Selection -->
+            <!-- Unified Product Search -->
             <SearchableSelect
+                v-if="!isResourceAttachment"
                 mode="single"
-                v-model="selectedTenant"
-                :options="tenants"
+                v-model="selectedResource"
+                :options="resources"
                 :fetch-url="() => rates.create.url()"
-                response-key="tenants"
-                label="Tenant"
-                placeholder="Select a tenant"
-                search-placeholder="Search tenant..."
-                name="tenant_id"
+                response-key="resources"
+                label="Product"
+                placeholder="Search by product name or tenant..."
+                search-placeholder="Type to search..."
                 :tabindex="1"
-                :error="errors.tenant_id"
+                :error="errors.rateable_id || errors.tenant_id"
                 :required="true"
                 :clearable="true"
-                :disabled="processing || Boolean(tenantIdFromUrl)"
+                :disabled="processing"
             />
+
+            <!-- Availability Switch -->
+            <Item variant="outline">
+                <ItemContent>
+                    <ItemTitle>Availability</ItemTitle>
+                    <ItemDescription>When enabled, this rate will be visible and can be applied to bookings. Disable to temporarily hide without deleting.</ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                    <Switch id="is_active" v-model="isActive" :default-checked="true" />
+                </ItemActions>
+            </Item>
 
             <FormField
                 id="name"
@@ -140,42 +180,39 @@ const resourceTypeDisplay: Record<string, string> = {
                 :error="errors.slug"
             />
 
-            <FormField
-                id="description"
-                label="Description"
-                type="textarea"
-                :tabindex="4"
-                placeholder="Rate description (optional)"
-                v-model="description"
-                :error="errors.description"
+            <!-- Description -->
+            <div class="grid gap-2">
+                <Label for="description">Description (Optional)</Label>
+                <Textarea
+                    id="description"
+                    name="description"
+                    :tabindex="4"
+                    placeholder="Describe this rate plan, including what's included, terms, or special conditions..."
+                    v-model="description"
+                    rows="6"
+                />
+                <InputError :message="errors.description" />
+            </div>
+
+            <NumberFormField
+                id="price"
+                label="Price"
+                :tabindex="5"
+                placeholder="0"
+                v-model="price"
+                :min="0"
+                :error="errors.price"
             />
 
-            <div class="grid grid-cols-2 gap-4">
-                <FormField
-                    id="price"
-                    label="Price"
-                    type="number"
-                    :tabindex="5"
-                    placeholder="0"
-                    v-model="price"
-                    :error="errors.price"
-                />
-
-                <FormField
-                    id="currency"
-                    label="Currency"
-                    type="text"
-                    :tabindex="6"
-                    placeholder="IDR"
-                    v-model="currency"
-                    :error="errors.currency"
-                />
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <Checkbox id="is_active" v-model:checked="isActive" name="is_active" />
-                <Label for="is_active" class="cursor-pointer">Active</Label>
-            </div>
+            <!-- Currency -->
+            <CurrencyFormField
+                id="currency"
+                label="Currency"
+                :tabindex="6"
+                placeholder="IDR"
+                v-model="currency"
+                :error="errors.currency"
+            />
 
             <SubmitButton
                 :processing="processing"

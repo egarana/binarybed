@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Rates\GetAllResourcesWithTenantInfo;
 use App\Http\Requests\StoreRateRequest;
 use App\Http\Requests\UpdateRateRequest;
 use App\Services\RateService;
-use App\Services\TenantService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +15,7 @@ class RateController extends Controller
 {
     public function __construct(
         protected RateService $rateService,
-        protected TenantService $tenantService
+        protected GetAllResourcesWithTenantInfo $getAllResourcesWithTenantInfo
     ) {}
 
     public function index(Request $request): Response
@@ -27,14 +27,35 @@ class RateController extends Controller
 
     public function create(Request $request): Response
     {
-        $tenants = $this->tenantService->search($request->input('search'));
+        // Only fetch resources when search input exists (no initial load)
+        $search = $request->input('search');
+        $resources = $search
+            ? $this->getAllResourcesWithTenantInfo->execute($search)
+            : [];
 
-        return Inertia::render('rates/Create', compact('tenants'));
+        return Inertia::render('rates/Create', compact('resources'));
     }
 
     public function store(StoreRateRequest $request): RedirectResponse
     {
-        $this->rateService->create($request->validated());
+        $result = $this->rateService->create($request->validated());
+        $rate = $result['rate'];
+        $resourceSlug = $result['resource_slug'];
+
+        // Only redirect to resource rates page if explicitly requested (from resource page)
+        $redirectToResource = $request->input('redirect_to_resource') === '1';
+
+        if ($redirectToResource && $resourceSlug) {
+            $validated = $request->validated();
+            $resourceType = class_basename($validated['rateable_type']);
+            $tenantId = $validated['tenant_id'];
+
+            if ($resourceType === 'Unit') {
+                return redirect()->route('units.rates', [$tenantId, $resourceSlug]);
+            } elseif ($resourceType === 'Activity') {
+                return redirect()->route('activities.rates', [$tenantId, $resourceSlug]);
+            }
+        }
 
         return redirect()->route('rates.index', ['sort' => '-created_at']);
     }

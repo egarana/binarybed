@@ -20,8 +20,8 @@ class StoreRateRequest extends FormRequest
     {
         return [
             'tenant_id'     => ['required', 'string', 'exists:tenants,id'],
-            'rateable_type' => ['nullable', 'string', 'in:App\\Models\\Unit,App\\Models\\Activity'],
-            'rateable_id'   => ['nullable', 'integer', 'min:1'],
+            'rateable_type' => ['required', 'string', 'in:App\\Models\\Unit,App\\Models\\Activity'],
+            'rateable_id'   => ['required', 'numeric', 'min:1'],
             'name'          => ['required', 'string', 'min:3', 'max:255'],
             'slug'          => [
                 'required',
@@ -31,7 +31,7 @@ class StoreRateRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'description' => ['nullable', 'string', 'max:5000'],
-            'price'       => ['required', 'integer', 'min:0'],
+            'price'       => ['required', 'numeric', 'min:0'],
             'currency'    => ['required', 'string', 'size:3'],
             'is_active'   => ['boolean'],
         ];
@@ -58,20 +58,49 @@ class StoreRateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tenant_id.required' => 'Please select a tenant',
+            // Tenant
+            'tenant_id.required' => 'Please select a product (tenant is required)',
             'tenant_id.string'   => 'Invalid tenant selection',
             'tenant_id.exists'   => 'The selected tenant does not exist',
 
-            'name.required'      => 'Please enter the rate name',
-            'name.string'        => 'The rate name must be valid text',
-            'name.min'           => 'The rate name must be at least 3 characters',
-            'name.max'           => 'The rate name cannot be longer than 255 characters',
+            // Rateable
+            'rateable_type.required' => 'Please select a product',
+            'rateable_type.string'   => 'Invalid product type',
+            'rateable_type.in'       => 'Product type must be Unit or Activity',
 
-            'slug.required'      => 'Please enter the slug',
-            'slug.string'        => 'The slug must be valid text',
-            'slug.min'           => 'The slug must be at least 3 characters',
-            'slug.max'           => 'The slug cannot be longer than 255 characters',
-            'slug.regex'         => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., rate-name)',
+            'rateable_id.required' => 'Please select a product',
+            'rateable_id.numeric'  => 'Invalid product selection',
+            'rateable_id.min'      => 'Invalid product selection',
+
+            // Name
+            'name.required' => 'Please enter the rate name',
+            'name.string'   => 'The rate name must be valid text',
+            'name.min'      => 'The rate name must be at least 3 characters',
+            'name.max'      => 'The rate name cannot be longer than 255 characters',
+
+            // Slug
+            'slug.required' => 'Please enter the slug',
+            'slug.string'   => 'The slug must be valid text',
+            'slug.min'      => 'The slug must be at least 3 characters',
+            'slug.max'      => 'The slug cannot be longer than 255 characters',
+            'slug.regex'    => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., rate-name)',
+
+            // Description
+            'description.string' => 'The description must be valid text',
+            'description.max'    => 'The description cannot be longer than 5000 characters',
+
+            // Price
+            'price.required' => 'Please enter the price',
+            'price.numeric'  => 'The price must be a valid number',
+            'price.min'      => 'The price cannot be negative',
+
+            // Currency
+            'currency.required' => 'Please enter the currency code',
+            'currency.string'   => 'The currency must be valid text',
+            'currency.size'     => 'The currency must be exactly 3 characters (e.g., IDR, USD)',
+
+            // Is Active
+            'is_active.boolean' => 'The active status must be true or false',
         ];
     }
 }

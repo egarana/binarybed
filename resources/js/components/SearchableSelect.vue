@@ -386,12 +386,10 @@ defineExpose({
 <template>
     <div class="grid gap-2">
         <!-- Label -->
-        <div v-if="label && showLabel">
-            <Label :for="inputId" class="inline-block">
-                {{ label }}
-                <span v-if="!required" class="text-muted-foreground">(Optional)</span>
-            </Label>
-        </div>
+        <Label v-if="label && showLabel" :for="inputId" class="inline-block">
+            {{ label }}
+            <span v-if="!required" class="text-muted-foreground">(Optional)</span>
+        </Label>
         
         <div class="flex items-center gap-2">
             <!-- Combobox -->
