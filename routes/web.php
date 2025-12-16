@@ -6,6 +6,7 @@ use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TemporaryUploadController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\RateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -143,6 +144,23 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::post('{tenant}/{slug}/users', 'attachUser')->name('users.attach');
                     Route::delete('{tenant}/{slug}/users/{user}', 'detachUser')->name('users.detach');
                     Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
+                });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Rates (Cross-Tenant)
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('rates')
+                ->name('rates.')
+                ->controller(RateController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{tenant}/{slug}/edit', 'edit')->name('edit');
+                    Route::put('{tenant}/{slug}', 'update')->name('update');
+                    Route::delete('{tenant}/{slug}', 'destroy')->name('destroy');
                 });
         });
     });

@@ -14,13 +14,14 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, Footprints, KeyRound, LayoutGrid, Star, Store, Users } from 'lucide-vue-next';
+import { BookOpen, Folder, Footprints, KeyRound, LayoutGrid, Star, Store, Tags, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import users from '@/routes/users';
 import tenants from '@/routes/tenants';
 import features from '@/routes/features';
 import units from '@/routes/units';
 import activities from '@/routes/activities';
+import rates from '@/routes/rates';
 
 const mainNavItems: NavItem[] = [
     {
@@ -37,6 +38,11 @@ const mainNavItems: NavItem[] = [
         title: 'Tenants',
         href: tenants.index(),
         icon: Store,
+    },
+    {
+        title: 'Rates',
+        href: rates.index(),
+        icon: Tags,
     },
     {
         title: 'Features',
