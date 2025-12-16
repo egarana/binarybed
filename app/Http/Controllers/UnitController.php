@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Rates\DeleteRateFromResource;
+use App\Actions\Rates\GetRatesForResource;
 use App\Http\Requests\AttachUserToUnitRequest;
 use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
@@ -22,7 +24,9 @@ class UnitController extends Controller
         protected UnitService $unitService,
         protected TenantService $tenantService,
         protected UserService $userService,
-        protected FeatureService $featureService
+        protected FeatureService $featureService,
+        protected GetRatesForResource $getRatesForResource,
+        protected DeleteRateFromResource $deleteRateFromResource
     ) {}
 
     public function index(Request $request): Response
@@ -116,5 +120,24 @@ class UnitController extends Controller
         );
 
         return redirect()->route('units.users', [$tenantId, $slug]);
+    }
+
+    public function rates(Request $request, string $tenantId, string $slug): Response
+    {
+        $unit = $this->unitService->getForEdit($tenantId, $slug);
+        $rates = $this->getRatesForResource->execute(
+            $tenantId,
+            Unit::class,
+            $unit['id']
+        );
+
+        return Inertia::render('units/rates/Index', compact('unit', 'rates'));
+    }
+
+    public function deleteRate(string $tenantId, string $slug, int $rateId): RedirectResponse
+    {
+        $this->deleteRateFromResource->execute($tenantId, $rateId);
+
+        return redirect()->route('units.rates', [$tenantId, $slug]);
     }
 }

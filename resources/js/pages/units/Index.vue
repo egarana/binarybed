@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import units from '@/routes/units';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Users } from 'lucide-vue-next';
+import { Users, Tags } from 'lucide-vue-next';
 
 const config = {
     resourceName: 'Unit',
@@ -30,6 +30,12 @@ const config = {
             icon: Users,
             tooltip: 'Manage users',
             url: (item: any) => units.users.url([item.tenant_id, item.slug]),
+            variant: 'outline' as const,
+        },
+        {
+            icon: Tags,
+            tooltip: 'Rate plans',
+            url: (item: any) => units.rates.url([item.tenant_id, item.slug]),
             variant: 'outline' as const,
         },
     ],

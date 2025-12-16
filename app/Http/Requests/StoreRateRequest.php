@@ -19,9 +19,11 @@ class StoreRateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_id'   => ['required', 'string', 'exists:tenants,id'],
-            'name'        => ['required', 'string', 'min:3', 'max:255'],
-            'slug'        => [
+            'tenant_id'     => ['required', 'string', 'exists:tenants,id'],
+            'rateable_type' => ['nullable', 'string', 'in:App\\Models\\Unit,App\\Models\\Activity'],
+            'rateable_id'   => ['nullable', 'integer', 'min:1'],
+            'name'          => ['required', 'string', 'min:3', 'max:255'],
+            'slug'          => [
                 'required',
                 'string',
                 'min:3',

@@ -1,0 +1,76 @@
+<script setup lang="ts">
+import units from '@/routes/units';
+import rates from '@/routes/rates';
+import BaseIndexPage from '@/components/BaseIndexPage.vue';
+import { Trash2, DollarSign } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
+
+interface Props {
+    unit: {
+        id: number;
+        tenant_id: string;
+        tenant_name: string;
+        name: string;
+        slug: string;
+    };
+}
+
+const props = defineProps<Props>();
+
+const config = {
+    resourceName: 'Rate',
+    resourceNamePlural: 'Rates',
+    endpoint: units.rates.url([props.unit.tenant_id, props.unit.slug]),
+    resourceKey: 'rates',
+    columns: [
+        { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
+        { key: 'price', label: 'Price', sortable: true },
+        { key: 'currency', label: 'Currency', sortable: true },
+        { key: 'is_active', label: 'Status', sortable: true },
+        { key: 'created_at', label: 'Created At', sortable: true },
+    ],
+    searchFields: ['name', 'slug'],
+    showTable: true,
+    addButtonLabel: 'Add rate',
+    addButtonRoute: rates.create.url() + `?resource_type=Unit&resource_id=${props.unit.id}&tenant_id=${props.unit.tenant_id}`,
+    breadcrumbs: [
+        { title: 'Units', href: units.index.url() },
+        { title: props.unit.name, href: units.edit.url([props.unit.tenant_id, props.unit.slug]) },
+        { title: 'Rates', href: '#' },
+    ],
+    deleteRoute: (item: any) => ({ 
+        url: units.rates.delete.url([props.unit.tenant_id, props.unit.slug, item.id])
+    }),
+    deleteIcon: Trash2,
+    deleteActionLabel: 'Delete rate',
+    deleteTitle: 'Delete this rate?',
+    deleteDescription: 'This will permanently delete this rate from this unit. This action cannot be undone.',
+    deleteConfirmLabel: 'Delete rate',
+    editRoute: (item: any) => rates.edit.url([props.unit.tenant_id, item.slug]),
+};
+
+function formatPrice(price: number, currency: string): string {
+    return new Intl.NumberFormat('id-ID', { 
+        style: 'currency', 
+        currency: currency || 'IDR',
+        minimumFractionDigits: 0 
+    }).format(price);
+}
+</script>
+
+<template>
+    <BaseIndexPage :title="`Rates for ${unit.name}`" :config="config">
+        <template #cell-price="{ item }">
+            <div class="flex items-center gap-1">
+                <DollarSign class="h-4 w-4 text-muted-foreground" />
+                {{ formatPrice(item.price, item.currency) }}
+            </div>
+        </template>
+
+        <template #cell-is_active="{ item }">
+            <Badge :variant="item.is_active ? 'default' : 'secondary'">
+                {{ item.is_active ? 'Active' : 'Inactive' }}
+            </Badge>
+        </template>
+    </BaseIndexPage>
+</template>

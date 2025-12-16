@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import rates from '@/routes/rates';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
@@ -10,10 +10,22 @@ import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import DisabledFormField from '@/components/DisabledFormField.vue';
 
-defineProps<{
+const props = defineProps<{
     tenants?: ComboboxOption[];
+    resourceType?: string;
+    resourceId?: number;
+    resourceName?: string;
 }>();
+
+// Get query params from URL for resource attachment
+const urlParams = new URLSearchParams(window.location.search);
+const resourceTypeFromUrl = urlParams.get('resource_type') || props.resourceType;
+const resourceIdFromUrl = urlParams.get('resource_id') || props.resourceId;
+const tenantIdFromUrl = urlParams.get('tenant_id');
+
+const isResourceAttachment = Boolean(resourceTypeFromUrl && resourceIdFromUrl);
 
 const breadcrumbs = [
     { title: 'Rates', href: rates.index.url() },
@@ -28,6 +40,16 @@ const { onSuccess, onError } = useFormNotifications({
 // Form fields
 const selectedTenant = ref<ComboboxOption>();
 
+// Pre-select tenant if from resource context
+onMounted(() => {
+    if (tenantIdFromUrl && props.tenants) {
+        const foundTenant = props.tenants.find(t => t.value === tenantIdFromUrl);
+        if (foundTenant) {
+            selectedTenant.value = foundTenant;
+        }
+    }
+});
+
 const name = ref('');
 const { slug } = useAutoSlug(name, {
     separator: '-',
@@ -38,6 +60,12 @@ const description = ref('');
 const price = ref(0);
 const currency = ref('IDR');
 const isActive = ref(true);
+
+// Resource type mapping for display
+const resourceTypeDisplay: Record<string, string> = {
+    'Unit': 'Unit',
+    'Activity': 'Activity',
+};
 </script>
 
 <template>
@@ -50,6 +78,28 @@ const isActive = ref(true);
         :onError="onError"
     >
         <template #default="{ errors, processing }">
+            <!-- Hidden fields for resource attachment -->
+            <input 
+                v-if="resourceTypeFromUrl" 
+                type="hidden" 
+                name="rateable_type" 
+                :value="`App\\Models\\${resourceTypeFromUrl}`" 
+            />
+            <input 
+                v-if="resourceIdFromUrl" 
+                type="hidden" 
+                name="rateable_id" 
+                :value="resourceIdFromUrl" 
+            />
+
+            <!-- Show resource info if attaching to a resource -->
+            <DisabledFormField
+                v-if="isResourceAttachment"
+                label="Attaching to"
+                :value="`${resourceTypeDisplay[resourceTypeFromUrl!] || resourceTypeFromUrl} #${resourceIdFromUrl}`"
+                help-text="This rate will be created for this resource"
+            />
+
             <!-- Tenant Selection -->
             <SearchableSelect
                 mode="single"
@@ -65,7 +115,7 @@ const isActive = ref(true);
                 :error="errors.tenant_id"
                 :required="true"
                 :clearable="true"
-                :disabled="processing"
+                :disabled="processing || Boolean(tenantIdFromUrl)"
             />
 
             <FormField

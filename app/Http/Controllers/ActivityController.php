@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Rates\DeleteRateFromResource;
+use App\Actions\Rates\GetRatesForResource;
 use App\Http\Requests\AttachUserToActivityRequest;
 use App\Http\Requests\StoreActivityRequest;
 use App\Http\Requests\UpdateActivityRequest;
@@ -22,7 +24,9 @@ class ActivityController extends Controller
         protected ActivityService $activityService,
         protected TenantService $tenantService,
         protected UserService $userService,
-        protected FeatureService $featureService
+        protected FeatureService $featureService,
+        protected GetRatesForResource $getRatesForResource,
+        protected DeleteRateFromResource $deleteRateFromResource
     ) {}
 
     public function index(Request $request): Response
@@ -116,5 +120,24 @@ class ActivityController extends Controller
         );
 
         return redirect()->route('activities.users', [$tenantId, $slug]);
+    }
+
+    public function rates(Request $request, string $tenantId, string $slug): Response
+    {
+        $activity = $this->activityService->getForEdit($tenantId, $slug);
+        $rates = $this->getRatesForResource->execute(
+            $tenantId,
+            Activity::class,
+            $activity['id']
+        );
+
+        return Inertia::render('activities/rates/Index', compact('activity', 'rates'));
+    }
+
+    public function deleteRate(string $tenantId, string $slug, int $rateId): RedirectResponse
+    {
+        $this->deleteRateFromResource->execute($tenantId, $rateId);
+
+        return redirect()->route('activities.rates', [$tenantId, $slug]);
     }
 }

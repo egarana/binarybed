@@ -80,6 +80,14 @@ class Activity extends Model implements HasMedia
     }
 
     /**
+     * Get all rates for this activity
+     */
+    public function rates(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Rate::class, 'rateable');
+    }
+
+    /**
      * Register the media collections for this model.
      */
     public function registerMediaCollections(): void

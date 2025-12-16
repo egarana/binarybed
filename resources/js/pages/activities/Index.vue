@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import activities from '@/routes/activities';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Users } from 'lucide-vue-next';
+import { Users, Tags } from 'lucide-vue-next';
 
 const config = {
     resourceName: 'Activity',
@@ -30,6 +30,12 @@ const config = {
             icon: Users,
             tooltip: 'Manage users',
             url: (item: any) => activities.users.url([item.tenant_id, item.slug]),
+            variant: 'outline' as const,
+        },
+        {
+            icon: Tags,
+            tooltip: 'Rate plans',
+            url: (item: any) => activities.rates.url([item.tenant_id, item.slug]),
             variant: 'outline' as const,
         },
     ],

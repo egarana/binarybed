@@ -121,6 +121,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::post('{tenant}/{slug}/users', 'attachUser')->name('users.attach');
                     Route::delete('{tenant}/{slug}/users/{user}', 'detachUser')->name('users.detach');
                     Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
+
+                    // Rate routes
+                    Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
+                    Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
                 });
 
             /*
@@ -144,6 +148,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::post('{tenant}/{slug}/users', 'attachUser')->name('users.attach');
                     Route::delete('{tenant}/{slug}/users/{user}', 'detachUser')->name('users.detach');
                     Route::put('{tenant}/{slug}/users/{user}', 'updateUser')->name('users.update');
+
+                    // Rate routes
+                    Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
+                    Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
                 });
 
             /*

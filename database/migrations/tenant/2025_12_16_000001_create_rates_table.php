@@ -13,13 +13,20 @@ return new class extends Migration
     {
         Schema::create('rates', function (Blueprint $table) {
             $table->id();
+
+            // Polymorphic relation to Unit, Activity, etc.
+            $table->nullableMorphs('rateable');
+
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->unsignedBigInteger('price')->default(0);
             $table->string('currency', 3)->default('IDR');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            // Unique slug per resource (or globally if no resource)
+            $table->unique(['rateable_type', 'rateable_id', 'slug'], 'unique_rate_slug_per_resource');
         });
     }
 

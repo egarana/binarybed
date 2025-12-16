@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Rate extends Model
 {
@@ -12,6 +13,8 @@ class Rate extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'rateable_type',
+        'rateable_id',
         'name',
         'slug',
         'description',
@@ -42,5 +45,13 @@ class Rate extends Model
             'price' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the parent rateable model (Unit, Activity, etc.)
+     */
+    public function rateable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }
