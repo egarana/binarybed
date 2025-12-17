@@ -3,9 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\Activity;
+use App\Models\Feature;
+use App\Models\Rate;
+use App\Models\ResourceFeature;
 use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
+use App\Models\UserTenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -322,24 +326,589 @@ class DummyDataSeeder extends Seeder
             // Seed units and activities in tenant context
             tenancy()->initialize($tenant);
 
+            // Sync all features from central to tenant database
+            $this->syncFeaturesToTenant();
+
             foreach ($tenantData['units'] as $unitData) {
-                Unit::create([
+                $unit = Unit::create([
                     'name' => $unitData['name'],
                     'slug' => $unitData['slug'],
                 ]);
+
+                // Create 1-5 rates for this unit with realistic names
+                $this->seedRatesForUnit($unit);
+
+                // Randomly attach 0-3 users to this unit
+                $this->attachRandomUsersToUnit($unit);
+
+                // Attach 12-25 features to this unit
+                $this->attachFeaturesToUnit($unit);
             }
 
             // Seed activities from hardcoded tenant data
             foreach ($tenantData['activities'] as $activityData) {
-                Activity::create([
+                $activity = Activity::create([
                     'name' => $activityData['name'],
                     'slug' => $activityData['slug'],
                 ]);
+
+                // Create 1-5 rates for this activity with realistic names
+                $this->seedRatesForActivity($activity);
+
+                // Randomly attach 0-3 users to this activity
+                $this->attachRandomUsersToActivity($activity);
+
+                // Attach 12-25 features to this activity
+                $this->attachFeaturesToActivity($activity);
             }
 
             tenancy()->end();
 
             echo "  ✓ Created tenant: {$tenant->name} with " . count($tenantData['units']) . " units and " . count($tenantData['activities']) . " activities\n";
+        }
+    }
+
+
+    /**
+     * Seed rates for a unit with realistic pricing
+     */
+    private function seedRatesForUnit(Unit $unit): void
+    {
+        // Hardcoded rates - randomly choose one set
+        $rateSets = [
+            // Set 1: Standard + Weekend + Peak Season
+            [
+                ['name' => 'Standard Rate', 'price' => 850000, 'description' => 'Our regular pricing for all year round bookings'],
+                ['name' => 'Weekend Rate', 'price' => 1200000, 'description' => 'Special pricing for Friday, Saturday and Sunday'],
+                ['name' => 'Peak Season Rate', 'price' => 2500000, 'description' => 'High season pricing (July-August, December-January)'],
+            ],
+            // Set 2: Early Bird + Last Minute + Holiday
+            [
+                ['name' => 'Early Bird Rate', 'price' => 750000, 'description' => 'Book 30+ days in advance and save'],
+                ['name' => 'Last Minute Rate', 'price' => 950000, 'description' => 'Limited availability for last minute bookings'],
+                ['name' => 'Holiday Rate', 'price' => 2000000, 'description' => 'Premium pricing for public holidays and special occasions'],
+            ],
+            // Set 3: Standard + Long Stay + Corporate
+            [
+                ['name' => 'Standard Rate', 'price' => 900000, 'description' => 'Our regular pricing for all year round bookings'],
+                ['name' => 'Long Stay Rate (7+ nights)', 'price' => 650000, 'description' => 'Discounted rate for extended stays'],
+                ['name' => 'Corporate Rate', 'price' => 1100000, 'description' => 'Special pricing for business travelers and corporate accounts'],
+                ['name' => 'Monthly Rate', 'price' => 550000, 'description' => 'Best value for monthly bookings'],
+            ],
+            // Set 4: Low Season + Midweek + Honeymoon
+            [
+                ['name' => 'Low Season Rate', 'price' => 600000, 'description' => 'Best value pricing during quiet months'],
+                ['name' => 'Midweek Special', 'price' => 700000, 'description' => 'Great value for Monday to Thursday stays'],
+                ['name' => 'Honeymoon Package', 'price' => 3000000, 'description' => 'Romantic package with special inclusions'],
+            ],
+        ];
+
+        // Randomly pick one rate set
+        $selectedSet = $rateSets[array_rand($rateSets)];
+
+        // Create rates from selected set
+        foreach ($selectedSet as $rateData) {
+            $unit->rates()->create([
+                'name' => $rateData['name'],
+                'slug' => Str::slug($rateData['name']),
+                'description' => $rateData['description'],
+                'price' => $rateData['price'],
+                'currency' => 'IDR',
+                'is_active' => true,
+            ]);
+        }
+    }
+
+    /**
+     * Seed rates for an activity with realistic pricing
+     */
+    private function seedRatesForActivity(Activity $activity): void
+    {
+        // Hardcoded rates - randomly choose one set
+        $rateSets = [
+            // Set 1: Standard + Group + Private
+            [
+                ['name' => 'Standard Rate', 'price' => 300000, 'description' => 'Our regular pricing for all year round bookings'],
+                ['name' => 'Group Rate (4+ pax)', 'price' => 250000, 'description' => 'Discounted rate for groups of 4 or more'],
+                ['name' => 'Private Session', 'price' => 800000, 'description' => 'Exclusive one-on-one experience'],
+            ],
+            // Set 2: Couple + Family + Full Day
+            [
+                ['name' => 'Couple Package', 'price' => 550000, 'description' => 'Perfect for two people'],
+                ['name' => 'Family Package (4 pax)', 'price' => 900000, 'description' => 'Great value for families up to 4 people'],
+                ['name' => 'Full Day Package', 'price' => 1500000, 'description' => 'Complete day experience with all inclusions'],
+            ],
+            // Set 3: Peak Hours + Off-Peak + Weekend
+            [
+                ['name' => 'Peak Hours Rate', 'price' => 400000, 'description' => 'Premium time slots with high demand'],
+                ['name' => 'Off-Peak Rate', 'price' => 200000, 'description' => 'Best value during quieter times'],
+                ['name' => 'Weekend Rate', 'price' => 350000, 'description' => 'Special pricing for Friday, Saturday and Sunday'],
+                ['name' => 'Early Morning Rate', 'price' => 250000, 'description' => 'Special pricing for morning sessions'],
+            ],
+            // Set 4: Sunset + Half Day
+            [
+                ['name' => 'Sunset Session', 'price' => 500000, 'description' => 'Experience during the golden hour'],
+                ['name' => 'Half Day Package', 'price' => 650000, 'description' => 'Perfect half-day experience'],
+            ],
+        ];
+
+        // Randomly pick one rate set
+        $selectedSet = $rateSets[array_rand($rateSets)];
+
+        // Create rates from selected set
+        foreach ($selectedSet as $rateData) {
+            $activity->rates()->create([
+                'name' => $rateData['name'],
+                'slug' => Str::slug($rateData['name']),
+                'description' => $rateData['description'],
+                'price' => $rateData['price'],
+                'currency' => 'IDR',
+                'is_active' => true,
+            ]);
+        }
+    }
+
+
+
+    /**
+     * Attach users to a unit with hardcoded assignments
+     * Real world: Not all units have assigned staff, some have partners/referrers
+     */
+    private function attachRandomUsersToUnit(Unit $unit): void
+    {
+        // Hardcoded user assignment sets (sometimes no users, sometimes 1-3)
+        $userSets = [
+            // No users assigned (50% of cases)
+            [],
+            [],
+            [],
+            [],
+            [],
+            // Single partner
+            [
+                ['email' => 'wayan.sukarta@example.com', 'role' => 'partner', 'days_ago' => 30],
+            ],
+            // Single referrer
+            [
+                ['email' => 'luh.sari@example.com', 'role' => 'referrer', 'days_ago' => 45],
+            ],
+            // Two users: partner + referrer
+            [
+                ['email' => 'made.agus@example.com', 'role' => 'partner', 'days_ago' => 15],
+                ['email' => 'budi.santoso@example.com', 'role' => 'referrer', 'days_ago' => 60],
+            ],
+            // Three users: 2 partners + 1 referrer
+            [
+                ['email' => 'nyoman.putra@example.com', 'role' => 'partner', 'days_ago' => 20],
+                ['email' => 'john.smith@example.com', 'role' => 'partner', 'days_ago' => 35],
+                ['email' => 'ahmad.pratama@example.com', 'role' => 'referrer', 'days_ago' => 50],
+            ],
+            // Two partners
+            [
+                ['email' => 'ketut.rai@example.com', 'role' => 'partner', 'days_ago' => 10],
+                ['email' => 'dewi.lestari@example.com', 'role' => 'partner', 'days_ago' => 25],
+            ],
+        ];
+
+        // Randomly pick one set
+        $selectedSet = $userSets[array_rand($userSets)];
+
+        // If empty set, no users assigned
+        if (empty($selectedSet)) {
+            return;
+        }
+
+        // Attach users from selected set
+        foreach ($selectedSet as $userData) {
+            // Get user from central database by email
+            $centralUser = User::where('email', $userData['email'])->first();
+
+            if (!$centralUser) {
+                continue; // Skip if user not found
+            }
+
+            // Sync user to tenant database first
+            $tenantUser = UserTenant::firstOrCreate(
+                ['global_id' => $centralUser->global_id],
+                [
+                    'name' => $centralUser->name,
+                    'email' => $centralUser->email,
+                ]
+            );
+
+            // Attach user to unit with role
+            $unit->users()->syncWithoutDetaching([
+                $tenantUser->global_id => [
+                    'role' => $userData['role'],
+                    'assigned_at' => now()->subDays($userData['days_ago']),
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * Attach users to an activity with hardcoded assignments
+     * Real world: Activities often have instructors/guides (partners) or referrers
+     */
+    private function attachRandomUsersToActivity(Activity $activity): void
+    {
+        // Hardcoded user assignment sets (sometimes no users, sometimes 1-3)
+        $userSets = [
+            // No users assigned (40% of cases)
+            [],
+            [],
+            [],
+            [],
+            // Single partner (instructor/guide)
+            [
+                ['email' => 'made.dewi@example.com', 'role' => 'partner', 'days_ago' => 20],
+            ],
+            // Single partner
+            [
+                ['email' => 'nyoman.ayu@example.com', 'role' => 'partner', 'days_ago' => 35],
+            ],
+            // Two partners (main + assistant instructor)
+            [
+                ['email' => 'ketut.kadek@example.com', 'role' => 'partner', 'days_ago' => 10],
+                ['email' => 'wayan.sudana@example.com', 'role' => 'partner', 'days_ago' => 15],
+            ],
+            // Partner + referrer
+            [
+                ['email' => 'luh.wulandari@example.com', 'role' => 'partner', 'days_ago' => 25],
+                ['email' => 'rizki.wijaya@example.com', 'role' => 'referrer', 'days_ago' => 40],
+            ],
+            // Three users: 2 partners + 1 referrer
+            [
+                ['email' => 'made.gede@example.com', 'role' => 'partner', 'days_ago' => 5],
+                ['email' => 'sarah.johnson@example.com', 'role' => 'partner', 'days_ago' => 30],
+                ['email' => 'andi.kusuma@example.com', 'role' => 'referrer', 'days_ago' => 45],
+            ],
+            // Single referrer
+            [
+                ['email' => 'michael.brown@example.com', 'role' => 'referrer', 'days_ago' => 55],
+            ],
+        ];
+
+        // Randomly pick one set
+        $selectedSet = $userSets[array_rand($userSets)];
+
+        // If empty set, no users assigned
+        if (empty($selectedSet)) {
+            return;
+        }
+
+        // Attach users from selected set
+        foreach ($selectedSet as $userData) {
+            // Get user from central database by email
+            $centralUser = User::where('email', $userData['email'])->first();
+
+            if (!$centralUser) {
+                continue; // Skip if user not found
+            }
+
+            // Sync user to tenant database first
+            $tenantUser = UserTenant::firstOrCreate(
+                ['global_id' => $centralUser->global_id],
+                [
+                    'name' => $centralUser->name,
+                    'email' => $centralUser->email,
+                ]
+            );
+
+            // Attach user to activity with role
+            $activity->users()->syncWithoutDetaching([
+                $tenantUser->global_id => [
+                    'role' => $userData['role'],
+                    'assigned_at' => now()->subDays($userData['days_ago']),
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * Sync all features from central database to tenant database
+     * Features must exist in tenant DB before they can be attached to resources
+     */
+    private function syncFeaturesToTenant(): void
+    {
+        // Get all features from central database
+        $centralFeatures = Feature::all();
+
+        foreach ($centralFeatures as $feature) {
+            // Create or update feature in tenant database
+            ResourceFeature::updateOrCreate(
+                ['feature_id' => $feature->id],
+                [
+                    'name' => $feature->name,
+                    'value' => $feature->value,
+                    'description' => $feature->description,
+                    'icon' => $feature->icon,
+                    'category' => $feature->category,
+                ]
+            );
+        }
+    }
+
+    /**
+     * Attach 12-25 hardcoded features to a unit
+     * Different feature sets for luxury villas, standard rooms, and budget accommodations
+     */
+    private function attachFeaturesToUnit(Unit $unit): void
+    {
+        // Hardcoded feature sets for different unit types (by feature value)
+        $featureSets = [
+            // Set 1: Luxury Villa (25 features) - All amenities + facilities + inclusions
+            [
+                'free_wifi',
+                'kitchen',
+                'tv',
+                'hot_water',
+                'dedicated_workspace',
+                'private_bathroom',
+                'bidet',
+                'dining_table',
+                'non_smoking_rooms',
+                'patio_or_balcony',
+                'free_parking',
+                '24_7_reception',
+                'garden',
+                'picnic_area',
+                'outdoor_furniture',
+                'terrace',
+                'lake_access',
+                'first_aid_kit',
+                'breakfast',
+                'coffee',
+                'fruit',
+                'daily_housekeeping',
+                'room_service',
+                'airport_shuttle',
+                'self_check_in'
+            ],
+            // Set 2: Deluxe Room (20 features) - Most amenities + some facilities + inclusions
+            [
+                'free_wifi',
+                'kitchen',
+                'tv',
+                'hot_water',
+                'dedicated_workspace',
+                'private_bathroom',
+                'dining_table',
+                'non_smoking_rooms',
+                'patio_or_balcony',
+                'free_parking',
+                '24_7_reception',
+                'garden',
+                'outdoor_furniture',
+                'breakfast',
+                'coffee',
+                'fruit',
+                'daily_housekeeping',
+                'room_service',
+                'ironing_service',
+                'self_check_in'
+            ],
+            // Set 3: Standard Room (16 features) - Basic amenities + some facilities
+            [
+                'free_wifi',
+                'tv',
+                'hot_water',
+                'private_bathroom',
+                'bidet',
+                'dining_table',
+                'non_smoking_rooms',
+                'free_parking',
+                '24_7_reception',
+                'garden',
+                'breakfast',
+                'coffee',
+                'daily_housekeeping',
+                'ironing_service',
+                'self_check_in',
+                'first_aid_kit'
+            ],
+            // Set 4: Budget Accommodation (12 features) - Essential amenities only
+            [
+                'free_wifi',
+                'tv',
+                'hot_water',
+                'private_bathroom',
+                'non_smoking_rooms',
+                'free_parking',
+                'breakfast',
+                'coffee',
+                'first_aid_kit',
+                'self_check_in',
+                'lake_access',
+                'picnic_area'
+            ],
+            // Set 5: Spa Suite (18 features) - Wellness focused
+            [
+                'free_wifi',
+                'tv',
+                'hot_water',
+                'dedicated_workspace',
+                'private_bathroom',
+                'bidet',
+                'dining_table',
+                'non_smoking_rooms',
+                'patio_or_balcony',
+                'garden',
+                'terrace',
+                'fruit',
+                'daily_housekeeping',
+                'room_service',
+                'ironing_service',
+                'coffee',
+                'breakfast',
+                'lake_access'
+            ],
+        ];
+
+        // Randomly pick one feature set
+        $selectedFeatureValues = $featureSets[array_rand($featureSets)];
+
+        // Attach features with order
+        $order = 1;
+        foreach ($selectedFeatureValues as $featureValue) {
+            // Find feature in tenant database by value
+            $feature = ResourceFeature::where('value', $featureValue)->first();
+
+            if ($feature) {
+                // Attach to unit via resource_features pivot table
+                $unit->features()->syncWithoutDetaching([
+                    $feature->feature_id => [
+                        'order' => $order++,
+                        'assigned_at' => now()->subDays(rand(1, 30)),
+                    ]
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Attach 12-25 hardcoded features to an activity
+     * Different feature sets for adventure, wellness, cultural activities
+     */
+    private function attachFeaturesToActivity(Activity $activity): void
+    {
+        // Hardcoded feature sets for different activity types (by feature value)
+        $featureSets = [
+            // Set 1: Adventure Activity (20 features) - Equipment + inclusions + requirements
+            [
+                'bicycle_rental',
+                'bbq_utensils',
+                'car_rental',
+                'breakfast',
+                'coffee',
+                'fruit',
+                'airport_shuttle',
+                'cultural_tours',
+                'self_check_in',
+                'free_parking',
+                'first_aid_kit',
+                'garden',
+                'outdoor_furniture',
+                'picnic_area',
+                'cycling_off_site',
+                'hiking_off_site',
+                'fishing_off_site',
+                'bike_tours',
+                'lake_access',
+                'pets_allowed'
+            ],
+            // Set 2: Wellness/Spa Activity (18 features) - Relaxation focused
+            [
+                'coffee',
+                'fruit',
+                'daily_housekeeping',
+                'ironing_service',
+                'breakfast',
+                'cultural_tours',
+                'garden',
+                'terrace',
+                'outdoor_furniture',
+                'picnic_area',
+                '24_7_reception',
+                'free_parking',
+                'first_aid_kit',
+                'lake_access',
+                'assistance_animals_allowed',
+                'self_check_in',
+                'room_service',
+                'airport_shuttle'
+            ],
+            // Set 3: Cultural/Educational Activity (14 features) - Cultural + basic amenities
+            [
+                'cultural_tours',
+                'coffee',
+                'fruit',
+                'breakfast',
+                'airport_shuttle',
+                'free_parking',
+                'garden',
+                'first_aid_kit',
+                'self_check_in',
+                '24_7_reception',
+                'bike_tours',
+                'cycling_off_site',
+                'hiking_off_site',
+                'picnic_area'
+            ],
+            // Set 4: Water Sports Activity (16 features) - Equipment + safety
+            [
+                'bicycle_rental',
+                'bbq_utensils',
+                'breakfast',
+                'coffee',
+                'fruit',
+                'first_aid_kit',
+                'lake_access',
+                'fishing_off_site',
+                'free_parking',
+                'outdoor_furniture',
+                'picnic_area',
+                'garden',
+                'self_check_in',
+                'airport_shuttle',
+                'assistance_animals_allowed',
+                'cycling_off_site'
+            ],
+            // Set 5: Eco/Nature Activity (12 features) - Nature focused
+            [
+                'bicycle_rental',
+                'bbq_utensils',
+                'coffee',
+                'fruit',
+                'garden',
+                'lake_access',
+                'hiking_off_site',
+                'fishing_off_site',
+                'bike_tours',
+                'cycling_off_site',
+                'picnic_area',
+                'first_aid_kit'
+            ],
+        ];
+
+        // Randomly pick one feature set
+        $selectedFeatureValues = $featureSets[array_rand($featureSets)];
+
+        // Attach features with order
+        $order = 1;
+        foreach ($selectedFeatureValues as $featureValue) {
+            // Find feature in tenant database by value
+            $feature = ResourceFeature::where('value', $featureValue)->first();
+
+            if ($feature) {
+                // Attach to activity via resource_features pivot table
+                $activity->features()->syncWithoutDetaching([
+                    $feature->feature_id => [
+                        'order' => $order++,
+                        'assigned_at' => now()->subDays(rand(1, 30)),
+                    ]
+                ]);
+            }
         }
     }
 }
