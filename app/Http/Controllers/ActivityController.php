@@ -134,6 +134,19 @@ class ActivityController extends Controller
         return Inertia::render('activities/rates/Index', compact('activity', 'rates'));
     }
 
+    public function createRate(string $tenantId, string $slug): Response
+    {
+        $activity = $this->activityService->getForEdit($tenantId, $slug);
+
+        // Format product_display like Edit page
+        $productDisplay = $activity['name'] . ' • ' . $activity['tenant_name'];
+
+        return Inertia::render('activities/rates/Create', [
+            'activity' => $activity,
+            'productDisplay' => $productDisplay,
+        ]);
+    }
+
     public function deleteRate(string $tenantId, string $slug, int $rateId): RedirectResponse
     {
         $this->deleteRateFromResource->execute($tenantId, $rateId);

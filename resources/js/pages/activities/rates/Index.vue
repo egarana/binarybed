@@ -34,7 +34,7 @@ const config = {
     searchFields: ['name', 'slug'],
     showTable: true,
     addButtonLabel: 'Add rate',
-    addButtonRoute: rates.create.url() + `?resource_type=Activity&resource_id=${props.activity.id}&tenant_id=${props.activity.tenant_id}`,
+    addButtonRoute: activities.rates.create.url([props.activity.tenant_id, props.activity.slug]),
     breadcrumbs: [
         { title: 'Activities', href: activities.index.url() },
         { title: props.activity.name, href: activities.edit.url([props.activity.tenant_id, props.activity.slug]) },

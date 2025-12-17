@@ -124,6 +124,7 @@ foreach (config('tenancy.central_domains') as $domain) {
 
                     // Rate routes
                     Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
+                    Route::get('{tenant}/{slug}/rates/create', 'createRate')->name('rates.create');
                     Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
                 });
 
@@ -151,6 +152,7 @@ foreach (config('tenancy.central_domains') as $domain) {
 
                     // Rate routes
                     Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
+                    Route::get('{tenant}/{slug}/rates/create', 'createRate')->name('rates.create');
                     Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
                 });
 

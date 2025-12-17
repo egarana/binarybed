@@ -134,6 +134,19 @@ class UnitController extends Controller
         return Inertia::render('units/rates/Index', compact('unit', 'rates'));
     }
 
+    public function createRate(string $tenantId, string $slug): Response
+    {
+        $unit = $this->unitService->getForEdit($tenantId, $slug);
+
+        // Format product_display like Edit page
+        $productDisplay = $unit['name'] . ' • ' . $unit['tenant_name'];
+
+        return Inertia::render('units/rates/Create', [
+            'unit' => $unit,
+            'productDisplay' => $productDisplay,
+        ]);
+    }
+
     public function deleteRate(string $tenantId, string $slug, int $rateId): RedirectResponse
     {
         $this->deleteRateFromResource->execute($tenantId, $rateId);
