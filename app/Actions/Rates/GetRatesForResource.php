@@ -24,8 +24,48 @@ class GetRatesForResource
     {
         return $this->executeInTenantContext($tenantId, function () use ($resourceType, $resourceId, $perPage) {
             $query = Rate::where('rateable_type', $resourceType)
-                ->where('rateable_id', $resourceId)
-                ->orderBy('created_at', 'desc');
+                ->where('rateable_id', $resourceId);
+
+            // Apply status filter
+            $statusFilter = request()->input('status');
+            if ($statusFilter !== null && $statusFilter !== '') {
+                $isActive = $statusFilter === 'active' || $statusFilter === '1' || $statusFilter === 'true';
+                $query->where('is_active', $isActive);
+            }
+
+            // Apply currency filter
+            $currencyFilter = request()->input('currency');
+            if ($currencyFilter !== null && $currencyFilter !== '') {
+                $query->where('currency', strtoupper($currencyFilter));
+            }
+
+            // Apply search filter
+            $searchValue = request()->input('search');
+            if ($searchValue) {
+                $query->where(function ($q) use ($searchValue) {
+                    $q->where('name', 'like', "%{$searchValue}%")
+                        ->orWhere('slug', 'like', "%{$searchValue}%");
+                });
+            }
+
+            // Apply sorting
+            $sortField = request()->input('sort', 'created_at');
+            $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+            $sortField = ltrim($sortField, '-');
+
+            // Map sort aliases
+            $sortAliases = [
+                'status' => 'is_active',
+            ];
+            $sortField = $sortAliases[$sortField] ?? $sortField;
+
+            // Validate sort field
+            $allowedSorts = ['name', 'slug', 'price', 'currency', 'is_active', 'created_at', 'updated_at'];
+            if (!in_array($sortField, $allowedSorts)) {
+                $sortField = 'created_at';
+            }
+
+            $query->orderBy($sortField, $sortDirection);
 
             $currentPage = Paginator::resolveCurrentPage();
             $total = $query->count();

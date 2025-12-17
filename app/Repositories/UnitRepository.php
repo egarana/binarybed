@@ -28,7 +28,7 @@ class UnitRepository
     private function baseQuery(): QueryBuilder
     {
         return QueryBuilder::for(Unit::class)
-            ->withCount('users')
+            ->withCount(['users', 'rates'])
             ->allowedFilters([
                 'name',
                 'slug',
@@ -40,6 +40,7 @@ class UnitRepository
                 'created_at',
                 'updated_at',
                 'users_count',
+                'rates_count',
                 // AllowedSort::custom('domain', new RelationSort('domains', 'domain', 'MIN')),
             ])
             ->defaultSort('name');
@@ -56,7 +57,7 @@ class UnitRepository
             : ['name'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id', 'users_count'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);

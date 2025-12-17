@@ -2,9 +2,9 @@
 import units from '@/routes/units';
 import rates from '@/routes/rates';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Trash2, DollarSign } from 'lucide-vue-next';
+import { Trash2 } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/helpers/currency';
+import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
 
 interface Props {
     unit: {
@@ -27,8 +27,9 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'price', label: 'Price', sortable: true },
         { key: 'currency', label: 'Currency', sortable: true },
-        { key: 'is_active', label: 'Status', sortable: true },
+        { key: 'status', label: 'Status', sortable: true },
         { key: 'created_at', label: 'Created At', sortable: true },
+        { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
     searchFields: ['name', 'slug'],
     showTable: true,
@@ -48,22 +49,46 @@ const config = {
     deleteDescription: 'This will permanently delete this rate from this unit. This action cannot be undone.',
     deleteConfirmLabel: 'Delete rate',
     editRoute: (item: any) => rates.edit.url([props.unit.tenant_id, item.slug]),
+    filters: [
+        {
+            name: 'status',
+            label: 'Status',
+            placeholder: 'Select status',
+            options: [
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+            ],
+        },
+        {
+            name: 'currency',
+            label: 'Currency',
+            placeholder: 'Select currency',
+            options: [
+                { value: 'IDR', label: 'IDR (Rp)' },
+                { value: 'USD', label: 'USD ($)' },
+                { value: 'EUR', label: 'EUR (€)' },
+                { value: 'JPY', label: 'JPY (¥)' },
+                { value: 'SGD', label: 'SGD (S$)' },
+                { value: 'AUD', label: 'AUD (A$)' },
+                { value: 'GBP', label: 'GBP (£)' },
+            ],
+        },
+    ],
 };
-
-
 </script>
 
 <template>
     <BaseIndexPage :title="`Rates for ${unit.name}`" :config="config">
         <template #cell-price="{ item }">
-            <div class="flex items-center gap-1">
-                <DollarSign class="h-4 w-4 text-muted-foreground" />
-                {{ formatCurrency(item.price, item.currency) }}
-            </div>
+            {{ formatNumber(item.price) }}
         </template>
 
-        <template #cell-is_active="{ item }">
-            <Badge :variant="item.is_active ? 'default' : 'secondary'">
+        <template #cell-currency="{ item }">
+            {{ formatCurrencyLabel(item.currency) }}
+        </template>
+
+        <template #cell-status="{ item }">
+            <Badge :variant="item.is_active ? 'outline' : 'secondary'">
                 {{ item.is_active ? 'Active' : 'Inactive' }}
             </Badge>
         </template>
