@@ -4,6 +4,7 @@ import rates from '@/routes/rates';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
 import { Trash2, DollarSign } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/helpers/currency';
 
 interface Props {
     activity: {
@@ -49,13 +50,7 @@ const config = {
     editRoute: (item: any) => rates.edit.url([props.activity.tenant_id, item.slug]),
 };
 
-function formatPrice(price: number, currency: string): string {
-    return new Intl.NumberFormat('id-ID', { 
-        style: 'currency', 
-        currency: currency || 'IDR',
-        minimumFractionDigits: 0 
-    }).format(price);
-}
+
 </script>
 
 <template>
@@ -63,7 +58,7 @@ function formatPrice(price: number, currency: string): string {
         <template #cell-price="{ item }">
             <div class="flex items-center gap-1">
                 <DollarSign class="h-4 w-4 text-muted-foreground" />
-                {{ formatPrice(item.price, item.currency) }}
+                {{ formatCurrency(item.price, item.currency) }}
             </div>
         </template>
 

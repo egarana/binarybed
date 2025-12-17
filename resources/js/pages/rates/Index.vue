@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import rates from '@/routes/rates';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
+import { KeyRound, Footprints } from 'lucide-vue-next';
+import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
+import { Badge } from '@/components/ui/badge';
 
 const config = {
     resourceName: 'Rate',
@@ -11,12 +14,13 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'price', label: 'Price', sortable: true },
         { key: 'currency', label: 'Currency', sortable: true },
-        { key: 'tenant_name', label: 'Tenant', sortable: true },
-        { key: 'is_active', label: 'Active', sortable: true },
+        { key: 'product', label: 'Product', sortable: true },
+        { key: 'type', label: 'Type', sortable: true },
+        { key: 'status', label: 'Status', sortable: true },
         { key: 'created_at', label: 'Created At', sortable: true },
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
-    searchFields: ['name', 'slug', 'tenant_name'],
+    searchFields: ['name', 'slug', 'tenant_name', 'resource_name'],
     showTable: true,
     breadcrumbs: [
         { title: 'Rates', href: rates.index.url() },
@@ -29,5 +33,35 @@ const config = {
 </script>
 
 <template>
-    <BaseIndexPage title="Rates" :config="config" />
+    <BaseIndexPage title="Rates" :config="config">
+        <template #cell-price="{ item }">
+            {{ formatNumber(item.price) }}
+        </template>
+
+        <template #cell-currency="{ item }">
+            {{ formatCurrencyLabel(item.currency) }}
+        </template>
+
+        <template #cell-product="{ item }">
+            <div>{{ item.resource_name }}</div>
+            <div class="text-xs text-muted-foreground">{{ item.tenant_name }}</div>
+        </template>
+
+        <template #cell-type="{ item }">
+            <div class="flex items-center gap-2">
+                <KeyRound v-if="item.rateable_type === 'Unit'" class="h-4 w-4 text-muted-foreground" />
+                <Footprints v-else class="h-4 w-4 text-muted-foreground" />
+                {{ item.rateable_type }}
+            </div>
+        </template>
+
+        <template #cell-status="{ item }">
+            <Badge 
+                :variant="item.is_active ? 'outline' : 'secondary'"
+            >
+                {{ item.is_active ? 'Active' : 'Inactive' }}
+            </Badge>
+        </template>
+    </BaseIndexPage>
 </template>
+

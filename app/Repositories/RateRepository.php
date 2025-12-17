@@ -24,6 +24,7 @@ class RateRepository
     private function baseQuery(): QueryBuilder
     {
         return QueryBuilder::for(Rate::class)
+            ->with('rateable')
             ->allowedFilters([
                 'name',
                 'slug',
@@ -32,6 +33,9 @@ class RateRepository
             ->allowedSorts([
                 'name',
                 'slug',
+                'price',
+                'currency',
+                'is_active',
                 'created_at',
                 'updated_at',
             ])
@@ -49,7 +53,7 @@ class RateRepository
             : ['name'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'resource_name', 'rateable_type', 'product', 'type', 'status'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
@@ -87,6 +91,8 @@ class RateRepository
                 $rateArray = $rate->toArray();
                 $rateArray['tenant_id'] = $tenant->id;
                 $rateArray['tenant_name'] = $tenant->name ?? $tenant->id;
+                $rateArray['resource_name'] = $rate->rateable?->name ?? '';
+                $rateArray['rateable_type'] = $rate->rateable_type ? class_basename($rate->rateable_type) : '';
                 return $rateArray;
             }
         );
@@ -105,6 +111,14 @@ class RateRepository
         $sortField = $request->input('sort', 'name');
         $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $sortField = ltrim($sortField, '-');
+
+        // Map sort aliases to actual field names
+        $sortAliases = [
+            'product' => 'resource_name',
+            'type' => 'rateable_type',
+            'status' => 'is_active',
+        ];
+        $sortField = $sortAliases[$sortField] ?? $sortField;
 
         $allRates = $allRates->sortBy($sortField, SORT_REGULAR, $sortDirection === 'desc');
 
