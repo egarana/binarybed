@@ -139,7 +139,7 @@ class ActivityController extends Controller
         $activity = $this->activityService->getForEdit($tenantId, $slug);
 
         // Format product_display like Edit page
-        $productDisplay = $activity['name'] . ' • ' . $activity['tenant_name'];
+        $productDisplay = $activity['name'] . ' - ' . $activity['tenant_name'] . ' (Activity)';
 
         return Inertia::render('activities/rates/Create', [
             'activity' => $activity,

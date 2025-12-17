@@ -139,7 +139,7 @@ class UnitController extends Controller
         $unit = $this->unitService->getForEdit($tenantId, $slug);
 
         // Format product_display like Edit page
-        $productDisplay = $unit['name'] . ' • ' . $unit['tenant_name'];
+        $productDisplay = $unit['name'] . ' - ' . $unit['tenant_name'] . ' (Unit)';
 
         return Inertia::render('units/rates/Create', [
             'unit' => $unit,

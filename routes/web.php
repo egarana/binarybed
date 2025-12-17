@@ -168,9 +168,9 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('/', 'index')->name('index');
                     Route::get('create', 'create')->name('create');
                     Route::post('/', 'store')->name('store');
-                    Route::get('{tenant}/{slug}/edit', 'edit')->name('edit');
-                    Route::put('{tenant}/{slug}', 'update')->name('update');
-                    Route::delete('{tenant}/{slug}', 'destroy')->name('destroy');
+                    Route::get('{tenant}/{resource}/{slug}/edit', 'edit')->name('edit');
+                    Route::put('{tenant}/{resource}/{slug}', 'update')->name('update');
+                    Route::delete('{tenant}/{resource}/{slug}', 'destroy')->name('destroy');
                 });
         });
     });

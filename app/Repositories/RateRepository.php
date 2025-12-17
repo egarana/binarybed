@@ -94,6 +94,7 @@ class RateRepository
                 $rateArray['tenant_id'] = $tenant->id;
                 $rateArray['tenant_name'] = $tenant->name ?? $tenant->id;
                 $rateArray['resource_name'] = $rate->rateable?->name ?? '';
+                $rateArray['resource_slug'] = $rate->rateable?->slug ?? '';
                 $rateArray['rateable_type'] = $rate->rateable_type ? class_basename($rate->rateable_type) : '';
                 return $rateArray;
             }

@@ -37,6 +37,7 @@ class FindRateByTenantAndSlug
                 'tenant_id' => $tenant->id,
                 'tenant_name' => $tenant->name,
                 'resource_name' => $resourceName,
+                'resource_slug' => $rateable?->slug ?? '',
                 'rateable_type' => $rateableType,
                 'product_display' => $productDisplay,
                 'name' => $rate->name,

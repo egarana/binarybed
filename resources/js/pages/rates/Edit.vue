@@ -22,6 +22,7 @@ interface Props {
         tenant_id: string;
         tenant_name: string;
         resource_name: string;
+        resource_slug: string;
         rateable_type: string;
         product_display: string;
         name: string;
@@ -37,7 +38,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs = [
     { title: 'Rates', href: rates.index.url() },
-    { title: 'Edit Rate', href: rates.edit.url([props.rate.tenant_id, props.rate.slug]) },
+    { title: 'Edit Rate', href: rates.edit.url([props.rate.tenant_id, props.rate.resource_slug, props.rate.slug]) },
 ];
 
 const { onSuccess, onError } = useFormNotifications({
@@ -70,7 +71,7 @@ const transformData = (data: Record<string, any>) => ({
     <BaseFormPage
         :title="`Edit Rate: ${rate.name}`"
         :breadcrumbs="breadcrumbs"
-        :action="rates.update.url([rate.tenant_id, rate.slug])"
+        :action="rates.update.url([rate.tenant_id, rate.resource_slug, rate.slug])"
         method="put"
         :transform="transformData"
         :onSuccess="onSuccess"
