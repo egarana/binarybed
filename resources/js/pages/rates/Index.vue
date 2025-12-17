@@ -29,6 +29,40 @@ const config = {
     editRoute: (item: any) => rates.edit.url([item.tenant_id, item.slug]),
     deleteRoute: (item: any) => ({ url: rates.destroy.url([item.tenant_id, item.slug]) }),
     itemKey: (item: any) => `${item.tenant_id}-${item.id}`,
+    filters: [
+        {
+            name: 'type',
+            label: 'Type',
+            placeholder: 'Select type',
+            options: [
+                { value: 'unit', label: 'Unit' },
+                { value: 'activity', label: 'Activity' },
+            ],
+        },
+        {
+            name: 'status',
+            label: 'Status',
+            placeholder: 'Select status',
+            options: [
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+            ],
+        },
+        {
+            name: 'currency',
+            label: 'Currency',
+            placeholder: 'Select currency',
+            options: [
+                { value: 'IDR', label: 'IDR (Rp)' },
+                { value: 'USD', label: 'USD ($)' },
+                { value: 'EUR', label: 'EUR (€)' },
+                { value: 'JPY', label: 'JPY (¥)' },
+                { value: 'SGD', label: 'SGD (S$)' },
+                { value: 'AUD', label: 'AUD (A$)' },
+                { value: 'GBP', label: 'GBP (£)' },
+            ],
+        },
+    ],
 };
 </script>
 

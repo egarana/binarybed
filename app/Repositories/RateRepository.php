@@ -28,6 +28,8 @@ class RateRepository
             ->allowedFilters([
                 'name',
                 'slug',
+                AllowedFilter::exact('currency'),
+                AllowedFilter::exact('is_active'),
                 AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'slug'])),
             ])
             ->allowedSorts([
@@ -107,6 +109,9 @@ class RateRepository
             $allRates = $this->applyCollectionSearch($allRates, $searchValue, $searchFields);
         }
 
+        // Apply collection-level filters
+        $allRates = $this->applyCollectionFilters($request, $allRates);
+
         // Apply sorting manually (data is merged from multiple databases)
         $sortField = $request->input('sort', 'name');
         $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
@@ -140,6 +145,48 @@ class RateRepository
         }
 
         return $result;
+    }
+
+    /**
+     * Apply collection-level filters for fields that are added post-query
+     * Supports filter aliases: type -> rateable_type, status -> is_active
+     */
+    private function applyCollectionFilters(Request $request, $collection)
+    {
+        // Filter aliases (URL param -> actual field name)
+        $filterAliases = [
+            'type' => 'rateable_type',
+            'status' => 'is_active',
+        ];
+
+        // Get filter parameters
+        foreach ($filterAliases as $urlParam => $actualField) {
+            $filterValue = $request->input($urlParam);
+
+            if ($filterValue !== null && $filterValue !== '') {
+                // Handle status filter (convert to boolean comparison)
+                if ($urlParam === 'status') {
+                    $isActive = $filterValue === 'active' || $filterValue === '1' || $filterValue === 'true';
+                    $collection = $collection->filter(fn($item) => $item[$actualField] == $isActive);
+                } else {
+                    // Handle type filter (case-insensitive match)
+                    $collection = $collection->filter(
+                        fn($item) => strtolower($item[$actualField] ?? '') === strtolower($filterValue)
+                    );
+                }
+            }
+        }
+
+        // Also handle currency filter at collection level if needed
+        // (backup in case DB-level filter wasn't applied)
+        $currencyFilter = $request->input('currency');
+        if ($currencyFilter !== null && $currencyFilter !== '') {
+            $collection = $collection->filter(
+                fn($item) => strtoupper($item['currency'] ?? '') === strtoupper($currencyFilter)
+            );
+        }
+
+        return $collection;
     }
 
     public function getForEdit(Rate $rate): Rate

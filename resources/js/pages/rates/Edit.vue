@@ -83,10 +83,10 @@ const transformData = (data: Record<string, any>) => ({
                 help-text="Rate product cannot be changed after creation"
             />
 
-            <!-- Availability Switch -->
+            <!-- Active Switch -->
             <Item variant="outline">
                 <ItemContent>
-                    <ItemTitle>Availability</ItemTitle>
+                    <ItemTitle>Active</ItemTitle>
                     <ItemDescription>When enabled, this rate will be visible and can be applied to bookings. Disable to temporarily hide without deleting.</ItemDescription>
                 </ItemContent>
                 <ItemActions>
