@@ -7,6 +7,8 @@ import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
+import NumberFormField from '@/components/NumberFormField.vue';
+import CurrencyFormField from '@/components/CurrencyFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
@@ -53,6 +55,10 @@ const { slug } = useAutoSlug(name, {
 // Track uploaded media IDs from ImageUploader
 const uploadedMediaIds = ref<number[]>([]);
 
+// Standard Rate fields
+const standardRatePrice = ref(0);
+const standardRateCurrency = ref('IDR');
+
 </script>
 
 <template>
@@ -63,9 +69,20 @@ const uploadedMediaIds = ref<number[]>([]);
         method="post"
         :onSuccess="onSuccess"
         :onError="onError"
-        :transform="(data) => ({ ...data, uploaded_media_ids: uploadedMediaIds })"
+        :transform="(data) => ({ 
+            ...data, 
+            uploaded_media_ids: uploadedMediaIds,
+            standard_rate_price: standardRatePrice,
+            standard_rate_currency: standardRateCurrency
+        })"
     >
         <template #default="{ errors, processing }">
+            <!-- DEBUG: Form Validation Errors -->
+            <div v-if="Object.keys(errors).length > 0" class="p-4 mb-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p class="font-semibold text-destructive mb-2">Form Validation Errors:</p>
+                <pre class="text-xs text-destructive overflow-auto">{{ JSON.stringify(errors, null, 2) }}</pre>
+            </div>
+
             <!-- Tenant Selection -->
             <SearchableSelect
                 mode="single"
@@ -180,9 +197,38 @@ const uploadedMediaIds = ref<number[]>([]);
                 @update:uploaded-media-ids="uploadedMediaIds = $event"
             />
 
+            <!-- Standard Rate -->
+            <div class="grid gap-4">
+                <div>
+                    <Label>Standard Rate</Label>
+                    <p class="text-xs text-muted-foreground mt-1">
+                        Set the default rate for this unit. This rate cannot be deleted but can be edited later.
+                    </p>
+                </div>
+                
+                <NumberFormField
+                    id="standard_rate_price"
+                    label="Price"
+                    :tabindex="6"
+                    placeholder="0"
+                    v-model="standardRatePrice"
+                    :min="0"
+                    :error="errors.standard_rate_price"
+                />
+
+                <CurrencyFormField
+                    id="standard_rate_currency"
+                    label="Currency"
+                    :tabindex="7"
+                    placeholder="IDR"
+                    v-model="standardRateCurrency"
+                    :error="errors.standard_rate_currency"
+                />
+            </div>
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="6"
+                :tabindex="8"
                 test-id="create-unit-button"
                 label="Create"
             />

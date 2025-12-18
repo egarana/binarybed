@@ -29,13 +29,16 @@ class StoreActivityRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'features'   => ['nullable', 'array'],
-            'features.*' => ['required', 'integer', 'exists:features,id'],
+            'features.*' => ['nullable', 'integer', 'exists:features,id'],
             // Support for immediate upload (new way)
             'uploaded_media_ids'   => ['nullable', 'array', 'max:25'],
             'uploaded_media_ids.*' => ['required', 'integer', 'exists:temporary_uploads,id'],
             // Legacy support for direct file upload
             'images'     => ['nullable', 'array', 'max:10'],
             'images.*'   => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            // Standard Rate fields
+            'standard_rate_price'    => ['required', 'numeric', 'min:0'],
+            'standard_rate_currency' => ['required', 'string', 'size:3'],
         ];
     }
 

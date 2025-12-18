@@ -40,7 +40,7 @@ const config = {
         { title: props.unit.name, href: units.edit.url([props.unit.tenant_id, props.unit.slug]) },
         { title: 'Rates', href: '#' },
     ],
-    deleteRoute: (item: any) => ({ 
+    deleteRoute: (item: any) => item.is_default ? null : ({ 
         url: units.rates.delete.url([props.unit.tenant_id, props.unit.slug, item.id])
     }),
     deleteIcon: Trash2,

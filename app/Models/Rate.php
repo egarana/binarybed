@@ -21,6 +21,7 @@ class Rate extends Model
         'price',
         'currency',
         'is_active',
+        'is_default',
     ];
 
     /**
@@ -44,6 +45,7 @@ class Rate extends Model
         return [
             'price' => 'integer',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 

@@ -81,6 +81,7 @@ class GetRatesForResource
                         'price' => $rate->price,
                         'currency' => $rate->currency,
                         'is_active' => $rate->is_active,
+                        'is_default' => $rate->is_default,
                         'created_at' => $rate->created_at,
                         'updated_at' => $rate->updated_at,
                     ];

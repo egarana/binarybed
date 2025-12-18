@@ -53,7 +53,7 @@ class UpdateUnitRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'features'   => ['nullable', 'array'],
-            'features.*' => ['integer', 'exists:features,id'],
+            'features.*' => ['nullable', 'integer', 'exists:features,id'],
             'existing_images'   => ['nullable', 'array'],
             'existing_images.*' => ['integer'],
             // Support for immediate upload (new way)

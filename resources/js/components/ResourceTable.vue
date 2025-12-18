@@ -38,7 +38,7 @@ const props = defineProps<{
     handleSort?: (field: string) => void;
     refresh?: (params?: Record<string, any>, immediate?: boolean) => void;
     editRoute?: (item: any) => string;
-    deleteRoute?: (item: any) => { url: string; data?: Record<string, any> };
+    deleteRoute?: (item: any) => { url: string; data?: Record<string, any> } | null;
     resourceName?: string;
     itemKey?: string | ((item: any) => string | number);
     customActions?: Array<{
@@ -200,10 +200,10 @@ const handleDelete = () => {
                                         />
                                     </template>
 
-                                    <template v-if="deleteRoute">
+                                    <template v-if="deleteRoute && deleteRoute(item)">
                                         <ConfirmDeleteDialog
-                                            :delete-url="deleteRoute(item).url"
-                                            :delete-data="deleteRoute(item).data"
+                                            :delete-url="deleteRoute(item)!.url"
+                                            :delete-data="deleteRoute(item)!.data"
                                             :entity-name="resourceName || 'item'"
                                             :icon="deleteIcon"
                                             :tooltip="deleteActionLabel"
@@ -288,10 +288,10 @@ const handleDelete = () => {
                                         />
                                     </template>
 
-                                    <template v-if="deleteRoute">
+                                    <template v-if="deleteRoute && deleteRoute(item)">
                                         <ConfirmDeleteDialog
-                                            :delete-url="deleteRoute(item).url"
-                                            :delete-data="deleteRoute(item).data"
+                                            :delete-url="deleteRoute(item)!.url"
+                                            :delete-data="deleteRoute(item)!.data"
                                             :entity-name="resourceName || 'item'"
                                             :icon="deleteIcon"
                                             :tooltip="deleteActionLabel"

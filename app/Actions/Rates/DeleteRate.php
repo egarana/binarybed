@@ -5,6 +5,7 @@ namespace App\Actions\Rates;
 use App\HandlesTenancy;
 use App\Models\Rate;
 use App\Repositories\RateRepository;
+use Illuminate\Validation\ValidationException;
 
 class DeleteRate
 {
@@ -16,15 +17,17 @@ class DeleteRate
 
     /**
      * Delete a rate in the specified tenant's database.
-     *
-     * @param string $tenantId
-     * @param string $slug
-     * @return void
      */
     public function execute(string $tenantId, string $slug): void
     {
         $this->executeInTenantContext($tenantId, function () use ($slug) {
             $rate = Rate::where('slug', $slug)->firstOrFail();
+
+            if ($rate->is_default) {
+                throw ValidationException::withMessages([
+                    'rate' => 'Cannot delete the default rate. You can edit it but not delete.',
+                ]);
+            }
 
             $this->rateRepository->delete($rate);
         });

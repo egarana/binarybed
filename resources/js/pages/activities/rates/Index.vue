@@ -40,7 +40,7 @@ const config = {
         { title: props.activity.name, href: activities.edit.url([props.activity.tenant_id, props.activity.slug]) },
         { title: 'Rates', href: '#' },
     ],
-    deleteRoute: (item: any) => ({ 
+    deleteRoute: (item: any) => item.is_default ? null : ({ 
         url: activities.rates.delete.url([props.activity.tenant_id, props.activity.slug, item.id])
     }),
     deleteIcon: Trash2,

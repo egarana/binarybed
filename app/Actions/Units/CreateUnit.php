@@ -28,44 +28,59 @@ class CreateUnit
             $unit = $this->unitRepository->create($data);
 
             // Attach features if provided
-            if (isset($data['features']) && is_array($data['features']) && !empty($data['features'])) {
-                // OPTIMIZED: Batch fetch all features at once
-                $centralFeatures = \App\Models\Feature::whereIn('id', $data['features'])->get()->keyBy('id');
+            if (isset($data['features']) && is_array($data['features'])) {
+                // Filter out empty/null values
+                $featureIds = array_values(array_filter($data['features'], fn($v) => $v !== '' && $v !== null));
 
-                // Batch upsert to tenant database
-                $upsertData = [];
-                foreach ($data['features'] as $featureId) {
-                    $centralFeature = $centralFeatures->get($featureId);
-                    if ($centralFeature) {
-                        $upsertData[] = [
-                            'feature_id' => $centralFeature->id,
-                            'name' => $centralFeature->name,
-                            'value' => $centralFeature->value,
-                            'description' => $centralFeature->description,
-                            'icon' => $centralFeature->icon,
-                            'category' => $centralFeature->category,
-                        ];
+                if (!empty($featureIds)) {
+                    // OPTIMIZED: Batch fetch all features at once
+                    $centralFeatures = \App\Models\Feature::whereIn('id', $featureIds)->get()->keyBy('id');
+
+                    // Batch upsert to tenant database
+                    $upsertData = [];
+                    foreach ($featureIds as $featureId) {
+                        $centralFeature = $centralFeatures->get($featureId);
+                        if ($centralFeature) {
+                            $upsertData[] = [
+                                'feature_id' => $centralFeature->id,
+                                'name' => $centralFeature->name,
+                                'value' => $centralFeature->value,
+                                'description' => $centralFeature->description,
+                                'icon' => $centralFeature->icon,
+                                'category' => $centralFeature->category,
+                            ];
+                        }
                     }
+
+                    if (!empty($upsertData)) {
+                        \App\Models\ResourceFeature::upsert(
+                            $upsertData,
+                            ['feature_id'],
+                            ['name', 'value', 'description', 'icon', 'category']
+                        );
+                    }
+
+                    // Attach with order
+                    $features = collect($featureIds)->mapWithKeys(function ($featureId, $index) {
+                        return [$featureId => [
+                            'order' => $index,
+                            'assigned_at' => now(),
+                        ]];
+                    })->toArray();
+
+                    $unit->features()->sync($features);
                 }
-
-                if (!empty($upsertData)) {
-                    \App\Models\ResourceFeature::upsert(
-                        $upsertData,
-                        ['feature_id'],
-                        ['name', 'value', 'description', 'icon', 'category']
-                    );
-                }
-
-                // Attach with order
-                $features = collect($data['features'])->mapWithKeys(function ($featureId, $index) {
-                    return [$featureId => [
-                        'order' => $index,
-                        'assigned_at' => now(),
-                    ]];
-                })->toArray();
-
-                $unit->features()->sync($features);
             }
+
+            // Create default Standard Rate
+            $unit->rates()->create([
+                'name' => 'Standard Rate',
+                'slug' => 'standard-rate',
+                'price' => $data['standard_rate_price'] ?? 0,
+                'currency' => $data['standard_rate_currency'] ?? 'IDR',
+                'is_default' => true,
+                'is_active' => true,
+            ]);
 
             // Handle pre-uploaded media (immediate upload feature)
             if (isset($data['uploaded_media_ids']) && is_array($data['uploaded_media_ids']) && !empty($data['uploaded_media_ids'])) {

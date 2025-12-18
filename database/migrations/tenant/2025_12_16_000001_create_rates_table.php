@@ -23,6 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('price')->default(0);
             $table->string('currency', 3)->default('IDR');
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
 
             // Unique slug per resource (or globally if no resource)

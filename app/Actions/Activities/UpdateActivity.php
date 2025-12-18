@@ -39,6 +39,9 @@ class UpdateActivity
                     ? []
                     : ($data['features'] ?? []);
 
+                // Filter out empty/null values
+                $featuresData = array_values(array_filter($featuresData, fn($v) => $v !== '' && $v !== null));
+
                 // OPTIMIZED: Batch fetch all features at once instead of N queries
                 if (!empty($featuresData)) {
                     $centralFeatures = \App\Models\Feature::whereIn('id', $featuresData)->get()->keyBy('id');

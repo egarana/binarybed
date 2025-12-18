@@ -75,11 +75,17 @@ trait HasMultiTenantSearch
      * Apply collection-level search filter
      *
      * This method filters a collection based on search value and fields.
-     * It uses OR logic: an item matches if ANY of the specified fields contains the search value.
-     * The search is case-insensitive.
+     * It uses word-based search with AND logic between words:
+     * - Split search value into words (by whitespace)
+     * - Each word must match at least one field (OR per word)
+     * - All words must match (AND between words)
+     *
+     * Example: "corporate nusa" matches items where:
+     * - "corporate" appears in ANY of the search fields AND
+     * - "nusa" appears in ANY of the search fields
      *
      * @param Collection $collection The collection to filter
-     * @param string $searchValue The search term
+     * @param string $searchValue The search term (can be multiple words)
      * @param array $searchFields Array of field names to search in
      * @return Collection Filtered collection
      */
@@ -92,16 +98,36 @@ trait HasMultiTenantSearch
             return $collection;
         }
 
-        return $collection->filter(function ($item) use ($searchValue, $searchFields) {
-            // OR condition: match if ANY field contains the search value
-            foreach ($searchFields as $field) {
-                $fieldValue = is_array($item) ? ($item[$field] ?? null) : ($item->{$field} ?? null);
+        // Split search value into words (by whitespace)
+        $searchWords = preg_split('/\s+/', trim($searchValue), -1, PREG_SPLIT_NO_EMPTY);
 
-                if ($fieldValue !== null && stripos((string) $fieldValue, $searchValue) !== false) {
-                    return true;
+        if (empty($searchWords)) {
+            return $collection;
+        }
+
+        return $collection->filter(function ($item) use ($searchWords, $searchFields) {
+            // AND condition: ALL words must match
+            foreach ($searchWords as $word) {
+                $wordMatched = false;
+
+                // OR condition: word can match ANY field
+                foreach ($searchFields as $field) {
+                    $fieldValue = is_array($item) ? ($item[$field] ?? null) : ($item->{$field} ?? null);
+
+                    if ($fieldValue !== null && stripos((string) $fieldValue, $word) !== false) {
+                        $wordMatched = true;
+                        break; // Word matched in this field, no need to check other fields
+                    }
+                }
+
+                // If word didn't match any field, item doesn't match
+                if (!$wordMatched) {
+                    return false;
                 }
             }
-            return false;
+
+            // All words matched
+            return true;
         });
     }
 

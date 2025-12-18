@@ -32,7 +32,7 @@ export interface UseResourceIndexConfig {
     addButtonRoute?: string;
     addButtonBehavior?: 'link' | 'dialog';
     editRoute?: (item: any) => string;
-    deleteRoute?: (item: any) => { url: string };
+    deleteRoute?: (item: any) => { url: string } | null;
     itemKey?: (item: any) => string;
     customActions?: CustomAction[];
     editAssignmentConfig?: {

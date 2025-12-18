@@ -27,7 +27,7 @@ const config = {
     ],
     addButtonRoute: rates.create.url(),
     editRoute: (item: any) => rates.edit.url([item.tenant_id, item.resource_slug, item.slug]),
-    deleteRoute: (item: any) => ({ url: rates.destroy.url([item.tenant_id, item.resource_slug, item.slug]) }),
+    deleteRoute: (item: any) => item.is_default ? null : ({ url: rates.destroy.url([item.tenant_id, item.resource_slug, item.slug]) }),
     itemKey: (item: any) => `${item.tenant_id}-${item.id}`,
     filters: [
         {
