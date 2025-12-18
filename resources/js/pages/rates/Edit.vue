@@ -33,6 +33,7 @@ interface Props {
         is_active: boolean;
         is_default: boolean;
     };
+    returnTo?: string;
 }
 
 const props = defineProps<Props>();
@@ -65,6 +66,7 @@ const transformData = (data: Record<string, any>) => ({
     ...data,
     tenant_id: props.rate.tenant_id,
     is_active: isActive.value ? '1' : '0',
+    return: props.returnTo || '0',
 });
 </script>
 

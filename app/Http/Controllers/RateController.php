@@ -64,12 +64,28 @@ class RateController extends Controller
     {
         $rate = $this->rateService->getForEdit($tenant, $resource, $slug);
 
-        return Inertia::render('rates/Edit', compact('rate'));
+        // Capture return from query param (passed from units/rates or activities/rates page)
+        $returnTo = $request->query('return', '0');
+
+        return Inertia::render('rates/Edit', compact('rate', 'returnTo'));
     }
 
     public function update(UpdateRateRequest $request, string $tenantId, string $resource, string $slug): RedirectResponse
     {
-        $this->rateService->update($tenantId, $resource, $slug, $request->validated());
+        $rate = $this->rateService->update($tenantId, $resource, $slug, $request->validated());
+
+        // Redirect to resource rates page if requested
+        $return = $request->input('return') === '1';
+
+        if ($return) {
+            $rateableType = class_basename($rate->rateable_type);
+
+            if ($rateableType === 'Unit') {
+                return redirect()->route('units.rates', [$tenantId, $resource, 'sort' => '-updated_at']);
+            } elseif ($rateableType === 'Activity') {
+                return redirect()->route('activities.rates', [$tenantId, $resource, 'sort' => '-updated_at']);
+            }
+        }
 
         return redirect()->route('rates.index', ['sort' => '-updated_at']);
     }

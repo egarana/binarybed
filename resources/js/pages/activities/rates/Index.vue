@@ -48,7 +48,7 @@ const config = {
     deleteTitle: 'Delete this rate?',
     deleteDescription: 'This will permanently delete this rate from this activity. This action cannot be undone.',
     deleteConfirmLabel: 'Delete rate',
-    editRoute: (item: any) => rates.edit.url([props.activity.tenant_id, props.activity.slug, item.slug]),
+    editRoute: (item: any) => rates.edit.url([props.activity.tenant_id, props.activity.slug, item.slug]) + '?return=1',
     filters: [
         {
             name: 'status',
