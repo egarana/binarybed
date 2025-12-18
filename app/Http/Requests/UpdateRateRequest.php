@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\HandlesTenancy;
+use App\Models\Activity;
 use App\Models\Rate;
+use App\Models\Unit;
 use App\ValidatesTenantResourceUniqueness;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -10,34 +13,75 @@ use Illuminate\Validation\Validator;
 class UpdateRateRequest extends FormRequest
 {
     use ValidatesTenantResourceUniqueness;
+    use HandlesTenancy;
 
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Check if the rate being updated is a default rate.
+     */
+    protected function isDefaultRate(): bool
+    {
+        $tenantId = $this->route('tenant');
+        $resourceSlug = $this->route('resource');
+        $rateSlug = $this->route('slug');
+
+        if (!$tenantId || !$resourceSlug || !$rateSlug) {
+            return false;
+        }
+
+        return $this->executeInTenantContext($tenantId, function () use ($resourceSlug, $rateSlug) {
+            $resource = Unit::where('slug', $resourceSlug)->first()
+                ?? Activity::where('slug', $resourceSlug)->first();
+
+            if (!$resource) {
+                return false;
+            }
+
+            $rate = $resource->rates()->where('slug', $rateSlug)->first();
+
+            return $rate?->is_default ?? false;
+        });
+    }
+
     public function rules(): array
     {
-        return [
+        $isDefault = $this->isDefaultRate();
+
+        $rules = [
             'tenant_id'   => ['required', 'string', 'exists:tenants,id'],
-            'name'        => ['required', 'string', 'min:3', 'max:255'],
-            'slug'        => [
-                'required',
-                'string',
-                'min:3',
-                'max:255',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-            ],
             'description' => ['nullable', 'string', 'max:5000'],
             'price'       => ['required', 'numeric', 'min:0'],
             'currency'    => ['required', 'string', 'size:3'],
             'is_active'   => ['boolean'],
         ];
+
+        // Only require name and slug for non-default rates
+        if (!$isDefault) {
+            $rules['name'] = ['required', 'string', 'min:3', 'max:255'];
+            $rules['slug'] = [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+            ];
+        }
+
+        return $rules;
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            // Skip slug uniqueness check for default rates
+            if ($this->isDefaultRate()) {
+                return;
+            }
+
             $tenantId = $this->route('tenant');
             $currentSlug = $this->route('slug');
             $newSlug = $this->input('slug');

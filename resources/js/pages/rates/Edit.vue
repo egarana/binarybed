@@ -31,6 +31,7 @@ interface Props {
         price: number;
         currency: string;
         is_active: boolean;
+        is_default: boolean;
     };
 }
 
@@ -78,6 +79,12 @@ const transformData = (data: Record<string, any>) => ({
         :onError="onError"
     >
         <template #default="{ errors, processing }">
+            <!-- Validation Errors Debugger -->
+            <div v-if="Object.keys(errors).length > 0" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm font-medium text-red-800 mb-2">🐛 Validation Errors:</p>
+                <pre class="text-xs text-red-700 overflow-auto">{{ JSON.stringify(errors, null, 2) }}</pre>
+            </div>
+
             <DisabledFormField
                 label="Product"
                 :value="rate.product_display"
@@ -95,7 +102,15 @@ const transformData = (data: Record<string, any>) => ({
                 </ItemActions>
             </Item>
 
+            <!-- Name Field -->
+            <DisabledFormField
+                v-if="rate.is_default"
+                label="Name"
+                :value="rate.name"
+                help-text="Default rate name cannot be changed"
+            />
             <FormField
+                v-else
                 id="name"
                 label="Name"
                 type="text"
@@ -106,7 +121,15 @@ const transformData = (data: Record<string, any>) => ({
                 :error="errors.name"
             />
 
+            <!-- Slug Field -->
+            <DisabledFormField
+                v-if="rate.is_default"
+                label="Slug"
+                :value="rate.slug"
+                help-text="Default rate slug cannot be changed"
+            />
             <FormField
+                v-else
                 id="slug"
                 label="Slug"
                 type="text"

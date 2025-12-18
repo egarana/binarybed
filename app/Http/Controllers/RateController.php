@@ -62,21 +62,21 @@ class RateController extends Controller
 
     public function edit(string $tenant, string $resource, string $slug, Request $request): Response
     {
-        $rate = $this->rateService->getForEdit($tenant, $slug);
+        $rate = $this->rateService->getForEdit($tenant, $resource, $slug);
 
         return Inertia::render('rates/Edit', compact('rate'));
     }
 
     public function update(UpdateRateRequest $request, string $tenantId, string $resource, string $slug): RedirectResponse
     {
-        $this->rateService->update($tenantId, $slug, $request->validated());
+        $this->rateService->update($tenantId, $resource, $slug, $request->validated());
 
         return redirect()->route('rates.index', ['sort' => '-updated_at']);
     }
 
     public function destroy(string $tenantId, string $resource, string $slug): RedirectResponse
     {
-        $this->rateService->delete($tenantId, $slug);
+        $this->rateService->delete($tenantId, $resource, $slug);
 
         return redirect()->route('rates.index');
     }

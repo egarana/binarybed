@@ -25,9 +25,9 @@ class RateService
         return $this->rateRepository->getAllFromAllTenantsPaginated($request);
     }
 
-    public function getForEdit(string $tenantId, string $slug): array
+    public function getForEdit(string $tenantId, string $resourceSlug, string $rateSlug): array
     {
-        return $this->findRateByTenantAndSlug->execute($tenantId, $slug);
+        return $this->findRateByTenantAndSlug->execute($tenantId, $resourceSlug, $rateSlug);
     }
 
     public function create(array $data): array
@@ -35,13 +35,13 @@ class RateService
         return $this->createRate->execute($data);
     }
 
-    public function update(string $tenantId, string $slug, array $data): Rate
+    public function update(string $tenantId, string $resourceSlug, string $rateSlug, array $data): Rate
     {
-        return $this->updateRate->execute($tenantId, $slug, $data);
+        return $this->updateRate->execute($tenantId, $resourceSlug, $rateSlug, $data);
     }
 
-    public function delete(string $tenantId, string $slug): void
+    public function delete(string $tenantId, string $resourceSlug, string $rateSlug): void
     {
-        $this->deleteRate->execute($tenantId, $slug);
+        $this->deleteRate->execute($tenantId, $resourceSlug, $rateSlug);
     }
 }
