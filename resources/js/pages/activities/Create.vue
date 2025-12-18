@@ -76,12 +76,6 @@ const standardRateCurrency = ref('IDR');
         })"
     >
         <template #default="{ errors, processing }">
-            <!-- DEBUG: Form Validation Errors -->
-            <div v-if="Object.keys(errors).length > 0" class="p-4 mb-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p class="font-semibold text-destructive mb-2">Form Validation Errors:</p>
-                <pre class="text-xs text-destructive overflow-auto">{{ JSON.stringify(errors, null, 2) }}</pre>
-            </div>
-
             <!-- Tenant Selection -->
             <SearchableSelect
                 mode="single"
