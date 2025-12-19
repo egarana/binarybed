@@ -1,0 +1,171 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+class ReservationItem extends Model
+{
+    /**
+     * Status constants for item lifecycle.
+     */
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_CANCELLED = 'CANCELLED';
+
+    /**
+     * Pricing type constants.
+     */
+    public const PRICING_PER_NIGHT = 'per_night';
+    public const PRICING_PER_PERSON = 'per_person';
+    public const PRICING_PER_HOUR = 'per_hour';
+    public const PRICING_FLAT = 'flat';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'reservation_id',
+        'reservable_type',
+        'reservable_id',
+        'rate_id',
+        'start_date',
+        'end_date',
+        'start_time',
+        'end_time',
+        'duration_days',
+        'duration_minutes',
+        'quantity',
+        // Granular Snapshotting
+        'resource_name',
+        'resource_type_label',
+        'resource_description',
+        'rate_name',
+        'rate_description',
+        'pricing_type',
+        'rate_price',
+        'currency',
+        'line_total',
+        'status',
+    ];
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'quantity' => 1,
+        'currency' => 'IDR',
+        'status' => self::STATUS_ACTIVE,
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'rate_price' => 'integer',
+            'line_total' => 'integer',
+            'duration_days' => 'integer',
+            'duration_minutes' => 'integer',
+            'quantity' => 'integer',
+        ];
+    }
+
+    /**
+     * Get the parent reservation.
+     */
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class);
+    }
+
+    /**
+     * Get the reservable resource (Unit or Activity).
+     */
+    public function reservable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Get the rate used for this item.
+     */
+    public function rate(): BelongsTo
+    {
+        return $this->belongsTo(Rate::class);
+    }
+
+    /**
+     * Check if item is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Check if item is cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /**
+     * Calculate line total based on pricing type.
+     *
+     * @return int
+     */
+    public function calculateLineTotal(): int
+    {
+        $quantity = $this->quantity ?? 1;
+        $durationDays = $this->duration_days ?? 1;
+        $ratePrice = $this->rate_price ?? 0;
+
+        return match ($this->pricing_type) {
+            self::PRICING_PER_NIGHT => $quantity * $durationDays * $ratePrice,
+            self::PRICING_PER_PERSON => $quantity * $ratePrice,
+            self::PRICING_PER_HOUR => $quantity * (int) ceil(($this->duration_minutes ?? 60) / 60) * $ratePrice,
+            self::PRICING_FLAT => $ratePrice,
+            default => $quantity * $ratePrice,
+        };
+    }
+
+    /**
+     * Format duration for display.
+     *
+     * @return string
+     */
+    public function getFormattedDurationAttribute(): string
+    {
+        if ($this->duration_days && $this->duration_days > 0) {
+            $nights = $this->duration_days;
+            return $nights . ' ' . ($nights > 1 ? 'nights' : 'night');
+        }
+
+        if ($this->duration_minutes && $this->duration_minutes > 0) {
+            $hours = floor($this->duration_minutes / 60);
+            $minutes = $this->duration_minutes % 60;
+
+            if ($hours > 0 && $minutes > 0) {
+                return "{$hours}h {$minutes}m";
+            } elseif ($hours > 0) {
+                return "{$hours} " . ($hours > 1 ? 'hours' : 'hour');
+            } else {
+                return "{$minutes} min";
+            }
+        }
+
+        return '';
+    }
+}

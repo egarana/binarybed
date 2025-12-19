@@ -7,6 +7,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TemporaryUploadController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\RateController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -171,6 +172,23 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('{tenant}/{resource}/{slug}/edit', 'edit')->name('edit');
                     Route::put('{tenant}/{resource}/{slug}', 'update')->name('update');
                     Route::delete('{tenant}/{resource}/{slug}', 'destroy')->name('destroy');
+                });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reservations (Cross-Tenant)
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('reservations')
+                ->name('reservations.')
+                ->controller(ReservationController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('{tenant}/{code}/edit', 'edit')->name('edit');
+                    Route::put('{tenant}/{code}', 'update')->name('update');
+                    // Note: No delete route - reservations cannot be deleted, only cancelled via status change
                 });
         });
     });

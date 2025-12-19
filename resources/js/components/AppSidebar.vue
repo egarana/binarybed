@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, Footprints, KeyRound, LayoutGrid, Star, Store, Tags, Users } from 'lucide-vue-next';
+import { BookOpen, CalendarCheck, Folder, Footprints, KeyRound, LayoutGrid, Star, Store, Tags, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import users from '@/routes/users';
 import tenants from '@/routes/tenants';
@@ -22,6 +22,7 @@ import features from '@/routes/features';
 import units from '@/routes/units';
 import activities from '@/routes/activities';
 import rates from '@/routes/rates';
+import reservations from '@/routes/reservations';
 
 const mainNavItems: NavItem[] = [
     {
@@ -40,14 +41,9 @@ const mainNavItems: NavItem[] = [
         icon: Store,
     },
     {
-        title: 'Rates',
-        href: rates.index(),
-        icon: Tags,
-    },
-    {
-        title: 'Features',
-        href: features.index(),
-        icon: Star,
+        title: 'Reservations',
+        href: reservations.index(),
+        icon: CalendarCheck,
     },
     {
         title: 'Units',
@@ -58,6 +54,16 @@ const mainNavItems: NavItem[] = [
         title: 'Activities',
         href: activities.index(),
         icon: Footprints,
+    },
+    {
+        title: 'Rates',
+        href: rates.index(),
+        icon: Tags,
+    },
+    {
+        title: 'Features',
+        href: features.index(),
+        icon: Star,
     },
 ];
 
