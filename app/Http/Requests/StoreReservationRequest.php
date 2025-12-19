@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Reservation;
+use App\Rules\PhoneNumberRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReservationRequest extends FormRequest
@@ -17,8 +18,8 @@ class StoreReservationRequest extends FormRequest
         return [
             'tenant_id'   => ['required', 'string', 'exists:tenants,id'],
             'guest_name'  => ['required', 'string', 'min:3', 'max:255'],
-            'guest_email' => ['nullable', 'email', 'max:255'],
-            'guest_phone' => ['nullable', 'string', 'max:50'],
+            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_phone' => ['required', 'string', new PhoneNumberRule()],
             'status'      => ['nullable', 'string', 'in:' . implode(',', Reservation::STATUSES)],
             'notes'       => ['nullable', 'string', 'max:5000'],
         ];
@@ -36,11 +37,29 @@ class StoreReservationRequest extends FormRequest
             'guest_name.min'      => 'The guest name must be at least 3 characters',
             'guest_name.max'      => 'The guest name cannot be longer than 255 characters',
 
+            'guest_email.required' => 'Please enter the guest email',
             'guest_email.email'   => 'Please enter a valid email address',
-            'guest_phone.max'     => 'Phone number is too long',
+
+            'guest_phone.required' => 'Please enter the guest phone number',
 
             'status.in'           => 'Invalid reservation status',
             'notes.max'           => 'Notes cannot be longer than 5000 characters',
         ];
+    }
+
+    /**
+     * Get the validated data from the request.
+     * Decode guest_phone from JSON string to array.
+     */
+    public function validated($key = null, $default = null): mixed
+    {
+        $validated = parent::validated($key, $default);
+
+        // If getting all validated data (no specific key)
+        if ($key === null && isset($validated['guest_phone']) && is_string($validated['guest_phone'])) {
+            $validated['guest_phone'] = json_decode($validated['guest_phone'], true);
+        }
+
+        return $validated;
     }
 }

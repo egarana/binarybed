@@ -14,27 +14,27 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->string('code', 10)->unique();
-            
+
             // Guest Information
             $table->string('guest_name', 255);
-            $table->string('guest_email')->nullable();
-            $table->string('guest_phone', 50)->nullable();
-            
+            $table->string('guest_email');
+            $table->json('guest_phone');
+
             // Status
             $table->enum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'])
                 ->default('PENDING');
-            
+
             // Totals (calculated from items)
             $table->unsignedBigInteger('subtotal')->default(0);
             $table->unsignedBigInteger('discount_amount')->default(0);
             $table->unsignedBigInteger('tax_amount')->default(0);
             $table->unsignedBigInteger('total_amount')->default(0);
             $table->string('currency', 3)->default('IDR');
-            
+
             // Notes
             $table->text('notes')->nullable();
             $table->text('cancellation_reason')->nullable();
-            
+
             $table->timestamps();
 
             // Indexes

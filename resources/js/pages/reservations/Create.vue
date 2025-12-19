@@ -6,9 +6,11 @@ import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
+import PhoneInput from '@/components/PhoneInput.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import InputError from '@/components/InputError.vue';
 
 defineProps<{
     tenants?: ComboboxOption[];
@@ -29,7 +31,7 @@ const { onSuccess, onError } = useFormNotifications({
 const selectedTenant = ref<ComboboxOption>();
 const guestName = ref('');
 const guestEmail = ref('');
-const guestPhone = ref('');
+const guestPhone = ref<{ country: { country: string; countryName: string; code: string }; number: string } | null>(null);
 const notes = ref('');
 </script>
 
@@ -81,39 +83,30 @@ const notes = ref('');
                 placeholder="e.g. john@example.com"
                 v-model="guestEmail"
                 :error="errors.guest_email"
-                :required="false"
+                :required="true"
             />
 
-            <FormField
-                id="guest_phone"
+            <PhoneInput
+                name="guest_phone"
                 label="Phone"
-                type="tel"
                 :tabindex="4"
-                autocomplete="tel"
-                placeholder="e.g. +628123456789"
                 v-model="guestPhone"
                 :error="errors.guest_phone"
-                :required="false"
+                :required="true"
             />
 
             <div class="grid gap-2">
-                <Label for="notes">Notes <span class="text-muted-foreground">(Optional)</span></Label>
+                <Label for="notes">Notes (Optional)</Label>
                 <Textarea
                     id="notes"
                     name="notes"
-                    v-model="notes"
-                    placeholder="Add any special requests or notes..."
                     :tabindex="5"
-                    :disabled="processing"
-                    rows="3"
+                    placeholder="Add any special requests or notes..."
+                    v-model="notes"
+                    rows="6"
                 />
-                <p v-if="errors.notes" class="text-sm text-destructive">{{ errors.notes }}</p>
+                <InputError :message="errors.notes" />
             </div>
-
-            <p class="text-sm text-muted-foreground">
-                <strong>Note:</strong> Reservation code will be generated automatically. 
-                You can add items after creating the reservation.
-            </p>
 
             <SubmitButton
                 :processing="processing"

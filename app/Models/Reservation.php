@@ -77,6 +77,50 @@ class Reservation extends Model
     }
 
     /**
+     * Get the guest phone attribute.
+     * Handles double-encoded legacy data.
+     */
+    public function getGuestPhoneAttribute($value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        // If it's already an array, return as-is
+        if (is_array($value)) {
+            return $value;
+        }
+
+        // Try to decode JSON
+        $decoded = json_decode($value, true);
+
+        // If decoded result is still a string (double-encoded), decode again
+        if (is_string($decoded)) {
+            $decoded = json_decode($decoded, true);
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Set the guest phone attribute.
+     * Ensures data is stored as proper JSON.
+     */
+    public function setGuestPhoneAttribute($value): void
+    {
+        // If it's a string (JSON from frontend), decode it first
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            }
+        }
+
+        // Store as JSON-encoded string
+        $this->attributes['guest_phone'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    /**
      * Get all items for this reservation.
      */
     public function items(): HasMany

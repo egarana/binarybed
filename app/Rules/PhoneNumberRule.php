@@ -9,6 +9,8 @@ class PhoneNumberRule implements ValidationRule
 {
     /**
      * Run the validation rule.
+     *
+     * @param  \Closure(string, array<string, string>=): void  $fail
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

@@ -6,10 +6,12 @@ import { useFormNotifications } from '@/composables/useFormNotifications';
 import BaseFormPage from '@/components/BaseFormPage.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
+import PhoneInput from '@/components/PhoneInput.vue';
+import InputError from '@/components/InputError.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import {
     Select,
     SelectContent,
@@ -18,29 +20,15 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
-interface ReservationItem {
-    id: number;
-    resource_name: string;
-    resource_type_label: string;
-    rate_name: string;
-    quantity: number;
-    duration_days: number | null;
-    duration_minutes: number | null;
-    rate_price: number;
-    line_total: number;
-    currency: string;
-    status: string;
-    start_date: string | null;
-    end_date: string | null;
-}
+
 
 interface Props {
     reservation: {
         id: number;
         code: string;
         guest_name: string;
-        guest_email: string | null;
-        guest_phone: string | null;
+        guest_email: string;
+        guest_phone: { country: { country: string; countryName: string; code: string }; number: string } | null;
         status: string;
         subtotal: number;
         total_amount: number;
@@ -48,7 +36,7 @@ interface Props {
         notes: string | null;
         cancellation_reason: string | null;
         tenant_id: string;
-        items: ReservationItem[];
+
         created_at: string;
         updated_at: string;
     };
@@ -69,8 +57,8 @@ const { onSuccess, onError } = useFormNotifications({
 
 // Form fields
 const guestName = ref(props.reservation.guest_name);
-const guestEmail = ref(props.reservation.guest_email || '');
-const guestPhone = ref(props.reservation.guest_phone || '');
+const guestEmail = ref(props.reservation.guest_email);
+const guestPhone = ref<{ country: { country: string; countryName: string; code: string }; number: string } | null>(props.reservation.guest_phone);
 const status = ref(props.reservation.status);
 const notes = ref(props.reservation.notes || '');
 const cancellationReason = ref(props.reservation.cancellation_reason || '');
@@ -87,13 +75,7 @@ const statusLabels: Record<string, string> = {
 // Show cancellation reason field when status is CANCELLED
 const showCancellationReason = computed(() => status.value === 'CANCELLED');
 
-// Active items
-const activeItems = computed(() => props.reservation.items?.filter(item => item.status === 'ACTIVE') || []);
 
-// Format currency
-const formatCurrency = (amount: number, currency: string = 'IDR') => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency, minimumFractionDigits: 0 }).format(amount);
-};
 
 // Transform to include all fields in form data
 function transformFormData(data: Record<string, any>) {
@@ -143,19 +125,16 @@ function transformFormData(data: Record<string, any>) {
                 placeholder="e.g. john@example.com"
                 v-model="guestEmail"
                 :error="errors.guest_email"
-                :required="false"
+                :required="true"
             />
 
-            <FormField
-                id="guest_phone"
+            <PhoneInput
+                name="guest_phone"
                 label="Phone"
-                type="tel"
                 :tabindex="3"
-                autocomplete="tel"
-                placeholder="e.g. +628123456789"
                 v-model="guestPhone"
                 :error="errors.guest_phone"
-                :required="false"
+                :required="true"
             />
 
             <!-- Status Selection -->
@@ -191,50 +170,16 @@ function transformFormData(data: Record<string, any>) {
 
             <!-- Notes -->
             <div class="grid gap-2">
-                <Label for="notes">Notes <span class="text-muted-foreground">(Optional)</span></Label>
+                <Label for="notes">Notes (Optional)</Label>
                 <Textarea
                     id="notes"
                     name="notes"
-                    v-model="notes"
-                    placeholder="Add any special requests or notes..."
                     :tabindex="6"
-                    :disabled="processing"
-                    rows="3"
+                    placeholder="Add any special requests or notes..."
+                    v-model="notes"
+                    rows="6"
                 />
-                <p v-if="errors.notes" class="text-sm text-destructive">{{ errors.notes }}</p>
-            </div>
-
-            <!-- Reservation Items -->
-            <Card v-if="activeItems.length > 0">
-                <CardHeader>
-                    <CardTitle class="text-base">Items ({{ activeItems.length }})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="space-y-3">
-                        <div v-for="item in activeItems" :key="item.id" class="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                                <div class="font-medium">{{ item.resource_name }}</div>
-                                <div class="text-sm text-muted-foreground">
-                                    {{ item.resource_type_label }} • {{ item.rate_name }}
-                                    <span v-if="item.duration_days"> • {{ item.duration_days }} {{ item.duration_days > 1 ? 'nights' : 'night' }}</span>
-                                    <span v-if="item.duration_minutes"> • {{ Math.floor(item.duration_minutes / 60) }}h {{ item.duration_minutes % 60 }}m</span>
-                                    <span v-if="item.quantity > 1"> • {{ item.quantity }}x</span>
-                                </div>
-                            </div>
-                            <div class="text-right font-medium">
-                                {{ formatCurrency(item.line_total, item.currency) }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t flex justify-between font-semibold">
-                        <span>Total</span>
-                        <span>{{ formatCurrency(reservation.total_amount, reservation.currency) }}</span>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div v-else class="p-4 border border-dashed rounded-lg text-center text-muted-foreground">
-                No items added yet. Items can be added after saving the reservation.
+                <InputError :message="errors.notes" />
             </div>
 
             <SubmitButton
