@@ -189,6 +189,15 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('{tenant}/{code}/edit', 'edit')->name('edit');
                     Route::put('{tenant}/{code}', 'update')->name('update');
                     // Note: No delete route - reservations cannot be deleted, only cancelled via status change
+
+                    // Item routes
+                    Route::get('{tenant}/{code}/items', 'items')->name('items');
+                    Route::get('{tenant}/{code}/items/create', 'createItem')->name('items.create');
+                    Route::post('{tenant}/{code}/items', 'storeItem')->name('items.store');
+                    Route::delete('{tenant}/{code}/items/{item}', 'cancelItem')->name('items.cancel');
+
+                    // API endpoint for getting rates by resource
+                    Route::get('{tenant}/{code}/items/rates', 'getResourceRates')->name('items.rates');
                 });
         });
     });

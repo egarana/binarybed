@@ -167,10 +167,23 @@ class RateRepository
             if ($filterValue !== null && $filterValue !== '') {
                 // Handle status filter (convert to boolean comparison)
                 if ($urlParam === 'status') {
+                    // Validate status value
+                    if (!in_array($filterValue, ['active', 'inactive', '1', '0', 'true', 'false'])) {
+                        continue; // Skip invalid value
+                    }
                     $isActive = $filterValue === 'active' || $filterValue === '1' || $filterValue === 'true';
                     $collection = $collection->filter(fn($item) => $item[$actualField] == $isActive);
+                } elseif ($urlParam === 'type') {
+                    // Validate type value (only Unit or Activity allowed)
+                    $allowedTypes = ['unit', 'activity', 'Unit', 'Activity'];
+                    if (!in_array($filterValue, $allowedTypes)) {
+                        continue; // Skip invalid value
+                    }
+                    $collection = $collection->filter(
+                        fn($item) => strtolower($item[$actualField] ?? '') === strtolower($filterValue)
+                    );
                 } else {
-                    // Handle type filter (case-insensitive match)
+                    // Default: case-insensitive match
                     $collection = $collection->filter(
                         fn($item) => strtolower($item[$actualField] ?? '') === strtolower($filterValue)
                     );
@@ -178,13 +191,16 @@ class RateRepository
             }
         }
 
-        // Also handle currency filter at collection level if needed
-        // (backup in case DB-level filter wasn't applied)
+        // Handle currency filter at collection level with validation
         $currencyFilter = $request->input('currency');
         if ($currencyFilter !== null && $currencyFilter !== '') {
-            $collection = $collection->filter(
-                fn($item) => strtoupper($item['currency'] ?? '') === strtoupper($currencyFilter)
-            );
+            // Validate currency code (ISO 4217 common codes)
+            $allowedCurrencies = ['IDR', 'USD', 'EUR', 'JPY', 'SGD', 'AUD', 'GBP'];
+            if (in_array(strtoupper($currencyFilter), $allowedCurrencies)) {
+                $collection = $collection->filter(
+                    fn($item) => strtoupper($item['currency'] ?? '') === strtoupper($currencyFilter)
+                );
+            }
         }
 
         return $collection;

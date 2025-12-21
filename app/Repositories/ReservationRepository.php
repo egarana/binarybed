@@ -36,6 +36,7 @@ class ReservationRepository
                 'guest_name',
                 'status',
                 'total_amount',
+                'items_count',
                 'created_at',
                 'updated_at',
             ])
@@ -53,7 +54,7 @@ class ReservationRepository
             : ['code', 'guest_name', 'guest_email'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'items_count'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
@@ -92,7 +93,26 @@ class ReservationRepository
                 $reservationArray = $reservation->toArray();
                 $reservationArray['tenant_id'] = $tenant->id;
                 $reservationArray['tenant_name'] = $tenant->name ?? $tenant->id;
-                $reservationArray['items_count'] = $reservation->items->where('status', 'ACTIVE')->count();
+
+                // Get active items
+                $activeItems = $reservation->items->where('status', 'ACTIVE');
+
+                // Total count for sorting
+                $reservationArray['items_count'] = $activeItems->count();
+
+                // Dynamic grouping by resource type (flexible for future resource types)
+                $itemsByType = $activeItems->groupBy(function ($item) {
+                    // Normalize old 'Unit' labels to 'Room' for consistency
+                    $label = $item->resource_type_label;
+                    if ($label === 'Unit' || empty($label)) {
+                        return 'Room';
+                    }
+                    return $label;
+                });
+
+                // Convert to simple count array: ['Room' => 2, 'Activity' => 3, 'Vehicle' => 1, ...]
+                $reservationArray['items_by_type'] = $itemsByType->map(fn($items) => $items->count())->toArray();
+
                 return $reservationArray;
             }
         );
@@ -106,6 +126,9 @@ class ReservationRepository
         if ($searchValue && $needsCollectionSearch) {
             $allReservations = $this->applyCollectionSearch($allReservations, $searchValue, $searchFields);
         }
+
+        // Apply collection-level filters
+        $allReservations = $this->applyCollectionFilters($request, $allReservations);
 
         // Apply sorting manually (data is merged from multiple databases)
         $sortField = $request->input('sort', '-created_at');
@@ -132,6 +155,39 @@ class ReservationRepository
         }
 
         return $result;
+    }
+
+    /**
+     * Apply collection-level filters for fields that are added post-query or need special handling
+     */
+    private function applyCollectionFilters(Request $request, $collection)
+    {
+        // Handle status filter (supports multiple comma-separated values)
+        $statusFilter = $request->input('status');
+
+        if ($statusFilter !== null && $statusFilter !== '') {
+            // Split by comma for multiple values
+            $statuses = array_map('trim', explode(',', $statusFilter));
+
+            // Validate against allowed status values
+            $allowedStatuses = [
+                Reservation::STATUS_PENDING,
+                Reservation::STATUS_CONFIRMED,
+                Reservation::STATUS_CANCELLED,
+                Reservation::STATUS_COMPLETED,
+                Reservation::STATUS_NO_SHOW,
+            ];
+
+            // Filter out invalid values (protection against URL manipulation)
+            $validStatuses = array_filter($statuses, fn($status) => in_array($status, $allowedStatuses));
+
+            // Only apply filter if we have valid statuses
+            if (!empty($validStatuses)) {
+                $collection = $collection->filter(fn($item) => in_array($item['status'], $validStatuses));
+            }
+        }
+
+        return $collection;
     }
 
     public function getForEdit(Reservation $reservation): Reservation

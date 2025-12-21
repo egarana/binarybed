@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Activity;
 use App\Models\Feature;
 use App\Models\Rate;
+use App\Models\Reservation;
+use App\Models\ReservationItem;
 use App\Models\ResourceFeature;
 use App\Models\Tenant;
 use App\Models\Unit;
@@ -13,406 +15,346 @@ use App\Models\UserTenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Faker\Factory as Faker;
 
 class DummyDataSeeder extends Seeder
 {
+    private $faker;
+    private $createdUsers = [];
+
+    public function __construct()
+    {
+        $this->faker = Faker::create('id_ID'); // Indonesian locale
+    }
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        echo "🌱 Starting dummy data seeding...\n";
+
         // Seed Users
-        echo "🌱 Seeding 30 users...\n";
-        $this->seedUsers();
+        echo "👥 Seeding users...\n";
+        $this->seedUsers(30);
 
         // Seed Tenants
-        echo "🏢 Seeding 10 tenants...\n";
-        $this->seedTenants();
+        echo "🏢 Seeding tenants...\n";
+        $this->seedTenants(10);
+
+        // Seed Reservations
+        echo "📅 Seeding reservations...\n";
+        $this->seedReservations();
 
         echo "✅ Dummy data seeding completed!\n";
     }
 
     /**
-     * ==========================================
-     * USER SEEDING - HARD CODED (30 users)
-     * ==========================================
+     * Seed users with Faker
      */
-    private function seedUsers(): void
+    private function seedUsers(int $count): void
     {
-        $users = [
-            // 50% Balinese names (15 users)
-            ['name' => 'I Wayan Sukarta', 'email' => 'wayan.sukarta@example.com'],
-            ['name' => 'Ni Luh Sari', 'email' => 'luh.sari@example.com'],
-            ['name' => 'I Made Agus', 'email' => 'made.agus@example.com'],
-            ['name' => 'Ni Made Dewi', 'email' => 'made.dewi@example.com'],
-            ['name' => 'I Nyoman Putra', 'email' => 'nyoman.putra@example.com'],
-            ['name' => 'Ni Nyoman Ayu', 'email' => 'nyoman.ayu@example.com'],
-            ['name' => 'I Ketut Rai', 'email' => 'ketut.rai@example.com'],
-            ['name' => 'Ni Ketut Kadek', 'email' => 'ketut.kadek@example.com'],
-            ['name' => 'I Wayan Sudana', 'email' => 'wayan.sudana@example.com'],
-            ['name' => 'Ni Luh Wulandari', 'email' => 'luh.wulandari@example.com'],
-            ['name' => 'I Made Gede', 'email' => 'made.gede@example.com'],
-            ['name' => 'Ni Made Puspita', 'email' => 'made.puspita@example.com'],
-            ['name' => 'I Nyoman Widana', 'email' => 'nyoman.widana@example.com'],
-            ['name' => 'Ni Nyoman Indah', 'email' => 'nyoman.indah@example.com'],
-            ['name' => 'I Ketut Suryawan', 'email' => 'ketut.suryawan@example.com'],
+        for ($i = 0; $i < $count; $i++) {
+            // Mix of Indonesian and international names
+            $isIndonesian = $this->faker->boolean(70); // 70% Indonesian names
 
-            // 25% Indonesian names (8 users)
-            ['name' => 'Budi Santoso', 'email' => 'budi.santoso@example.com'],
-            ['name' => 'Siti Rahayu', 'email' => 'siti.rahayu@example.com'],
-            ['name' => 'Ahmad Pratama', 'email' => 'ahmad.pratama@example.com'],
-            ['name' => 'Dewi Lestari', 'email' => 'dewi.lestari@example.com'],
-            ['name' => 'Rizki Wijaya', 'email' => 'rizki.wijaya@example.com'],
-            ['name' => 'Maya Permata', 'email' => 'maya.permata@example.com'],
-            ['name' => 'Andi Kusuma', 'email' => 'andi.kusuma@example.com'],
-            ['name' => 'Fitri Handayani', 'email' => 'fitri.handayani@example.com'],
+            if ($isIndonesian) {
+                $name = $this->faker->name();
+            } else {
+                $fakerEn = Faker::create('en_US');
+                $name = $fakerEn->name();
+            }
 
-            // 25% International names (7 users)
-            ['name' => 'John Smith', 'email' => 'john.smith@example.com'],
-            ['name' => 'Sarah Johnson', 'email' => 'sarah.johnson@example.com'],
-            ['name' => 'Michael Brown', 'email' => 'michael.brown@example.com'],
-            ['name' => 'Emily Davis', 'email' => 'emily.davis@example.com'],
-            ['name' => 'David Wilson', 'email' => 'david.wilson@example.com'],
-            ['name' => 'Lisa Anderson', 'email' => 'lisa.anderson@example.com'],
-            ['name' => 'James Taylor', 'email' => 'james.taylor@example.com'],
-        ];
+            $email = $this->generateEmailFromName($name);
 
-        foreach ($users as $userData) {
-            User::create([
+            $user = User::create([
                 'global_id' => Str::uuid()->toString(),
-                'name' => $userData['name'],
-                'email' => $userData['email'],
+                'name' => $name,
+                'email' => $email,
                 'password' => Hash::make('password123'),
             ]);
+
+            $this->createdUsers[] = $user;
         }
+
+        echo "  ✓ Created {$count} users\n";
     }
 
     /**
-     * ==========================================
-     * TENANT SEEDING - HARD CODED (10 tenants)
-     * 5 with accommodations + activities
-     * 5 with activities only
-     * ==========================================
+     * Seed tenants with dynamic data
      */
-    private function seedTenants(): void
+    private function seedTenants(int $count): void
     {
-        $tenants = [
-            // 5 tenants with both ACCOMMODATIONS (units) and ACTIVITIES
-            [
-                'id' => 'karmabeachresort',
-                'name' => 'Karma Beach Resort',
-                'domain' => 'karmabeachresort.test',
-                'resource_routes' => [
-                    'accommodations' => 'units',
-                    'experiences' => 'activities',
-                ],
-                'units' => [
-                    ['name' => 'Ocean View Villa', 'slug' => 'ocean-view-villa'],
-                    ['name' => 'Garden Pool Villa', 'slug' => 'garden-pool-villa'],
-                    ['name' => 'Deluxe Suite', 'slug' => 'deluxe-suite'],
-                    ['name' => 'Beach Front Villa', 'slug' => 'beach-front-villa'],
-                    ['name' => 'Lotus Conference Hall', 'slug' => 'lotus-conference-hall'],
-                    ['name' => 'Serenity Spa Room', 'slug' => 'serenity-spa-room'],
-                ],
-                'activities' => [
-                    ['name' => 'Balinese Massage', 'slug' => 'balinese-massage'],
-                    ['name' => 'Surfing Lessons', 'slug' => 'surfing-lessons'],
-                    ['name' => 'Yoga Class', 'slug' => 'yoga-class'],
-                    ['name' => 'Sunset Dinner Cruise', 'slug' => 'sunset-dinner-cruise'],
-                    ['name' => 'Snorkeling Trip', 'slug' => 'snorkeling-trip'],
-                ],
-            ],
-            [
-                'id' => 'sanurparadisehotel',
-                'name' => 'Sanur Paradise Hotel',
-                'domain' => 'sanurparadisehotel.test',
-                'resource_routes' => [
-                    'rooms' => 'units',
-                    'experiences' => 'activities',
-                ],
-                'units' => [
-                    ['name' => 'Superior Room', 'slug' => 'superior-room'],
-                    ['name' => 'Executive Room', 'slug' => 'executive-room'],
-                    ['name' => 'Deluxe Suite', 'slug' => 'deluxe-suite'],
-                    ['name' => 'Presidential Suite', 'slug' => 'presidential-suite'],
-                    ['name' => 'Frangipani Meeting Room', 'slug' => 'frangipani-meeting-room'],
-                ],
-                'activities' => [
-                    ['name' => 'Traditional Dance Show', 'slug' => 'traditional-dance-show'],
-                    ['name' => 'Hot Stone Therapy', 'slug' => 'hot-stone-therapy'],
-                    ['name' => 'Cooking Class', 'slug' => 'cooking-class'],
-                    ['name' => 'Temple Tour', 'slug' => 'temple-tour'],
-                ],
-            ],
-            [
-                'id' => 'seminyakvillaretreat',
-                'name' => 'Seminyak Villa Retreat',
-                'domain' => 'seminyakvillaretreat.test',
-                'resource_routes' => [
-                    'villas' => 'units',
-                    'experiences' => 'activities',
-                ],
-                'units' => [
-                    ['name' => 'Tropical Villa', 'slug' => 'tropical-villa'],
-                    ['name' => 'Sunset Villa', 'slug' => 'sunset-villa'],
-                    ['name' => 'Private Garden Villa', 'slug' => 'private-garden-villa'],
-                    ['name' => 'Clifftop Villa', 'slug' => 'clifftop-villa'],
-                    ['name' => 'Harmony Spa Suite', 'slug' => 'harmony-spa-suite'],
-                ],
-                'activities' => [
-                    ['name' => 'Couples Spa Package', 'slug' => 'couples-spa-package'],
-                    ['name' => 'Private Beach Dining', 'slug' => 'private-beach-dining'],
-                    ['name' => 'Romantic Photoshoot', 'slug' => 'romantic-photoshoot'],
-                    ['name' => 'Sunset Cocktail Ceremony', 'slug' => 'sunset-cocktail-ceremony'],
-                    ['name' => 'Beach Bonfire Night', 'slug' => 'beach-bonfire-night'],
-                ],
-            ],
-            [
-                'id' => 'ubudgardenspa',
-                'name' => 'Ubud Garden Spa',
-                'domain' => 'ubudgardenspa.test',
-                'resource_routes' => [
-                    'spa-rooms' => 'units',
-                    'treatments' => 'activities',
-                ],
-                'units' => [
-                    ['name' => 'Zen Therapy Room', 'slug' => 'zen-therapy-room'],
-                    ['name' => 'Tranquil Massage Room', 'slug' => 'tranquil-massage-room'],
-                    ['name' => 'Lotus Spa Chamber', 'slug' => 'lotus-spa-chamber'],
-                    ['name' => 'Balance Spa Room', 'slug' => 'balance-spa-room'],
-                    ['name' => 'Garden Spa Pavilion', 'slug' => 'garden-spa-pavilion'],
-                    ['name' => 'Wooden Bungalow', 'slug' => 'wooden-bungalow'],
-                ],
-                'activities' => [
-                    ['name' => 'Aromatherapy Session', 'slug' => 'aromatherapy-session'],
-                    ['name' => 'Meditation Session', 'slug' => 'meditation-session'],
-                    ['name' => 'Reflexology Foot Massage', 'slug' => 'reflexology-foot-massage'],
-                    ['name' => 'Detox Body Wrap', 'slug' => 'detox-body-wrap'],
-                    ['name' => 'Rice Terrace Visit', 'slug' => 'rice-terrace-visit'],
-                    ['name' => 'Tai Chi Session', 'slug' => 'tai-chi-session'],
-                ],
-            ],
-            [
-                'id' => 'nusaduahospitality',
-                'name' => 'Nusa Dua Hospitality',
-                'domain' => 'nusaduahospitality.test',
-                'resource_routes' => [
-                    'venues' => 'units',
-                    'services' => 'activities',
-                ],
-                'units' => [
-                    ['name' => 'Deluxe Pool Villa', 'slug' => 'deluxe-pool-villa'],
-                    ['name' => 'Sea Breeze Villa', 'slug' => 'sea-breeze-villa'],
-                    ['name' => 'Junior Suite', 'slug' => 'junior-suite'],
-                    ['name' => 'Penthouse Suite', 'slug' => 'penthouse-suite'],
-                    ['name' => 'Orchid Boardroom', 'slug' => 'orchid-boardroom'],
-                    ['name' => 'Grand Ballroom', 'slug' => 'grand-ballroom'],
-                    ['name' => 'Nirvana Treatment Suite', 'slug' => 'nirvana-treatment-suite'],
-                ],
-                'activities' => [
-                    ['name' => 'Facial Treatment', 'slug' => 'facial-treatment'],
-                    ['name' => 'Wine Tasting Session', 'slug' => 'wine-tasting-session'],
-                    ['name' => 'Chef Table Experience', 'slug' => 'chef-table-experience'],
-                    ['name' => 'Parasailing Adventure', 'slug' => 'parasailing-adventure'],
-                    ['name' => 'Jet Ski Rental', 'slug' => 'jet-ski-rental'],
-                    ['name' => 'Live Music Night', 'slug' => 'live-music-night'],
-                ],
-            ],
-
-            // 5 tenants with ACTIVITIES ONLY (no units/accommodations)
-            [
-                'id' => 'balihaidiving',
-                'name' => 'Bali Hai Diving Center',
-                'domain' => 'balihaidiving.test',
-                'resource_routes' => [
-                    'dive-courses' => 'activities',
-                ],
-                'units' => [],
-                'activities' => [
-                    ['name' => 'Scuba Diving', 'slug' => 'scuba-diving'],
-                    ['name' => 'Deep Sea Fishing', 'slug' => 'deep-sea-fishing'],
-                    ['name' => 'Glass Bottom Boat Tour', 'slug' => 'glass-bottom-boat-tour'],
-                    ['name' => 'Snorkeling Trip', 'slug' => 'snorkeling-trip'],
-                    ['name' => 'Kayaking Tour', 'slug' => 'kayaking-tour'],
-                    ['name' => 'Underwater Photography', 'slug' => 'underwater-photography'],
-                ],
-            ],
-            [
-                'id' => 'canggusurfschool',
-                'name' => 'Canggu Surf School',
-                'domain' => 'canggusurfschool.test',
-                'resource_routes' => [
-                    'lessons' => 'activities',
-                ],
-                'units' => [],
-                'activities' => [
-                    ['name' => 'Beginner Surfing Lessons', 'slug' => 'beginner-surfing-lessons'],
-                    ['name' => 'Advanced Surfing Lessons', 'slug' => 'advanced-surfing-lessons'],
-                    ['name' => 'Stand-Up Paddleboarding', 'slug' => 'stand-up-paddleboarding'],
-                    ['name' => 'Beach Bootcamp', 'slug' => 'beach-bootcamp'],
-                    ['name' => 'Surf Photography Package', 'slug' => 'surf-photography-package'],
-                ],
-            ],
-            [
-                'id' => 'baliadvtours',
-                'name' => 'Bali Adventure Tours',
-                'domain' => 'baliadvtours.test',
-                'resource_routes' => [
-                    'tours' => 'activities',
-                ],
-                'units' => [],
-                'activities' => [
-                    ['name' => 'ATV Riding Adventure', 'slug' => 'atv-riding-adventure'],
-                    ['name' => 'White Water Rafting', 'slug' => 'white-water-rafting'],
-                    ['name' => 'Jungle Trekking', 'slug' => 'jungle-trekking'],
-                    ['name' => 'Waterfall Exploration', 'slug' => 'waterfall-exploration'],
-                    ['name' => 'Mount Batur Sunrise Trek', 'slug' => 'mount-batur-sunrise-trek'],
-                    ['name' => 'Rice Terrace Cycling', 'slug' => 'rice-terrace-cycling'],
-                ],
-            ],
-            [
-                'id' => 'ubudculturalexp',
-                'name' => 'Ubud Cultural Experiences',
-                'domain' => 'ubudculturalexp.test',
-                'resource_routes' => [
-                    'classes' => 'activities',
-                ],
-                'units' => [],
-                'activities' => [
-                    ['name' => 'Balinese Cooking Class', 'slug' => 'balinese-cooking-class'],
-                    ['name' => 'Traditional Dance Workshop', 'slug' => 'traditional-dance-workshop'],
-                    ['name' => 'Batik Making Class', 'slug' => 'batik-making-class'],
-                    ['name' => 'Wood Carving Workshop', 'slug' => 'wood-carving-workshop'],
-                    ['name' => 'Temple Ceremony Tour', 'slug' => 'temple-ceremony-tour'],
-                    ['name' => 'Silver Jewelry Making', 'slug' => 'silver-jewelry-making'],
-                ],
-            ],
-            [
-                'id' => 'baliwellness',
-                'name' => 'Bali Wellness Hub',
-                'domain' => 'baliwellness.test',
-                'resource_routes' => [
-                    'programs' => 'activities',
-                ],
-                'units' => [],
-                'activities' => [
-                    ['name' => 'Yoga & Meditation Retreat', 'slug' => 'yoga-meditation-retreat'],
-                    ['name' => 'Sound Healing Session', 'slug' => 'sound-healing-session'],
-                    ['name' => 'Reiki Energy Healing', 'slug' => 'reiki-energy-healing'],
-                    ['name' => 'Breathwork Workshop', 'slug' => 'breathwork-workshop'],
-                    ['name' => 'Holistic Wellness Consultation', 'slug' => 'holistic-wellness-consultation'],
-                    ['name' => 'Detox Program', 'slug' => 'detox-program'],
-                ],
-            ],
+        $businessTypes = [
+            'resort' => ['units' => true, 'activities' => true],
+            'hotel' => ['units' => true, 'activities' => true],
+            'villa' => ['units' => true, 'activities' => true],
+            'spa' => ['units' => true, 'activities' => true],
+            'diving_center' => ['units' => false, 'activities' => true],
+            'surf_school' => ['units' => false, 'activities' => true],
+            'adventure_tours' => ['units' => false, 'activities' => true],
+            'cultural_center' => ['units' => false, 'activities' => true],
+            'wellness_hub' => ['units' => false, 'activities' => true],
         ];
 
-        foreach ($tenants as $tenantData) {
-            // Create tenant with basic info first
+        $businessTypeKeys = array_keys($businessTypes);
+
+        for ($i = 0; $i < $count; $i++) {
+            $businessType = $businessTypeKeys[array_rand($businessTypeKeys)];
+            $config = $businessTypes[$businessType];
+
+            // Generate business name and ensure unique tenant ID
+            $businessName = $this->generateBusinessName($businessType);
+            $tenantId = Str::slug($businessName, '');
+
+            // Ensure unique tenant ID
+            $counter = 1;
+            $originalTenantId = $tenantId;
+            while (Tenant::where('id', $tenantId)->exists()) {
+                $tenantId = $originalTenantId . $counter;
+                $counter++;
+            }
+
+            $domain = $tenantId . '.test';
+
+            // Create tenant
             $tenant = Tenant::create([
-                'id' => $tenantData['id'],
-                'name' => $tenantData['name'],
+                'id' => $tenantId,
+                'name' => $businessName,
             ]);
 
-            // Set custom attributes using Stancl Tenancy's dynamic attribute style
-            // These are stored in the 'data' JSON column automatically
-            $tenant->resource_routes = $tenantData['resource_routes'] ?? [];
+            // Set resource routes
+            $resourceRoutes = [];
+            if ($config['units']) {
+                $resourceRoutes[$this->getAccommodationKey($businessType)] = 'units';
+            }
+            if ($config['activities']) {
+                $resourceRoutes[$this->getExperienceKey($businessType)] = 'activities';
+            }
+
+            $tenant->resource_routes = $resourceRoutes;
             $tenant->save();
 
             // Create domain
-            $tenant->domains()->create([
-                'domain' => $tenantData['domain'],
-            ]);
+            $tenant->domains()->create(['domain' => $domain]);
 
-            // Seed units and activities in tenant context
+            // Seed in tenant context
             tenancy()->initialize($tenant);
 
-            // Sync all features from central to tenant database
+            // Sync features
             $this->syncFeaturesToTenant();
 
-            foreach ($tenantData['units'] as $unitData) {
-                $unit = Unit::create([
-                    'name' => $unitData['name'],
-                    'slug' => $unitData['slug'],
-                ]);
-
-                // Create 1-5 rates for this unit with realistic names
-                $this->seedRatesForUnit($unit);
-
-                // Randomly attach 0-3 users to this unit
-                $this->attachRandomUsersToUnit($unit);
-
-                // Attach 12-25 features to this unit
-                $this->attachFeaturesToUnit($unit);
+            // Seed units if applicable
+            $unitCount = 0;
+            if ($config['units']) {
+                $unitCount = $this->faker->numberBetween(3, 7);
+                for ($j = 0; $j < $unitCount; $j++) {
+                    $this->createUnit($businessType);
+                }
             }
 
-            // Seed activities from hardcoded tenant data
-            foreach ($tenantData['activities'] as $activityData) {
-                $activity = Activity::create([
-                    'name' => $activityData['name'],
-                    'slug' => $activityData['slug'],
-                ]);
-
-                // Create 1-5 rates for this activity with realistic names
-                $this->seedRatesForActivity($activity);
-
-                // Randomly attach 0-3 users to this activity
-                $this->attachRandomUsersToActivity($activity);
-
-                // Attach 12-25 features to this activity
-                $this->attachFeaturesToActivity($activity);
+            // Seed activities if applicable
+            $activityCount = 0;
+            if ($config['activities']) {
+                $activityCount = $this->faker->numberBetween(4, 6);
+                for ($j = 0; $j < $activityCount; $j++) {
+                    $this->createActivity($businessType);
+                }
             }
 
             tenancy()->end();
 
-            echo "  ✓ Created tenant: {$tenant->name} with " . count($tenantData['units']) . " units and " . count($tenantData['activities']) . " activities\n";
+            echo "  ✓ Created tenant: {$businessName} ({$unitCount} units, {$activityCount} activities)\n";
         }
     }
 
-
     /**
-     * Seed rates for a unit with realistic pricing
+     * Generate business name based on type
      */
-    private function seedRatesForUnit(Unit $unit): void
+    private function generateBusinessName(string $type): string
     {
-        // Hardcoded rates - randomly choose one set
-        $rateSets = [
-            // Set 1: Standard + Weekend + Peak Season
-            [
-                ['name' => 'Standard Rate', 'price' => 850000, 'description' => 'Our regular pricing for all year round bookings'],
-                ['name' => 'Weekend Rate', 'price' => 1200000, 'description' => 'Special pricing for Friday, Saturday and Sunday'],
-                ['name' => 'Peak Season Rate', 'price' => 2500000, 'description' => 'High season pricing (July-August, December-January)'],
-            ],
-            // Set 2: Early Bird + Last Minute + Holiday
-            [
-                ['name' => 'Early Bird Rate', 'price' => 750000, 'description' => 'Book 30+ days in advance and save'],
-                ['name' => 'Last Minute Rate', 'price' => 950000, 'description' => 'Limited availability for last minute bookings'],
-                ['name' => 'Holiday Rate', 'price' => 2000000, 'description' => 'Premium pricing for public holidays and special occasions'],
-            ],
-            // Set 3: Standard + Long Stay + Corporate
-            [
-                ['name' => 'Standard Rate', 'price' => 900000, 'description' => 'Our regular pricing for all year round bookings'],
-                ['name' => 'Long Stay Rate (7+ nights)', 'price' => 650000, 'description' => 'Discounted rate for extended stays'],
-                ['name' => 'Corporate Rate', 'price' => 1100000, 'description' => 'Special pricing for business travelers and corporate accounts'],
-                ['name' => 'Monthly Rate', 'price' => 550000, 'description' => 'Best value for monthly bookings'],
-            ],
-            // Set 4: Low Season + Midweek + Honeymoon
-            [
-                ['name' => 'Low Season Rate', 'price' => 600000, 'description' => 'Best value pricing during quiet months'],
-                ['name' => 'Midweek Special', 'price' => 700000, 'description' => 'Great value for Monday to Thursday stays'],
-                ['name' => 'Honeymoon Package', 'price' => 3000000, 'description' => 'Romantic package with special inclusions'],
-            ],
+        $prefixes = ['Bali', 'Sanur', 'Ubud', 'Canggu', 'Seminyak', 'Nusa Dua', 'Karma', 'Paradise'];
+        $prefix = $this->faker->randomElement($prefixes);
+
+        $suffixes = [
+            'resort' => ['Resort', 'Beach Resort', 'Luxury Resort'],
+            'hotel' => ['Hotel', 'Paradise Hotel', 'Grand Hotel'],
+            'villa' => ['Villa Retreat', 'Villa', 'Villas'],
+            'spa' => ['Spa', 'Garden Spa', 'Wellness Spa'],
+            'diving_center' => ['Diving Center', 'Dive Club', 'Scuba Center'],
+            'surf_school' => ['Surf School', 'Surf Academy', 'Wave School'],
+            'adventure_tours' => ['Adventure Tours', 'Adventures', 'Expeditions'],
+            'cultural_center' => ['Cultural Experiences', 'Cultural Center', 'Heritage Tours'],
+            'wellness_hub' => ['Wellness Hub', 'Wellness Center', 'Holistic Retreat'],
         ];
 
-        // Randomly pick one rate set
-        $selectedSet = $rateSets[array_rand($rateSets)];
+        $suffix = $this->faker->randomElement($suffixes[$type] ?? ['Resort']);
 
-        // Create rates from selected set
-        foreach ($selectedSet as $rateData) {
+        return $prefix . ' ' . $suffix;
+    }
+
+    /**
+     * Get accommodation route key based on business type
+     */
+    private function getAccommodationKey(string $type): string
+    {
+        $keys = [
+            'resort' => ['accommodations', 'rooms'],
+            'hotel' => ['rooms', 'accommodations'],
+            'villa' => ['villas', 'accommodations'],
+            'spa' => ['spa-rooms', 'treatment-rooms'],
+        ];
+
+        return $this->faker->randomElement($keys[$type] ?? ['units']);
+    }
+
+    /**
+     * Get experience route key based on business type
+     */
+    private function getExperienceKey(string $type): string
+    {
+        $keys = [
+            'resort' => ['experiences', 'activities'],
+            'hotel' => ['experiences', 'services'],
+            'villa' => ['experiences', 'activities'],
+            'spa' => ['treatments', 'services'],
+            'diving_center' => ['dive-courses', 'programs'],
+            'surf_school' => ['lessons', 'courses'],
+            'adventure_tours' => ['tours', 'adventures'],
+            'cultural_center' => ['classes', 'workshops'],
+            'wellness_hub' => ['programs', 'sessions'],
+        ];
+
+        return $this->faker->randomElement($keys[$type] ?? ['activities']);
+    }
+
+    /**
+     * Create a unit with Faker data
+     */
+    private function createUnit(string $businessType): void
+    {
+        $unitTypes = [
+            'resort' => ['Ocean View Villa', 'Garden Pool Villa', 'Beach Front Villa', 'Deluxe Suite', 'Presidential Suite'],
+            'hotel' => ['Superior Room', 'Deluxe Room', 'Executive Suite', 'Junior Suite', 'Presidential Suite'],
+            'villa' => ['Tropical Villa', 'Sunset Villa', 'Private Garden Villa', 'Clifftop Villa', 'Pool Villa'],
+            'spa' => ['Therapy Room', 'Massage Suite', 'Spa Chamber', 'Treatment Room', 'Wellness Pavilion'],
+        ];
+
+        $types = $unitTypes[$businessType] ?? ['Standard Unit', 'Premium Unit', 'Deluxe Unit'];
+        $typeName = $this->faker->randomElement($types);
+
+        // Add variation with adjectives
+        $adjectives = ['', 'Luxury ', 'Premium ', 'Exclusive ', 'Superior '];
+        $adjective = $this->faker->randomElement($adjectives);
+
+        $name = $adjective . $typeName;
+        $slug = Str::slug($name);
+
+        // Ensure unique slug
+        $counter = 1;
+        $originalSlug = $slug;
+        while (Unit::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        $unit = Unit::create([
+            'name' => $name,
+            'slug' => $slug,
+        ]);
+
+        // Create rates
+        $this->createRatesForUnit($unit);
+
+        // Attach users
+        $this->attachUsersToResource($unit, 'unit');
+
+        // Attach features
+        $this->attachFeaturesToResource($unit, 'unit');
+    }
+
+    /**
+     * Create an activity with Faker data
+     */
+    private function createActivity(string $businessType): void
+    {
+        $activityTypes = [
+            'resort' => ['Massage', 'Yoga Class', 'Surfing Lessons', 'Snorkeling Trip', 'Sunset Cruise'],
+            'hotel' => ['Traditional Dance Show', 'Cooking Class', 'Temple Tour', 'Spa Treatment'],
+            'villa' => ['Private Beach Dining', 'Couples Spa Package', 'Romantic Photoshoot', 'Cocktail Ceremony'],
+            'spa' => ['Aromatherapy Session', 'Meditation Session', 'Body Wrap', 'Facial Treatment'],
+            'diving_center' => ['Scuba Diving', 'Deep Sea Fishing', 'Snorkeling Trip', 'Boat Tour', 'Underwater Photography'],
+            'surf_school' => ['Surfing Lessons', 'Stand-Up Paddleboarding', 'Beach Bootcamp', 'Surf Photography'],
+            'adventure_tours' => ['ATV Riding', 'White Water Rafting', 'Jungle Trekking', 'Waterfall Tour', 'Cycling Tour'],
+            'cultural_center' => ['Cooking Class', 'Dance Workshop', 'Batik Making', 'Wood Carving', 'Temple Tour'],
+            'wellness_hub' => ['Yoga Retreat', 'Sound Healing', 'Reiki Healing', 'Breathwork Workshop', 'Detox Program'],
+        ];
+
+        $types = $activityTypes[$businessType] ?? ['Experience', 'Activity', 'Session'];
+        $typeName = $this->faker->randomElement($types);
+
+        // Add variation
+        $prefixes = ['', 'Balinese ', 'Traditional ', 'Modern ', 'Authentic '];
+        $prefix = $this->faker->randomElement($prefixes);
+
+        $name = $prefix . $typeName;
+        $slug = Str::slug($name);
+
+        // Ensure unique slug
+        $counter = 1;
+        $originalSlug = $slug;
+        while (Activity::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        $activity = Activity::create([
+            'name' => $name,
+            'slug' => $slug,
+        ]);
+
+        // Create rates
+        $this->createRatesForActivity($activity);
+
+        // Attach users
+        $this->attachUsersToResource($activity, 'activity');
+
+        // Attach features
+        $this->attachFeaturesToResource($activity, 'activity');
+    }
+
+    /**
+     * Create rates for a unit
+     */
+    private function createRatesForUnit(Unit $unit): void
+    {
+        $rateCount = $this->faker->numberBetween(2, 4);
+
+        $rateTypes = [
+            'Standard Rate',
+            'Weekend Rate',
+            'Peak Season Rate',
+            'Early Bird Rate',
+            'Last Minute Rate',
+            'Long Stay Rate',
+            'Corporate Rate',
+        ];
+
+        $usedTypes = [];
+
+        for ($i = 0; $i < $rateCount; $i++) {
+            // Pick unique rate type
+            $availableTypes = array_diff($rateTypes, $usedTypes);
+            if (empty($availableTypes)) break;
+
+            $rateName = $this->faker->randomElement($availableTypes);
+            $usedTypes[] = $rateName;
+
             $unit->rates()->create([
-                'name' => $rateData['name'],
-                'slug' => Str::slug($rateData['name']),
-                'description' => $rateData['description'],
-                'price' => $rateData['price'],
+                'name' => $rateName,
+                'slug' => Str::slug($rateName),
+                'description' => $this->generateRateDescription($rateName),
+                'price' => $this->faker->numberBetween(500, 5000) * 1000, // 500k - 5M IDR
                 'currency' => 'IDR',
                 'is_active' => true,
             ]);
@@ -420,114 +362,82 @@ class DummyDataSeeder extends Seeder
     }
 
     /**
-     * Seed rates for an activity with realistic pricing
+     * Create rates for an activity
      */
-    private function seedRatesForActivity(Activity $activity): void
+    private function createRatesForActivity(Activity $activity): void
     {
-        // Hardcoded rates - randomly choose one set
-        $rateSets = [
-            // Set 1: Standard + Group + Private
-            [
-                ['name' => 'Standard Rate', 'price' => 300000, 'description' => 'Our regular pricing for all year round bookings'],
-                ['name' => 'Group Rate (4+ pax)', 'price' => 250000, 'description' => 'Discounted rate for groups of 4 or more'],
-                ['name' => 'Private Session', 'price' => 800000, 'description' => 'Exclusive one-on-one experience'],
-            ],
-            // Set 2: Couple + Family + Full Day
-            [
-                ['name' => 'Couple Package', 'price' => 550000, 'description' => 'Perfect for two people'],
-                ['name' => 'Family Package (4 pax)', 'price' => 900000, 'description' => 'Great value for families up to 4 people'],
-                ['name' => 'Full Day Package', 'price' => 1500000, 'description' => 'Complete day experience with all inclusions'],
-            ],
-            // Set 3: Peak Hours + Off-Peak + Weekend
-            [
-                ['name' => 'Peak Hours Rate', 'price' => 400000, 'description' => 'Premium time slots with high demand'],
-                ['name' => 'Off-Peak Rate', 'price' => 200000, 'description' => 'Best value during quieter times'],
-                ['name' => 'Weekend Rate', 'price' => 350000, 'description' => 'Special pricing for Friday, Saturday and Sunday'],
-                ['name' => 'Early Morning Rate', 'price' => 250000, 'description' => 'Special pricing for morning sessions'],
-            ],
-            // Set 4: Sunset + Half Day
-            [
-                ['name' => 'Sunset Session', 'price' => 500000, 'description' => 'Experience during the golden hour'],
-                ['name' => 'Half Day Package', 'price' => 650000, 'description' => 'Perfect half-day experience'],
-            ],
+        $rateCount = $this->faker->numberBetween(2, 4);
+
+        $rateTypes = [
+            'Standard Rate',
+            'Group Rate',
+            'Private Session',
+            'Couple Package',
+            'Family Package',
+            'Peak Hours Rate',
+            'Off-Peak Rate',
         ];
 
-        // Randomly pick one rate set
-        $selectedSet = $rateSets[array_rand($rateSets)];
+        $usedTypes = [];
 
-        // Create rates from selected set
-        foreach ($selectedSet as $rateData) {
+        for ($i = 0; $i < $rateCount; $i++) {
+            // Pick unique rate type
+            $availableTypes = array_diff($rateTypes, $usedTypes);
+            if (empty($availableTypes)) break;
+
+            $rateName = $this->faker->randomElement($availableTypes);
+            $usedTypes[] = $rateName;
+
             $activity->rates()->create([
-                'name' => $rateData['name'],
-                'slug' => Str::slug($rateData['name']),
-                'description' => $rateData['description'],
-                'price' => $rateData['price'],
+                'name' => $rateName,
+                'slug' => Str::slug($rateName),
+                'description' => $this->generateRateDescription($rateName),
+                'price' => $this->faker->numberBetween(150, 2000) * 1000, // 150k - 2M IDR
                 'currency' => 'IDR',
                 'is_active' => true,
             ]);
         }
     }
 
-
-
     /**
-     * Attach users to a unit with hardcoded assignments
-     * Real world: Not all units have assigned staff, some have partners/referrers
+     * Generate rate description
      */
-    private function attachRandomUsersToUnit(Unit $unit): void
+    private function generateRateDescription(string $rateName): string
     {
-        // Hardcoded user assignment sets (sometimes no users, sometimes 1-3)
-        $userSets = [
-            // No users assigned (50% of cases)
-            [],
-            [],
-            [],
-            [],
-            [],
-            // Single partner
-            [
-                ['email' => 'wayan.sukarta@example.com', 'role' => 'partner', 'days_ago' => 30],
-            ],
-            // Single referrer
-            [
-                ['email' => 'luh.sari@example.com', 'role' => 'referrer', 'days_ago' => 45],
-            ],
-            // Two users: partner + referrer
-            [
-                ['email' => 'made.agus@example.com', 'role' => 'partner', 'days_ago' => 15],
-                ['email' => 'budi.santoso@example.com', 'role' => 'referrer', 'days_ago' => 60],
-            ],
-            // Three users: 2 partners + 1 referrer
-            [
-                ['email' => 'nyoman.putra@example.com', 'role' => 'partner', 'days_ago' => 20],
-                ['email' => 'john.smith@example.com', 'role' => 'partner', 'days_ago' => 35],
-                ['email' => 'ahmad.pratama@example.com', 'role' => 'referrer', 'days_ago' => 50],
-            ],
-            // Two partners
-            [
-                ['email' => 'ketut.rai@example.com', 'role' => 'partner', 'days_ago' => 10],
-                ['email' => 'dewi.lestari@example.com', 'role' => 'partner', 'days_ago' => 25],
-            ],
+        $descriptions = [
+            'Standard Rate' => 'Our regular pricing for all year round bookings',
+            'Weekend Rate' => 'Special pricing for Friday, Saturday and Sunday',
+            'Peak Season Rate' => 'High season pricing during peak months',
+            'Early Bird Rate' => 'Book in advance and save',
+            'Last Minute Rate' => 'Limited availability for last minute bookings',
+            'Long Stay Rate' => 'Discounted rate for extended stays',
+            'Corporate Rate' => 'Special pricing for business travelers',
+            'Group Rate' => 'Discounted rate for groups',
+            'Private Session' => 'Exclusive one-on-one experience',
+            'Couple Package' => 'Perfect package for two people',
+            'Family Package' => 'Great value for families',
+            'Peak Hours Rate' => 'Premium time slots with high demand',
+            'Off-Peak Rate' => 'Best value during quieter times',
         ];
 
-        // Randomly pick one set
-        $selectedSet = $userSets[array_rand($userSets)];
+        return $descriptions[$rateName] ?? $this->faker->sentence();
+    }
 
-        // If empty set, no users assigned
-        if (empty($selectedSet)) {
+    /**
+     * Attach users to resource (unit or activity)
+     */
+    private function attachUsersToResource($resource, string $type): void
+    {
+        // 60% chance to attach users
+        if (!$this->faker->boolean(60)) {
             return;
         }
 
-        // Attach users from selected set
-        foreach ($selectedSet as $userData) {
-            // Get user from central database by email
-            $centralUser = User::where('email', $userData['email'])->first();
+        $userCount = $this->faker->numberBetween(1, 3);
+        $selectedUsers = $this->faker->randomElements($this->createdUsers, $userCount);
 
-            if (!$centralUser) {
-                continue; // Skip if user not found
-            }
-
-            // Sync user to tenant database first
+        foreach ($selectedUsers as $centralUser) {
+            // Sync user to tenant database
             $tenantUser = UserTenant::firstOrCreate(
                 ['global_id' => $centralUser->global_id],
                 [
@@ -536,106 +446,216 @@ class DummyDataSeeder extends Seeder
                 ]
             );
 
-            // Attach user to unit with role
-            $unit->users()->syncWithoutDetaching([
+            // Attach with role
+            $role = $this->faker->randomElement(['partner', 'referrer']);
+            $daysAgo = $this->faker->numberBetween(1, 90);
+
+            $resource->users()->syncWithoutDetaching([
                 $tenantUser->global_id => [
-                    'role' => $userData['role'],
-                    'assigned_at' => now()->subDays($userData['days_ago']),
+                    'role' => $role,
+                    'assigned_at' => now()->subDays($daysAgo),
                 ]
             ]);
         }
     }
 
     /**
-     * Attach users to an activity with hardcoded assignments
-     * Real world: Activities often have instructors/guides (partners) or referrers
+     * Attach features to resource
      */
-    private function attachRandomUsersToActivity(Activity $activity): void
+    private function attachFeaturesToResource($resource, string $type): void
     {
-        // Hardcoded user assignment sets (sometimes no users, sometimes 1-3)
-        $userSets = [
-            // No users assigned (40% of cases)
-            [],
-            [],
-            [],
-            [],
-            // Single partner (instructor/guide)
-            [
-                ['email' => 'made.dewi@example.com', 'role' => 'partner', 'days_ago' => 20],
-            ],
-            // Single partner
-            [
-                ['email' => 'nyoman.ayu@example.com', 'role' => 'partner', 'days_ago' => 35],
-            ],
-            // Two partners (main + assistant instructor)
-            [
-                ['email' => 'ketut.kadek@example.com', 'role' => 'partner', 'days_ago' => 10],
-                ['email' => 'wayan.sudana@example.com', 'role' => 'partner', 'days_ago' => 15],
-            ],
-            // Partner + referrer
-            [
-                ['email' => 'luh.wulandari@example.com', 'role' => 'partner', 'days_ago' => 25],
-                ['email' => 'rizki.wijaya@example.com', 'role' => 'referrer', 'days_ago' => 40],
-            ],
-            // Three users: 2 partners + 1 referrer
-            [
-                ['email' => 'made.gede@example.com', 'role' => 'partner', 'days_ago' => 5],
-                ['email' => 'sarah.johnson@example.com', 'role' => 'partner', 'days_ago' => 30],
-                ['email' => 'andi.kusuma@example.com', 'role' => 'referrer', 'days_ago' => 45],
-            ],
-            // Single referrer
-            [
-                ['email' => 'michael.brown@example.com', 'role' => 'referrer', 'days_ago' => 55],
-            ],
-        ];
+        $featureCount = $this->faker->numberBetween(12, 25);
 
-        // Randomly pick one set
-        $selectedSet = $userSets[array_rand($userSets)];
+        // Get all available features
+        $allFeatures = ResourceFeature::all();
 
-        // If empty set, no users assigned
-        if (empty($selectedSet)) {
+        if ($allFeatures->isEmpty()) {
             return;
         }
 
-        // Attach users from selected set
-        foreach ($selectedSet as $userData) {
-            // Get user from central database by email
-            $centralUser = User::where('email', $userData['email'])->first();
+        // Randomly select features
+        $selectedFeatures = $allFeatures->random(min($featureCount, $allFeatures->count()));
 
-            if (!$centralUser) {
-                continue; // Skip if user not found
-            }
-
-            // Sync user to tenant database first
-            $tenantUser = UserTenant::firstOrCreate(
-                ['global_id' => $centralUser->global_id],
-                [
-                    'name' => $centralUser->name,
-                    'email' => $centralUser->email,
-                ]
-            );
-
-            // Attach user to activity with role
-            $activity->users()->syncWithoutDetaching([
-                $tenantUser->global_id => [
-                    'role' => $userData['role'],
-                    'assigned_at' => now()->subDays($userData['days_ago']),
+        $order = 1;
+        foreach ($selectedFeatures as $feature) {
+            $resource->features()->syncWithoutDetaching([
+                $feature->feature_id => [
+                    'order' => $order++,
+                    'assigned_at' => now()->subDays($this->faker->numberBetween(1, 30)),
                 ]
             ]);
         }
     }
 
     /**
-     * Sync all features from central database to tenant database
-     * Features must exist in tenant DB before they can be attached to resources
+     * Seed reservations for all tenants
+     */
+    private function seedReservations(): void
+    {
+        $tenants = Tenant::all();
+
+        foreach ($tenants as $tenant) {
+            tenancy()->initialize($tenant);
+
+            $reservationCount = $this->faker->numberBetween(5, 15);
+
+            for ($i = 0; $i < $reservationCount; $i++) {
+                $this->createReservation();
+            }
+
+            echo "  ✓ Created {$reservationCount} reservations for: {$tenant->name}\n";
+
+            tenancy()->end();
+        }
+    }
+
+    /**
+     * Create a single reservation with items
+     */
+    private function createReservation(): void
+    {
+        $guestName = $this->faker->name();
+        $guestEmail = $this->generateEmailFromName($guestName);
+
+        // Random status distribution
+        $statuses = [
+            Reservation::STATUS_PENDING => 15,
+            Reservation::STATUS_CONFIRMED => 50,
+            Reservation::STATUS_COMPLETED => 20,
+            Reservation::STATUS_CANCELLED => 10,
+            Reservation::STATUS_NO_SHOW => 5,
+        ];
+
+        $status = $this->faker->randomElement(
+            array_merge(...array_map(
+                fn($status, $weight) => array_fill(0, $weight, $status),
+                array_keys($statuses),
+                array_values($statuses)
+            ))
+        );
+
+        $reservation = Reservation::create([
+            'code' => Reservation::generateUniqueCode(),
+            'guest_name' => $guestName,
+            'guest_email' => $guestEmail,
+            'guest_phone' => json_encode([
+                'country_code' => '+62',
+                'number' => '8' . $this->faker->numerify('#########'),
+            ]),
+            'status' => $status,
+            'notes' => $this->faker->boolean(30) ? $this->faker->sentence() : null,
+            'cancellation_reason' => $status === Reservation::STATUS_CANCELLED
+                ? $this->faker->randomElement(['Guest changed plans', 'Payment issue', 'Schedule conflict', 'Found alternative'])
+                : null,
+        ]);
+
+        // Add reservation items (1-4 items)
+        $itemCount = $this->faker->numberBetween(1, 4);
+
+        for ($j = 0; $j < $itemCount; $j++) {
+            // 50% unit, 50% activity
+            if ($this->faker->boolean() && Unit::count() > 0) {
+                $this->createUnitReservationItem($reservation);
+            } elseif (Activity::count() > 0) {
+                $this->createActivityReservationItem($reservation);
+            }
+        }
+
+        // Recalculate totals
+        $reservation->recalculateTotals();
+        $reservation->save();
+    }
+
+    /**
+     * Create unit reservation item
+     */
+    private function createUnitReservationItem(Reservation $reservation): void
+    {
+        $unit = Unit::inRandomOrder()->first();
+        if (!$unit) return;
+
+        $rate = $unit->rates()->where('is_active', true)->inRandomOrder()->first();
+        if (!$rate) return;
+
+        $startDate = now()->addDays($this->faker->numberBetween(1, 90));
+        $durationDays = $this->faker->numberBetween(1, 14);
+        $endDate = $startDate->copy()->addDays($durationDays);
+        $quantity = $this->faker->numberBetween(1, 3);
+
+        $ratePrice = $rate->price;
+        $lineTotal = $quantity * $durationDays * $ratePrice;
+
+        ReservationItem::create([
+            'reservation_id' => $reservation->id,
+            'reservable_type' => Unit::class,
+            'reservable_id' => $unit->id,
+            'rate_id' => $rate->id,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'duration_days' => $durationDays,
+            'quantity' => $quantity,
+            'resource_name' => $unit->name,
+            'resource_type_label' => 'Unit',
+            'rate_name' => $rate->name,
+            'rate_description' => $rate->description,
+            'pricing_type' => ReservationItem::PRICING_PER_NIGHT,
+            'rate_price' => $ratePrice,
+            'currency' => 'IDR',
+            'line_total' => $lineTotal,
+            'status' => ReservationItem::STATUS_ACTIVE,
+        ]);
+    }
+
+    /**
+     * Create activity reservation item
+     */
+    private function createActivityReservationItem(Reservation $reservation): void
+    {
+        $activity = Activity::inRandomOrder()->first();
+        if (!$activity) return;
+
+        $rate = $activity->rates()->where('is_active', true)->inRandomOrder()->first();
+        if (!$rate) return;
+
+        $startDate = now()->addDays($this->faker->numberBetween(1, 90));
+        $startTime = sprintf('%02d:00:00', $this->faker->numberBetween(8, 17));
+        $durationMinutes = $this->faker->randomElement([60, 90, 120, 180, 240]);
+        $endTime = date('H:i:s', strtotime($startTime) + ($durationMinutes * 60));
+        $quantity = $this->faker->numberBetween(1, 6);
+
+        $ratePrice = $rate->price;
+        $lineTotal = $quantity * $ratePrice;
+
+        ReservationItem::create([
+            'reservation_id' => $reservation->id,
+            'reservable_type' => Activity::class,
+            'reservable_id' => $activity->id,
+            'rate_id' => $rate->id,
+            'start_date' => $startDate,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'duration_minutes' => $durationMinutes,
+            'quantity' => $quantity,
+            'resource_name' => $activity->name,
+            'resource_type_label' => 'Activity',
+            'rate_name' => $rate->name,
+            'rate_description' => $rate->description,
+            'pricing_type' => ReservationItem::PRICING_PER_PERSON,
+            'rate_price' => $ratePrice,
+            'currency' => 'IDR',
+            'line_total' => $lineTotal,
+            'status' => ReservationItem::STATUS_ACTIVE,
+        ]);
+    }
+
+    /**
+     * Sync features from central to tenant database
      */
     private function syncFeaturesToTenant(): void
     {
-        // Get all features from central database
         $centralFeatures = Feature::all();
 
         foreach ($centralFeatures as $feature) {
-            // Create or update feature in tenant database
             ResourceFeature::updateOrCreate(
                 ['feature_id' => $feature->id],
                 [
@@ -650,265 +670,44 @@ class DummyDataSeeder extends Seeder
     }
 
     /**
-     * Attach 12-25 hardcoded features to a unit
-     * Different feature sets for luxury villas, standard rooms, and budget accommodations
+     * Generate email from name
      */
-    private function attachFeaturesToUnit(Unit $unit): void
+    private function generateEmailFromName(string $name): string
     {
-        // Hardcoded feature sets for different unit types (by feature value)
-        $featureSets = [
-            // Set 1: Luxury Villa (25 features) - All amenities + facilities + inclusions
-            [
-                'free_wifi',
-                'kitchen',
-                'tv',
-                'hot_water',
-                'dedicated_workspace',
-                'private_bathroom',
-                'bidet',
-                'dining_table',
-                'non_smoking_rooms',
-                'patio_or_balcony',
-                'free_parking',
-                '24_7_reception',
-                'garden',
-                'picnic_area',
-                'outdoor_furniture',
-                'terrace',
-                'lake_access',
-                'first_aid_kit',
-                'breakfast',
-                'coffee',
-                'fruit',
-                'daily_housekeeping',
-                'room_service',
-                'airport_shuttle',
-                'self_check_in'
-            ],
-            // Set 2: Deluxe Room (20 features) - Most amenities + some facilities + inclusions
-            [
-                'free_wifi',
-                'kitchen',
-                'tv',
-                'hot_water',
-                'dedicated_workspace',
-                'private_bathroom',
-                'dining_table',
-                'non_smoking_rooms',
-                'patio_or_balcony',
-                'free_parking',
-                '24_7_reception',
-                'garden',
-                'outdoor_furniture',
-                'breakfast',
-                'coffee',
-                'fruit',
-                'daily_housekeeping',
-                'room_service',
-                'ironing_service',
-                'self_check_in'
-            ],
-            // Set 3: Standard Room (16 features) - Basic amenities + some facilities
-            [
-                'free_wifi',
-                'tv',
-                'hot_water',
-                'private_bathroom',
-                'bidet',
-                'dining_table',
-                'non_smoking_rooms',
-                'free_parking',
-                '24_7_reception',
-                'garden',
-                'breakfast',
-                'coffee',
-                'daily_housekeeping',
-                'ironing_service',
-                'self_check_in',
-                'first_aid_kit'
-            ],
-            // Set 4: Budget Accommodation (12 features) - Essential amenities only
-            [
-                'free_wifi',
-                'tv',
-                'hot_water',
-                'private_bathroom',
-                'non_smoking_rooms',
-                'free_parking',
-                'breakfast',
-                'coffee',
-                'first_aid_kit',
-                'self_check_in',
-                'lake_access',
-                'picnic_area'
-            ],
-            // Set 5: Spa Suite (18 features) - Wellness focused
-            [
-                'free_wifi',
-                'tv',
-                'hot_water',
-                'dedicated_workspace',
-                'private_bathroom',
-                'bidet',
-                'dining_table',
-                'non_smoking_rooms',
-                'patio_or_balcony',
-                'garden',
-                'terrace',
-                'fruit',
-                'daily_housekeeping',
-                'room_service',
-                'ironing_service',
-                'coffee',
-                'breakfast',
-                'lake_access'
-            ],
-        ];
+        $email = strtolower(str_replace(' ', '.', $name));
+        $email = $this->removeAccents($email);
+        $email = preg_replace('/[^a-z0-9.]/', '', $email);
 
-        // Randomly pick one feature set
-        $selectedFeatureValues = $featureSets[array_rand($featureSets)];
-
-        // Attach features with order
-        $order = 1;
-        foreach ($selectedFeatureValues as $featureValue) {
-            // Find feature in tenant database by value
-            $feature = ResourceFeature::where('value', $featureValue)->first();
-
-            if ($feature) {
-                // Attach to unit via resource_features pivot table
-                $unit->features()->syncWithoutDetaching([
-                    $feature->feature_id => [
-                        'order' => $order++,
-                        'assigned_at' => now()->subDays(rand(1, 30)),
-                    ]
-                ]);
-            }
-        }
+        return $email . '@example.com';
     }
 
     /**
-     * Attach 12-25 hardcoded features to an activity
-     * Different feature sets for adventure, wellness, cultural activities
+     * Remove accents from string
      */
-    private function attachFeaturesToActivity(Activity $activity): void
+    private function removeAccents(string $string): string
     {
-        // Hardcoded feature sets for different activity types (by feature value)
-        $featureSets = [
-            // Set 1: Adventure Activity (20 features) - Equipment + inclusions + requirements
-            [
-                'bicycle_rental',
-                'bbq_utensils',
-                'car_rental',
-                'breakfast',
-                'coffee',
-                'fruit',
-                'airport_shuttle',
-                'cultural_tours',
-                'self_check_in',
-                'free_parking',
-                'first_aid_kit',
-                'garden',
-                'outdoor_furniture',
-                'picnic_area',
-                'cycling_off_site',
-                'hiking_off_site',
-                'fishing_off_site',
-                'bike_tours',
-                'lake_access',
-                'pets_allowed'
-            ],
-            // Set 2: Wellness/Spa Activity (18 features) - Relaxation focused
-            [
-                'coffee',
-                'fruit',
-                'daily_housekeeping',
-                'ironing_service',
-                'breakfast',
-                'cultural_tours',
-                'garden',
-                'terrace',
-                'outdoor_furniture',
-                'picnic_area',
-                '24_7_reception',
-                'free_parking',
-                'first_aid_kit',
-                'lake_access',
-                'assistance_animals_allowed',
-                'self_check_in',
-                'room_service',
-                'airport_shuttle'
-            ],
-            // Set 3: Cultural/Educational Activity (14 features) - Cultural + basic amenities
-            [
-                'cultural_tours',
-                'coffee',
-                'fruit',
-                'breakfast',
-                'airport_shuttle',
-                'free_parking',
-                'garden',
-                'first_aid_kit',
-                'self_check_in',
-                '24_7_reception',
-                'bike_tours',
-                'cycling_off_site',
-                'hiking_off_site',
-                'picnic_area'
-            ],
-            // Set 4: Water Sports Activity (16 features) - Equipment + safety
-            [
-                'bicycle_rental',
-                'bbq_utensils',
-                'breakfast',
-                'coffee',
-                'fruit',
-                'first_aid_kit',
-                'lake_access',
-                'fishing_off_site',
-                'free_parking',
-                'outdoor_furniture',
-                'picnic_area',
-                'garden',
-                'self_check_in',
-                'airport_shuttle',
-                'assistance_animals_allowed',
-                'cycling_off_site'
-            ],
-            // Set 5: Eco/Nature Activity (12 features) - Nature focused
-            [
-                'bicycle_rental',
-                'bbq_utensils',
-                'coffee',
-                'fruit',
-                'garden',
-                'lake_access',
-                'hiking_off_site',
-                'fishing_off_site',
-                'bike_tours',
-                'cycling_off_site',
-                'picnic_area',
-                'first_aid_kit'
-            ],
+        $transliteration = [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'Á' => 'a',
+            'É' => 'e',
+            'Í' => 'i',
+            'Ó' => 'o',
+            'Ú' => 'u',
+            'à' => 'a',
+            'è' => 'e',
+            'ì' => 'i',
+            'ò' => 'o',
+            'ù' => 'u',
+            'ñ' => 'n',
+            'Ñ' => 'n',
+            'ç' => 'c',
+            'Ç' => 'c',
         ];
 
-        // Randomly pick one feature set
-        $selectedFeatureValues = $featureSets[array_rand($featureSets)];
-
-        // Attach features with order
-        $order = 1;
-        foreach ($selectedFeatureValues as $featureValue) {
-            // Find feature in tenant database by value
-            $feature = ResourceFeature::where('value', $featureValue)->first();
-
-            if ($feature) {
-                // Attach to activity via resource_features pivot table
-                $activity->features()->syncWithoutDetaching([
-                    $feature->feature_id => [
-                        'order' => $order++,
-                        'assigned_at' => now()->subDays(rand(1, 30)),
-                    ]
-                ]);
-            }
-        }
+        return strtr($string, $transliteration);
     }
 }

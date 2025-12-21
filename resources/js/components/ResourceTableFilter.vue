@@ -194,6 +194,27 @@ const handleToSelect = (date: DateValue | undefined) => {
 
 // ===== End Calendar State Management =====
 
+// Check if option is selected
+const isFilterSelected = (filterName: string, option: string) => {
+    return selectedFilters.value[filterName]?.includes(option) ?? false;
+};
+
+// Clear specific filter
+const clearFilter = (filterName: string) => {
+    selectedFilters.value[filterName] = [];
+    triggerRefresh();
+};
+
+// Get filter option label
+const getOptionLabel = (option: string | { value: string; label: string }) => {
+    return typeof option === 'string' ? option : option.label;
+};
+
+// Get filter option value
+const getOptionValue = (option: string | { value: string; label: string }) => {
+    return typeof option === 'string' ? option : option.value;
+};
+
 // Initialize filters from URL params
 const initFiltersFromUrl = () => {
     if (!props.filters) return;
@@ -202,7 +223,17 @@ const initFiltersFromUrl = () => {
     props.filters.forEach(filter => {
         const paramValue = urlParams.get(filter.name);
         if (paramValue) {
-            selectedFilters.value[filter.name] = paramValue.split(',');
+            // Split comma-separated values
+            const values = paramValue.split(',').map(v => v.trim());
+            
+            // Get all valid option values for this filter
+            const validOptions = filter.options.map(opt => getOptionValue(opt));
+            
+            // Filter out invalid values (protection against URL manipulation)
+            const validValues = values.filter(v => validOptions.includes(v));
+            
+            // Only set values if we have valid ones
+            selectedFilters.value[filter.name] = validValues;
         } else {
             selectedFilters.value[filter.name] = [];
         }
@@ -270,27 +301,6 @@ const toggleFilterOption = (filterName: string, option: string) => {
     }
 
     triggerRefresh();
-};
-
-// Check if option is selected
-const isFilterSelected = (filterName: string, option: string) => {
-    return selectedFilters.value[filterName]?.includes(option) ?? false;
-};
-
-// Clear specific filter
-const clearFilter = (filterName: string) => {
-    selectedFilters.value[filterName] = [];
-    triggerRefresh();
-};
-
-// Get filter option label
-const getOptionLabel = (option: string | { value: string; label: string }) => {
-    return typeof option === 'string' ? option : option.label;
-};
-
-// Get filter option value
-const getOptionValue = (option: string | { value: string; label: string }) => {
-    return typeof option === 'string' ? option : option.value;
 };
 
 // Build all filter params
@@ -426,9 +436,9 @@ const hasActiveFilters = computed(() => {
                             v-if="selectedFilters[filter.name]?.length > 0"
                             class="flex items-center gap-1 border-s ps-3.5 ms-1.5"
                         >
-                            <template v-if="selectedFilters[filter.name].length < 3">
+                            <template v-if="selectedFilters[filter.name].filter(v => filter.options.some(o => getOptionValue(o) === v)).length < 3">
                                 <Badge
-                                    v-for="value in selectedFilters[filter.name]"
+                                    v-for="value in selectedFilters[filter.name].filter(v => filter.options.some(o => getOptionValue(o) === v))"
                                     :key="value"
                                     variant="secondary"
                                     class="font-normal rounded-sm px-1.5"
@@ -441,7 +451,7 @@ const hasActiveFilters = computed(() => {
                                 variant="secondary"
                                 class="font-normal rounded-sm px-1"
                             >
-                                {{ selectedFilters[filter.name].length }} selected
+                                {{ selectedFilters[filter.name].filter(v => filter.options.some(o => getOptionValue(o) === v)).length }} selected
                             </Badge>
                         </div>
                     </Button>

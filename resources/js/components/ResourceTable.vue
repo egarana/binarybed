@@ -139,7 +139,7 @@ const handleDelete = () => {
 
 <template>
     <div class="overflow-hidden rounded-lg border">
-        <div class="relative w-full overflow-x-auto">
+        <div class="relative w-full overflow-x-auto [&>div]:scrollbar-hide">
             <Table>
                 <TableHeader>
                     <TableRow class="bg-muted">
