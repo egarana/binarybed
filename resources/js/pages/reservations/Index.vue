@@ -13,6 +13,7 @@ const config = {
     columns: [
         { key: 'code', label: 'Code', sortable: true, className: 'font-mono font-light' },
         { key: 'guest_name', label: 'Guest Name', sortable: true, className: 'font-medium' },
+        { key: 'guest_email', label: 'Guest Email', sortable: true },
         { key: 'items_count', label: 'Items', sortable: true },
         { key: 'total_amount', label: 'Total', sortable: true },
         { key: 'currency', label: 'Currency', sortable: true },
@@ -49,6 +50,29 @@ const config = {
                 { value: 'CANCELLED', label: 'Cancelled' },
                 { value: 'COMPLETED', label: 'Completed' },
                 { value: 'NO_SHOW', label: 'No Show' },
+            ],
+        },
+        {
+            name: 'currency',
+            label: 'Currency',
+            placeholder: 'Select currency',
+            options: [
+                { value: 'IDR', label: 'IDR (Rp)' },
+                { value: 'USD', label: 'USD ($)' },
+                { value: 'EUR', label: 'EUR (€)' },
+                { value: 'JPY', label: 'JPY (¥)' },
+                { value: 'SGD', label: 'SGD (S$)' },
+                { value: 'AUD', label: 'AUD (A$)' },
+                { value: 'GBP', label: 'GBP (£)' },
+            ],
+        },
+        {
+            name: 'items',
+            label: 'Items',
+            placeholder: 'Select item types',
+            options: [
+                { value: 'Room', label: 'Unit' },
+                { value: 'Activity', label: 'Activity' },
             ],
         },
     ],

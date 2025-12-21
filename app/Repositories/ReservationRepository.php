@@ -187,6 +187,53 @@ class ReservationRepository
             }
         }
 
+        // Handle currency filter (supports multiple comma-separated values)
+        $currencyFilter = $request->input('currency');
+
+        if ($currencyFilter !== null && $currencyFilter !== '') {
+            // Split by comma for multiple values
+            $currencies = array_map('trim', explode(',', $currencyFilter));
+
+            // Validate against allowed currency codes (ISO 4217 common codes)
+            $allowedCurrencies = ['IDR', 'USD', 'EUR', 'JPY', 'SGD', 'AUD', 'GBP'];
+
+            // Filter out invalid values and normalize to uppercase
+            $validCurrencies = array_filter(
+                array_map('strtoupper', $currencies),
+                fn($currency) => in_array($currency, $allowedCurrencies)
+            );
+
+            // Only apply filter if we have valid currencies
+            if (!empty($validCurrencies)) {
+                $collection = $collection->filter(
+                    fn($item) => in_array(strtoupper($item['currency'] ?? ''), $validCurrencies)
+                );
+            }
+        }
+
+        // Handle items filter (supports multiple comma-separated values)
+        $itemsFilter = $request->input('items');
+
+        if ($itemsFilter !== null && $itemsFilter !== '') {
+            // Split by comma for multiple values
+            $itemTypes = array_map('trim', explode(',', $itemsFilter));
+
+            // Filter reservations that have at least one of the selected item types
+            // Uses OR logic: reservation shown if it has ANY of the selected types
+            $collection = $collection->filter(function ($item) use ($itemTypes) {
+                $itemsByType = $item['items_by_type'] ?? [];
+
+                // Check if reservation has any of the selected types with count > 0
+                foreach ($itemTypes as $type) {
+                    if (isset($itemsByType[$type]) && $itemsByType[$type] > 0) {
+                        return true; // Match found, include this reservation
+                    }
+                }
+
+                return false; // No match, exclude this reservation
+            });
+        }
+
         return $collection;
     }
 
