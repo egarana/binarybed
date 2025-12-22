@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->unsignedBigInteger('price')->default(0);
             $table->string('currency', 3)->default('IDR');
+            $table->string('price_type')->default('flat'); // e.g. flat, nightly, person, hourly, daily, session, pax_night
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->timestamps();

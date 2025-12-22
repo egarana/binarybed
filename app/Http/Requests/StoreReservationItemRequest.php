@@ -81,7 +81,7 @@ class StoreReservationItemRequest extends FormRequest
     }
 
     /**
-     * Validate date range with unified error on 'date_range' field.
+     * Validate date range with unified error on 'schedule' field.
      */
     protected function validateDateRange($validator): void
     {
@@ -90,7 +90,7 @@ class StoreReservationItemRequest extends FormRequest
 
         // Both dates required
         if (!$startDate || !$endDate) {
-            $validator->errors()->add('date_range', 'Please select both start and end dates.');
+            $validator->errors()->add('schedule', 'Please select both start and end dates.');
             return;
         }
 
@@ -100,13 +100,13 @@ class StoreReservationItemRequest extends FormRequest
 
         // Start date cannot be in the past
         if ($start->lt($today)) {
-            $validator->errors()->add('date_range', 'Start date cannot be in the past.');
+            $validator->errors()->add('schedule', 'Start date cannot be in the past.');
             return;
         }
 
         // End date must be >= start date
         if ($end->lt($start)) {
-            $validator->errors()->add('date_range', 'End date must be on or after start date.');
+            $validator->errors()->add('schedule', 'End date must be on or after start date.');
             return;
         }
 
@@ -117,13 +117,13 @@ class StoreReservationItemRequest extends FormRequest
         $reservableType = $this->input('reservable_type');
 
         if ($reservableType === 'App\\Models\\Unit' && $days < 1) {
-            $validator->errors()->add('date_range', 'Minimum booking duration is 1 night.');
+            $validator->errors()->add('schedule', 'Minimum booking duration is 1 night.');
         }
         // Activity allows same-day booking (days = 0 is valid)
     }
 
     /**
-     * Validate time range with unified error on 'time_range' field.
+     * Validate time range with unified error on 'schedule' field.
      * Only validates for Activity type - Unit type skips time validation.
      */
     protected function validateTimeRange($validator): void
@@ -153,7 +153,7 @@ class StoreReservationItemRequest extends FormRequest
         } else {
             // For other types: both or none
             if ($hasStart !== $hasEnd) {
-                $validator->errors()->add('time_range', 'Please select both start and end times, or leave both empty.');
+                $validator->errors()->add('schedule', 'Please select both start and end times, or leave both empty.');
                 return;
             }
 
@@ -170,13 +170,13 @@ class StoreReservationItemRequest extends FormRequest
 
         // End time must be after start time (no overnight)
         if ($minutes <= 0) {
-            $validator->errors()->add('time_range', 'End time must be after start time.');
+            $validator->errors()->add('schedule', 'End time must be after start time.');
             return;
         }
 
         // Minimum 30 minutes duration
         if ($minutes < 30) {
-            $validator->errors()->add('time_range', 'Time duration must be at least 30 minutes.');
+            $validator->errors()->add('schedule', 'Time duration must be at least 30 minutes.');
         }
     }
 

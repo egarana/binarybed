@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
+import { formatDuration, formatDurationDays } from '@/helpers/duration';
 import {
     Select,
     SelectContent,
@@ -160,15 +161,29 @@ watch(selectedProductId, async (newValue) => {
 });
 
 // Calculate duration when dates change
-watch([start_date, end_date], ([newStart, newEnd]) => {
+watch([start_date, end_date, isUnit], ([newStart, newEnd, unitType]) => {
     if (newStart && newEnd) {
         const start = newStart.toDate(getLocalTimeZone());
         const end = newEnd.toDate(getLocalTimeZone());
         const diffTime = end.getTime() - start.getTime();
+        
         // If end is before start, duration is 0 (invalid range)
-        // If same day (diffTime = 0), count as 1 day
-        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        duration_days.value = diffTime < 0 ? 0 : Math.max(1, days);
+        if (diffTime < 0) {
+            duration_days.value = 0;
+            return;
+        }
+        
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Unit (Accommodation): count nights between dates
+        // Activity: count days inclusive (start date to end date)
+        if (unitType) {
+            // For Unit: nights = difference in days (Dec 23-26 = 3 nights)
+            duration_days.value = Math.max(1, diffDays);
+        } else {
+            // For Activity: days = difference + 1 for inclusive (Dec 23-26 = 4 days)
+            duration_days.value = diffDays + 1;
+        }
     } else {
         duration_days.value = 0;
     }
@@ -331,8 +346,8 @@ const canSubmit = computed(() => {
                 <InputError :message="errors.rate_id" />
             </div>
 
-            <!-- Date Range -->
-            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+            <!-- Start Date & Time Row -->
+            <div class="grid grid-cols-2 gap-4">
                 <div class="grid gap-2">
                     <Label>Start Date</Label>
                     <Popover>
@@ -356,6 +371,27 @@ const canSubmit = computed(() => {
                     </Popover>
                 </div>
                 <div class="grid gap-2">
+                    <Label for="start_time">Start Time</Label>
+                    <Select v-model="start_time" :disabled="processing || !isTimeRangeEnabled">
+                        <SelectTrigger id="start_time" class="disabled:bg-muted disabled:text-muted-foreground">
+                            <SelectValue placeholder="Select start time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="time in timeOptions"
+                                :key="time"
+                                :value="time"
+                            >
+                                {{ time === 'flexible' ? 'Flexible' : time }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <!-- End Date & Time Row -->
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="grid gap-2">
                     <Label>End Date</Label>
                     <Popover>
                         <PopoverTrigger as-child>
@@ -377,30 +413,6 @@ const canSubmit = computed(() => {
                         </PopoverContent>
                     </Popover>
                 </div>
-                <div class="col-span-2">
-                    <InputError :message="errors.date_range" />
-                </div>
-            </div>
-
-            <!-- Time Range -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="grid gap-2">
-                    <Label for="start_time">Start Time</Label>
-                    <Select v-model="start_time" :disabled="processing || !isTimeRangeEnabled">
-                        <SelectTrigger id="start_time" class="disabled:bg-muted disabled:text-muted-foreground">
-                            <SelectValue placeholder="Select start time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="time in timeOptions"
-                                :key="time"
-                                :value="time"
-                            >
-                                {{ time === 'flexible' ? 'Flexible' : time }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
                 <div class="grid gap-2">
                     <Label for="end_time">End Time</Label>
                     <Select v-model="end_time" :disabled="processing || !isTimeRangeEnabled">
@@ -419,7 +431,8 @@ const canSubmit = computed(() => {
                     </Select>
                 </div>
                 <div class="col-span-2">
-                    <InputError :message="errors.time_range" />
+                    <!-- Schedule Error (unified date/time validation) -->
+                    <InputError :message="errors.schedule" />
                 </div>
             </div>
 
@@ -433,12 +446,12 @@ const canSubmit = computed(() => {
                     :error="errors.quantity"
                 />
                 <DisabledFormField
-                    label="Duration (nights/days)"
-                    :value="duration_days.toString() + ' day' + (duration_days !== 1 ? 's' : '')"
+                    label="Duration (Days)"
+                    :value="formatDurationDays(duration_days, isUnit)"
                 />
                 <DisabledFormField
-                    label="Duration (minutes)"
-                    :value="isTimeFlexible ? 'Flexible' : (duration_minutes > 0 ? formatNumber(duration_minutes) + ' min' : 'Not set')"
+                    label="Duration (Time)"
+                    :value="isTimeFlexible ? 'Flexible' : formatDuration(duration_minutes)"
                 />
             </div>
 
@@ -469,15 +482,74 @@ const canSubmit = computed(() => {
             </div>
 
             <!-- Line Total Preview -->
-            <div class="rounded-lg border bg-muted/50 p-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium">Line Total (Preview)</span>
-                    <span class="text-lg font-bold">
+            <div class="grid gap-2">
+                <div class="text-sm font-semibold leading-none">Pricing Summary</div>
+                <div class="text-xs text-muted-foreground leading-none">Preview</div>
+            </div>
+
+            <!-- Line Total Preview -->
+            <div class="rounded-lg border bg-muted/50 p-4 space-y-3">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-sm font-semibold">Pricing Summary</span>
+                    <span class="text-xs text-muted-foreground">Preview</span>
+                </div>
+                
+                <!-- Product & Rate Info -->
+                <div class="grid grid-cols-2 gap-2 text-sm" v-if="selectedProduct && selectedRate">
+                    <div class="text-muted-foreground">Product</div>
+                    <div class="text-right font-medium">{{ selectedProduct.name }}</div>
+                    
+                    <div class="text-muted-foreground">Rate</div>
+                    <div class="text-right font-medium">{{ selectedRate.name }}</div>
+                    
+                    <div class="text-muted-foreground">Pricing Type</div>
+                    <div class="text-right">
+                        {{ pricingTypes.find(p => p.value === pricing_type)?.label || pricing_type }}
+                    </div>
+                </div>
+                
+                <!-- Calculation Breakdown -->
+                <div class="border-t pt-2 space-y-1 text-sm" v-if="selectedRate">
+                    <div class="flex justify-between">
+                        <span class="text-muted-foreground">Unit Price</span>
+                        <span>{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between" v-if="pricing_type !== 'flat'">
+                        <span class="text-muted-foreground">Quantity</span>
+                        <span>× {{ quantity }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between" v-if="pricing_type === 'per_night'">
+                        <span class="text-muted-foreground">Duration</span>
+                        <span>× {{ formatDurationDays(duration_days, isUnit) }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between" v-if="pricing_type === 'per_hour' && !isTimeFlexible">
+                        <span class="text-muted-foreground">Time</span>
+                        <span>× {{ formatDuration(duration_minutes) }}</span>
+                    </div>
+                </div>
+                
+                <!-- Total -->
+                <div class="border-t pt-2 flex justify-between items-center">
+                    <span class="font-semibold">Line Total</span>
+                    <span class="text-xl font-bold text-primary">
                         {{ formatCurrencyLabel(currency) }} {{ formatNumber(lineTotal) }}
                     </span>
                 </div>
-                <p class="text-xs text-muted-foreground mt-1">
-                    Calculated based on rate price, quantity, and duration
+                
+                <!-- Formula hint -->
+                <p class="text-xs text-muted-foreground text-right">
+                    <template v-if="pricing_type === 'per_night'">
+                        {{ formatNumber(rate_price) }} × {{ quantity }} × {{ duration_days }} = {{ formatNumber(lineTotal) }}
+                    </template>
+                    <template v-else-if="pricing_type === 'flat'">
+                        Flat rate pricing
+                    </template>
+                    <template v-else>
+                        {{ formatNumber(rate_price) }} × {{ quantity }} = {{ formatNumber(lineTotal) }}
+                    </template>
                 </p>
             </div>
 

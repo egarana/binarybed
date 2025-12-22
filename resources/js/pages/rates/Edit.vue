@@ -30,6 +30,7 @@ interface Props {
         description: string | null;
         price: number;
         currency: string;
+        price_type: string;
         is_active: boolean;
         is_default: boolean;
     };
@@ -59,6 +60,7 @@ const { slug } = useAutoSlug(name, {
 const description = ref(props.rate.description || '');
 const price = ref(props.rate.price || 0);
 const currency = ref(props.rate.currency || 'IDR');
+const priceType = ref(props.rate.price_type || 'flat');
 const isActive = ref(props.rate.is_active ?? true);
 
 // Transform form data before submission
@@ -176,9 +178,22 @@ const transformData = (data: Record<string, any>) => ({
                 :error="errors.currency"
             />
 
+            <!-- Price Type -->
+            <FormField
+                id="price_type"
+                label="Price Type"
+                type="text"
+                :tabindex="6"
+                autocomplete="off"
+                placeholder="e.g. nightly, person, hourly"
+                v-model="priceType"
+                :error="errors.price_type"
+                help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
+            />
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="6"
+                :tabindex="7"
                 test-id="update-rate-button"
                 label="Save"
             />

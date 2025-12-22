@@ -69,7 +69,7 @@ const config = {
 <template>
     <BaseIndexPage title="Rates" :config="config">
         <template #cell-price="{ item }">
-            {{ formatNumber(item.price) }}
+            {{ formatNumber(item.price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
         </template>
 
         <template #cell-currency="{ item }">

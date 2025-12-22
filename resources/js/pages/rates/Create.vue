@@ -70,6 +70,7 @@ const { slug } = useAutoSlug(name, {
 const description = ref('');
 const price = ref(0);
 const currency = ref('IDR');
+const priceType = ref('flat');
 const isActive = ref(true);
 
 // Computed values derived from selected resource
@@ -214,9 +215,22 @@ const transformData = (data: Record<string, any>) => ({
                 :error="errors.currency"
             />
 
+            <!-- Price Type -->
+            <FormField
+                id="price_type"
+                label="Price Type"
+                type="text"
+                :tabindex="7"
+                autocomplete="off"
+                placeholder="e.g. nightly, person, hourly"
+                v-model="priceType"
+                :error="errors.price_type"
+                help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
+            />
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="7"
+                :tabindex="8"
                 test-id="create-rate-button"
                 label="Create"
             />

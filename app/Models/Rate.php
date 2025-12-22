@@ -20,6 +20,7 @@ class Rate extends Model
         'description',
         'price',
         'currency',
+        'price_type',
         'is_active',
         'is_default',
     ];
@@ -32,6 +33,7 @@ class Rate extends Model
     protected $attributes = [
         'price' => 0,
         'currency' => 'IDR',
+        'price_type' => 'flat',
         'is_active' => true,
     ];
 

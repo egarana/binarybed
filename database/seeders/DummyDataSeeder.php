@@ -356,6 +356,7 @@ class DummyDataSeeder extends Seeder
                 'description' => $this->generateRateDescription($rateName),
                 'price' => $this->faker->numberBetween(500, 5000) * 1000, // 500k - 5M IDR
                 'currency' => 'IDR',
+                'price_type' => 'night', // Units are typically priced per night
                 'is_active' => true,
             ]);
         }
@@ -388,12 +389,22 @@ class DummyDataSeeder extends Seeder
             $rateName = $this->faker->randomElement($availableTypes);
             $usedTypes[] = $rateName;
 
+            // Determine price type based on rate name
+            $priceType = match (true) {
+                str_contains($rateName, 'Group') => 'group',
+                str_contains($rateName, 'Private') => 'session',
+                str_contains($rateName, 'Couple') => 'couple',
+                str_contains($rateName, 'Family') => 'group',
+                default => 'person',
+            };
+
             $activity->rates()->create([
                 'name' => $rateName,
                 'slug' => Str::slug($rateName),
                 'description' => $this->generateRateDescription($rateName),
                 'price' => $this->faker->numberBetween(150, 2000) * 1000, // 150k - 2M IDR
                 'currency' => 'IDR',
+                'price_type' => $priceType,
                 'is_active' => true,
             ]);
         }

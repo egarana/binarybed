@@ -33,6 +33,7 @@ class StoreRateRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'price'       => ['required', 'numeric', 'min:0'],
             'currency'    => ['required', 'string', 'size:3'],
+            'price_type'  => ['nullable', 'string', 'max:50'],
             'is_active'   => ['boolean'],
         ];
     }
