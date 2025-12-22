@@ -98,8 +98,8 @@ class ReservationController extends Controller
     {
         $reservation = $this->reservationService->getForEdit($tenantId, $code);
 
-        // Get resources for this tenant
-        $resources = $this->getResourcesForTenant($tenantId, $request->input('search'));
+        // Get products for this tenant
+        $products = $this->getResourcesForTenant($tenantId, $request->input('search'));
 
         // Get pricing types for dropdown
         $pricingTypes = [
@@ -109,7 +109,7 @@ class ReservationController extends Controller
             ['value' => ReservationItem::PRICING_FLAT, 'label' => 'Flat Rate'],
         ];
 
-        return Inertia::render('reservations/items/Create', compact('reservation', 'resources', 'pricingTypes'));
+        return Inertia::render('reservations/items/Create', compact('reservation', 'products', 'pricingTypes'));
     }
 
     /**
@@ -171,7 +171,9 @@ class ReservationController extends Controller
             $resources = [];
 
             // Get Units
-            $unitsQuery = \App\Models\Unit::query();
+            $unitsQuery = \App\Models\Unit::query()->withCount(['rates' => function ($query) {
+                $query->where('is_active', true);
+            }]);
             if ($search) {
                 $unitsQuery->where('name', 'like', "%{$search}%");
             }
@@ -182,13 +184,16 @@ class ReservationController extends Controller
                     'id' => $unit->id,
                     'name' => $unit->name,
                     'type' => 'App\\Models\\Unit',
-                    'type_label' => 'Room',
+                    'type_label' => 'Unit',
                     'description' => $unit->description ?? null,
+                    'rates_count' => $unit->rates_count,
                 ];
             }
 
             // Get Activities
-            $activitiesQuery = \App\Models\Activity::query();
+            $activitiesQuery = \App\Models\Activity::query()->withCount(['rates' => function ($query) {
+                $query->where('is_active', true);
+            }]);
             if ($search) {
                 $activitiesQuery->where('name', 'like', "%{$search}%");
             }
@@ -201,6 +206,7 @@ class ReservationController extends Controller
                     'type' => 'App\\Models\\Activity',
                     'type_label' => 'Activity',
                     'description' => $activity->description ?? null,
+                    'rates_count' => $activity->rates_count,
                 ];
             }
 

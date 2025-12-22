@@ -166,6 +166,11 @@ class ReservationItem extends Model
             }
         }
 
+        // If no time set but it's an Activity, show 'Flexible'
+        if ($this->reservable_type === 'App\\Models\\Activity' && is_null($this->duration_minutes)) {
+            return 'Flexible';
+        }
+
         return '';
     }
 }

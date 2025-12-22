@@ -18,7 +18,7 @@ class FindReservationByTenantAndCode
      */
     public function execute(string $tenantId, string $code): array
     {
-        return $this->executeInTenantContext($tenantId, function () use ($tenantId, $code) {
+        return $this->executeInTenantContext($tenantId, function ($tenant) use ($tenantId, $code) {
             $reservation = Reservation::where('code', $code)->firstOrFail();
 
             return [
@@ -34,6 +34,7 @@ class FindReservationByTenantAndCode
                 'notes' => $reservation->notes,
                 'cancellation_reason' => $reservation->cancellation_reason,
                 'tenant_id' => $tenantId,
+                'tenant_name' => $tenant->name,
                 'created_at' => $reservation->created_at,
                 'updated_at' => $reservation->updated_at,
             ];

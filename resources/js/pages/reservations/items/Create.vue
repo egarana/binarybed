@@ -9,7 +9,10 @@ import NumberFormField from '@/components/NumberFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
 import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
 import {
     Select,
@@ -18,13 +21,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { getLocalTimeZone, type DateValue } from '@internationalized/date';
+import dayjs from 'dayjs';
+import { CalendarIcon } from 'lucide-vue-next';
+import { cn } from '@/lib/utils';
 
-interface Resource {
+interface Product {
     id: number;
     name: string;
     type: string;
     type_label: string;
     description: string | null;
+    rates_count: number;
 }
 
 interface Rate {
@@ -40,12 +48,13 @@ interface Reservation {
     code: string;
     guest_name: string;
     tenant_id: string;
+    tenant_name: string;
     currency: string;
 }
 
 interface Props {
     reservation: Reservation;
-    resources: Resource[];
+    products: Product[];
     pricingTypes: { value: string; label: string }[];
     rates?: Rate[];
 }
@@ -65,15 +74,15 @@ const { onSuccess, onError } = useFormNotifications({
 });
 
 // Form fields
-const selectedResourceId = ref<string>('');
+const selectedProductId = ref<string>('');
 const selectedRateId = ref<string>('');
 const loadingRates = ref(false);
 const availableRates = ref<Rate[]>(props.rates || []);
 
-const selectedResource = computed(() => {
-    if (!selectedResourceId.value) return null;
-    const [type, id] = selectedResourceId.value.split('|');
-    return props.resources.find(r => r.type === type && r.id === parseInt(id)) || null;
+const selectedProduct = computed(() => {
+    if (!selectedProductId.value) return null;
+    const [type, id] = selectedProductId.value.split('|');
+    return props.products.find(r => r.type === type && r.id === parseInt(id)) || null;
 });
 
 const selectedRate = computed(() => {
@@ -81,18 +90,52 @@ const selectedRate = computed(() => {
     return availableRates.value.find(r => r.id === parseInt(selectedRateId.value)) || null;
 });
 
+// Product type detection
+const isUnit = computed(() => selectedProduct.value?.type === 'App\\Models\\Unit');
+const isActivity = computed(() => selectedProduct.value?.type === 'App\\Models\\Activity');
+
+// Field enable/disable control
+const isDateRangeEnabled = computed(() => !!selectedProduct.value);
+const isTimeRangeEnabled = computed(() => isActivity.value); // Only for Activity
+
 // Pricing from selected rate (read-only)
 const rate_price = computed(() => selectedRate.value?.price || 0);
 const currency = computed(() => selectedRate.value?.currency || props.reservation.currency || 'IDR');
 const pricing_type = computed(() => selectedRate.value?.pricing_type || 'per_night');
 
 const quantity = ref(1);
-const start_date = ref('');
-const end_date = ref('');
+const start_date = ref<DateValue>();
+const end_date = ref<DateValue>();
+const start_time = ref('flexible');
+const end_time = ref('flexible');
 const duration_days = ref(1);
+const duration_minutes = ref<number>(0);
+const product_description = ref('');
+const rate_description = ref('');
 
-// Fetch rates when resource changes
-watch(selectedResourceId, async (newValue) => {
+// Generate time options with 'Flexible' as first option
+const timeOptions = computed(() => {
+    const options = ['flexible']; // Add flexible as first option
+    for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            const hourStr = hour.toString().padStart(2, '0');
+            const minuteStr = minute.toString().padStart(2, '0');
+            options.push(`${hourStr}:${minuteStr}`);
+        }
+    }
+    return options;
+});
+
+// Check if time is flexible
+const isTimeFlexible = computed(() => start_time.value === 'flexible' || end_time.value === 'flexible');
+
+// Format date for API submission (convert DateValue to YYYY-MM-DD string)
+const formatDateForApi = (date: DateValue | undefined): string | null => {
+    return date ? dayjs(date.toDate(getLocalTimeZone())).format('YYYY-MM-DD') : null;
+};
+
+// Fetch rates when product changes
+watch(selectedProductId, async (newValue) => {
     selectedRateId.value = '';
     availableRates.value = [];
     
@@ -119,10 +162,53 @@ watch(selectedResourceId, async (newValue) => {
 // Calculate duration when dates change
 watch([start_date, end_date], ([newStart, newEnd]) => {
     if (newStart && newEnd) {
-        const start = new Date(newStart);
-        const end = new Date(newEnd);
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        duration_days.value = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        const start = newStart.toDate(getLocalTimeZone());
+        const end = newEnd.toDate(getLocalTimeZone());
+        const diffTime = end.getTime() - start.getTime();
+        // If end is before start, duration is 0 (invalid range)
+        // If same day (diffTime = 0), count as 1 day
+        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        duration_days.value = diffTime < 0 ? 0 : Math.max(1, days);
+    } else {
+        duration_days.value = 0;
+    }
+});
+
+// For Activity: Auto-set end_date to start_date (single-day activities)
+watch(start_date, (newStart) => {
+    if (isActivity.value && newStart) {
+        end_date.value = newStart;
+    }
+});
+
+// Reset time values to 'flexible' when switching to Unit (time is disabled for Unit)
+watch(isUnit, (newIsUnit) => {
+    if (newIsUnit) {
+        start_time.value = 'flexible';
+        end_time.value = 'flexible';
+    }
+});
+
+// Calculate duration in minutes when times change
+watch([start_time, end_time], ([newStart, newEnd]) => {
+    // If either time is 'flexible', don't calculate duration
+    if (newStart === 'flexible' || newEnd === 'flexible') {
+        duration_minutes.value = 0;
+        return;
+    }
+    
+    if (newStart && newEnd) {
+        const [startHour, startMin] = newStart.split(':').map(Number);
+        const [endHour, endMin] = newEnd.split(':').map(Number);
+        
+        const startMinutes = startHour * 60 + startMin;
+        const endMinutes = endHour * 60 + endMin;
+        
+        const diff = endMinutes - startMinutes;
+        // If end time is before start time, duration is 0 (no overnight allowed)
+        duration_minutes.value = diff < 0 ? 0 : diff;
+    } else {
+        duration_minutes.value = 0;
     }
 });
 
@@ -146,37 +232,33 @@ const lineTotal = computed(() => {
     }
 });
 
-// Pricing type label for display
-const pricingTypeLabel = computed(() => {
-    const pt = props.pricingTypes.find(p => p.value === pricing_type.value);
-    return pt?.label || pricing_type.value;
-});
-
-// Transform form data before submission
-const transformData = (data: Record<string, any>) => {
-    if (!selectedResource.value || !selectedRate.value) return data;
-
+// Transform form data before submission - returns all data explicitly
+const transformData = () => {
     return {
-        ...data,
-        reservable_type: selectedResource.value.type,
-        reservable_id: selectedResource.value.id,
-        rate_id: selectedRate.value.id,
-        resource_name: selectedResource.value.name,
-        resource_type_label: selectedResource.value.type_label,
-        rate_name: selectedRate.value.name,
+        reservable_type: selectedProduct.value?.type || '',
+        reservable_id: selectedProduct.value?.id || '',
+        rate_id: selectedRate.value?.id || '',
+        resource_name: selectedProduct.value?.name || '',
+        resource_type_label: selectedProduct.value?.type_label || '',
+        rate_name: selectedRate.value?.name || '',
         pricing_type: pricing_type.value,
         rate_price: rate_price.value,
         currency: currency.value,
         quantity: quantity.value,
-        start_date: start_date.value || null,
-        end_date: end_date.value || null,
+        start_date: formatDateForApi(start_date.value),
+        end_date: formatDateForApi(end_date.value),
+        start_time: start_time.value === 'flexible' ? null : (start_time.value || null),
+        end_time: end_time.value === 'flexible' ? null : (end_time.value || null),
         duration_days: duration_days.value,
+        duration_minutes: isTimeFlexible.value ? null : (duration_minutes.value || null),
+        resource_description: product_description.value || selectedProduct.value?.description || null,
+        rate_description: rate_description.value || selectedRate.value?.description || null,
     };
 };
 
 // Validation - ensure rate is selected
 const canSubmit = computed(() => {
-    return selectedResource.value && selectedRate.value;
+    return selectedProduct.value && selectedRate.value;
 });
 </script>
 
@@ -197,20 +279,26 @@ const canSubmit = computed(() => {
                 help-text="Adding item to this reservation"
             />
 
-            <!-- Resource Selection -->
+            <DisabledFormField
+                label="Tenant"
+                :value="reservation.tenant_name"
+                help-text="Tenant that owns this reservation"
+            />
+
+            <!-- Product Selection -->
             <div class="grid gap-2">
-                <Label for="resource">Resource <span class="text-destructive">*</span></Label>
-                <Select v-model="selectedResourceId" :disabled="processing">
-                    <SelectTrigger id="resource">
-                        <SelectValue placeholder="Select a resource" />
+                <Label for="product">Product</Label>
+                <Select v-model="selectedProductId" :disabled="processing">
+                    <SelectTrigger id="product">
+                        <SelectValue placeholder="Select a product" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
-                            v-for="resource in resources"
-                            :key="`${resource.type}|${resource.id}`"
-                            :value="`${resource.type}|${resource.id}`"
+                            v-for="product in products"
+                            :key="`${product.type}|${product.id}`"
+                            :value="`${product.type}|${product.id}`"
                         >
-                            {{ resource.name }} ({{ resource.type_label }})
+                            {{ product.name }} ({{ product.type_label }}) - {{ product.rates_count }} rates
                         </SelectItem>
                     </SelectContent>
                 </Select>
@@ -219,12 +307,12 @@ const canSubmit = computed(() => {
 
             <!-- Rate Selection -->
             <div class="grid gap-2">
-                <Label for="rate">Rate <span class="text-destructive">*</span></Label>
+                <Label for="rate">Rate</Label>
                 <Select 
                     v-model="selectedRateId" 
-                    :disabled="processing || !selectedResourceId || loadingRates"
+                    :disabled="processing || !selectedProductId || loadingRates"
                 >
-                    <SelectTrigger id="rate">
+                    <SelectTrigger id="rate" class="disabled:bg-muted disabled:text-muted-foreground">
                         <SelectValue :placeholder="loadingRates ? 'Loading rates...' : 'Select a rate'" />
                     </SelectTrigger>
                     <SelectContent>
@@ -237,50 +325,106 @@ const canSubmit = computed(() => {
                         </SelectItem>
                     </SelectContent>
                 </Select>
-                <p v-if="selectedResourceId && !loadingRates && availableRates.length === 0" class="text-sm text-muted-foreground">
-                    No active rates found for this resource
+                <p v-if="selectedProductId && !loadingRates && availableRates.length === 0" class="text-sm text-muted-foreground">
+                    No active rates found for this product
                 </p>
                 <InputError :message="errors.rate_id" />
             </div>
 
-            <!-- Rate Info (Read-only) -->
-            <div v-if="selectedRate" class="rounded-lg border bg-muted/30 p-4 space-y-2">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-muted-foreground">Rate Price</span>
-                    <span class="font-medium">{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}</span>
+            <!-- Date Range -->
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="grid gap-2">
+                    <Label>Start Date</Label>
+                    <Popover>
+                        <PopoverTrigger as-child>
+                            <Button
+                                variant="outline"
+                                :class="cn(
+                                    'justify-start text-left font-normal',
+                                    !start_date && 'text-muted-foreground',
+                                )"
+                                :disabled="processing || !isDateRangeEnabled"
+                                class="disabled:bg-muted disabled:text-muted-foreground"
+                            >
+                                <CalendarIcon class="mr-2 h-4 w-4" />
+                                {{ start_date ? dayjs(start_date.toDate(getLocalTimeZone())).format('MMM DD, YYYY') : 'Pick a date' }}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-auto p-0" align="start">
+                            <Calendar v-model="start_date" initial-focus />
+                        </PopoverContent>
+                    </Popover>
                 </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-muted-foreground">Pricing Type</span>
-                    <span class="font-medium">{{ pricingTypeLabel }}</span>
+                <div class="grid gap-2">
+                    <Label>End Date</Label>
+                    <Popover>
+                        <PopoverTrigger as-child>
+                            <Button
+                                variant="outline"
+                                :class="cn(
+                                    'justify-start text-left font-normal',
+                                    !end_date && 'text-muted-foreground',
+                                )"
+                                :disabled="processing || !isDateRangeEnabled"
+                                class="disabled:bg-muted disabled:text-muted-foreground"
+                            >
+                                <CalendarIcon class="mr-2 h-4 w-4" />
+                                {{ end_date ? dayjs(end_date.toDate(getLocalTimeZone())).format('MMM DD, YYYY') : 'Pick a date' }}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-auto p-0" align="start">
+                            <Calendar v-model="end_date" initial-focus />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <div class="col-span-2">
+                    <InputError :message="errors.date_range" />
                 </div>
             </div>
 
-            <!-- Date Range -->
+            <!-- Time Range -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="grid gap-2">
-                    <Label for="start_date">Start Date</Label>
-                    <Input
-                        id="start_date"
-                        type="date"
-                        v-model="start_date"
-                        :disabled="processing"
-                    />
-                    <InputError :message="errors.start_date" />
+                    <Label for="start_time">Start Time</Label>
+                    <Select v-model="start_time" :disabled="processing || !isTimeRangeEnabled">
+                        <SelectTrigger id="start_time" class="disabled:bg-muted disabled:text-muted-foreground">
+                            <SelectValue placeholder="Select start time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="time in timeOptions"
+                                :key="time"
+                                :value="time"
+                            >
+                                {{ time === 'flexible' ? 'Flexible' : time }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div class="grid gap-2">
-                    <Label for="end_date">End Date</Label>
-                    <Input
-                        id="end_date"
-                        type="date"
-                        v-model="end_date"
-                        :disabled="processing"
-                    />
-                    <InputError :message="errors.end_date" />
+                    <Label for="end_time">End Time</Label>
+                    <Select v-model="end_time" :disabled="processing || !isTimeRangeEnabled">
+                        <SelectTrigger id="end_time" class="disabled:bg-muted disabled:text-muted-foreground">
+                            <SelectValue placeholder="Select end time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="time in timeOptions"
+                                :key="time"
+                                :value="time"
+                            >
+                                {{ time === 'flexible' ? 'Flexible' : time }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div class="col-span-2">
+                    <InputError :message="errors.time_range" />
                 </div>
             </div>
 
             <!-- Quantity and Duration -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
                 <NumberFormField
                     id="quantity"
                     label="Quantity"
@@ -288,13 +432,40 @@ const canSubmit = computed(() => {
                     :min="1"
                     :error="errors.quantity"
                 />
-                <NumberFormField
-                    id="duration_days"
+                <DisabledFormField
                     label="Duration (nights/days)"
-                    v-model="duration_days"
-                    :min="1"
-                    :error="errors.duration_days"
+                    :value="duration_days.toString() + ' day' + (duration_days !== 1 ? 's' : '')"
                 />
+                <DisabledFormField
+                    label="Duration (minutes)"
+                    :value="isTimeFlexible ? 'Flexible' : (duration_minutes > 0 ? formatNumber(duration_minutes) + ' min' : 'Not set')"
+                />
+            </div>
+
+            <!-- Product Description (Optional) -->
+            <div class="grid gap-2">
+                <Label for="product_description">Product Description (Optional)</Label>
+                <Textarea
+                    id="product_description"
+                    name="product_description"
+                    placeholder="Additional details about the product..."
+                    v-model="product_description"
+                    rows="4"
+                />
+                <InputError :message="errors.resource_description" />
+            </div>
+
+            <!-- Rate Description (Optional) -->
+            <div class="grid gap-2">
+                <Label for="rate_description">Rate Description (Optional)</Label>
+                <Textarea
+                    id="rate_description"
+                    name="rate_description"
+                    placeholder="Additional details about the rate..."
+                    v-model="rate_description"
+                    rows="4"
+                />
+                <InputError :message="errors.rate_description" />
             </div>
 
             <!-- Line Total Preview -->

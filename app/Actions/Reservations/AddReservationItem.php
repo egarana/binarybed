@@ -115,7 +115,7 @@ class AddReservationItem
     private function getResourceTypeLabel(string $class): string
     {
         return match ($class) {
-            Unit::class => 'Room',
+            Unit::class => 'Unit',
             Activity::class => 'Activity',
             default => 'Item',
         };
