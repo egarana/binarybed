@@ -17,9 +17,9 @@ class ReservationItem extends Model
     /**
      * Pricing type constants.
      */
-    public const PRICING_PER_NIGHT = 'per_night';
-    public const PRICING_PER_PERSON = 'per_person';
-    public const PRICING_PER_HOUR = 'per_hour';
+    public const PRICING_PER_NIGHT = 'night';
+    public const PRICING_PER_PERSON = 'person';
+    public const PRICING_PER_HOUR = 'hourly';
     public const PRICING_FLAT = 'flat';
 
     /**
@@ -123,6 +123,7 @@ class ReservationItem extends Model
 
     /**
      * Calculate line total based on pricing type.
+     * All pricing types use: quantity × duration_days × rate_price
      *
      * @return int
      */
@@ -132,13 +133,7 @@ class ReservationItem extends Model
         $durationDays = $this->duration_days ?? 1;
         $ratePrice = $this->rate_price ?? 0;
 
-        return match ($this->pricing_type) {
-            self::PRICING_PER_NIGHT => $quantity * $durationDays * $ratePrice,
-            self::PRICING_PER_PERSON => $quantity * $ratePrice,
-            self::PRICING_PER_HOUR => $quantity * (int) ceil(($this->duration_minutes ?? 60) / 60) * $ratePrice,
-            self::PRICING_FLAT => $ratePrice,
-            default => $quantity * $ratePrice,
-        };
+        return $quantity * $durationDays * $ratePrice;
     }
 
     /**

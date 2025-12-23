@@ -122,7 +122,8 @@ class AddReservationItem
     }
 
     /**
-     * Calculate line total based on pricing type.
+     * Calculate line total.
+     * All pricing types use: quantity × duration_days × rate_price
      */
     private function calculateLineTotal(
         ?string $pricingType,
@@ -131,12 +132,6 @@ class AddReservationItem
         int $durationDays,
         ?int $durationMinutes
     ): int {
-        return match ($pricingType) {
-            ReservationItem::PRICING_PER_NIGHT => $quantity * $durationDays * $ratePrice,
-            ReservationItem::PRICING_PER_PERSON => $quantity * $ratePrice,
-            ReservationItem::PRICING_PER_HOUR => $quantity * (int) ceil(($durationMinutes ?? 60) / 60) * $ratePrice,
-            ReservationItem::PRICING_FLAT => $ratePrice,
-            default => $quantity * $ratePrice,
-        };
+        return $quantity * $durationDays * $ratePrice;
     }
 }

@@ -2,6 +2,7 @@
 import activities from '@/routes/activities';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
 import { Users, Tags } from 'lucide-vue-next';
+import { formatNumber } from '@/helpers/currency';
 
 const config = {
     resourceName: 'Activity',
@@ -12,6 +13,7 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'slug', label: 'Slug', sortable: true },
         { key: 'tenant_name', label: 'Tenant', sortable: true },
+        { key: 'price', label: 'Price', sortable: true },
         { key: 'users_count', label: 'Users', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
         { key: 'rates_count', label: 'Rates', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
         { key: 'created_at', label: 'Created At', sortable: true },
@@ -45,6 +47,13 @@ const config = {
 
 <template>
     <BaseIndexPage title="Activities" :config="config">
+        <template #cell-price="{ item }">
+            <template v-if="item.price">
+                {{ formatNumber(item.price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
+            </template>
+            <span v-else class="text-muted-foreground">-</span>
+        </template>
+
         <template #cell-users_count="{ item }">
             <div class="flex items-center gap-2">
                 <Users class="h-4 w-4 text-muted-foreground" />

@@ -32,6 +32,7 @@ const config = {
         { key: 'updated_at', label: 'Updated At', sortable: true },
     ],
     searchFields: ['name', 'slug'],
+    defaultSort: 'price',
     showTable: true,
     addButtonLabel: 'Add rate',
     addButtonRoute: units.rates.create.url([props.unit.tenant_id, props.unit.slug]),
@@ -80,7 +81,7 @@ const config = {
 <template>
     <BaseIndexPage :title="`Rates for ${unit.name}`" :config="config">
         <template #cell-price="{ item }">
-            {{ formatNumber(item.price) }}
+            {{ formatNumber(item.price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
         </template>
 
         <template #cell-currency="{ item }">

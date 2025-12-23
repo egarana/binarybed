@@ -29,6 +29,12 @@ class ActivityRepository
     {
         return QueryBuilder::for(Activity::class)
             ->withCount(['users', 'rates'])
+            ->with(['rates' => function ($query) {
+                $query->where('is_active', true)
+                    ->orderByDesc('is_default')
+                    ->orderBy('price')
+                    ->limit(1);
+            }])
             ->allowedFilters([
                 'name',
                 'slug',
@@ -57,7 +63,7 @@ class ActivityRepository
             : ['name'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count', 'price', 'price_type', 'currency'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
@@ -95,6 +101,16 @@ class ActivityRepository
                 $activityArray = $activity->toArray();
                 $activityArray['tenant_id'] = $tenant->id;
                 $activityArray['tenant_name'] = $tenant->name ?? $tenant->id;
+
+                // Get price from default rate or lowest price rate
+                $rate = $activity->rates->first();
+                $activityArray['price'] = $rate?->price;
+                $activityArray['price_type'] = $rate?->price_type;
+                $activityArray['currency'] = $rate?->currency;
+
+                // Remove rates array from response (we only need the extracted price data)
+                unset($activityArray['rates']);
+
                 return $activityArray;
             }
         );

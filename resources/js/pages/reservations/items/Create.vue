@@ -26,6 +26,7 @@ import { getLocalTimeZone, type DateValue } from '@internationalized/date';
 import dayjs from 'dayjs';
 import { CalendarIcon } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 
 interface Product {
     id: number;
@@ -102,7 +103,7 @@ const isTimeRangeEnabled = computed(() => isActivity.value); // Only for Activit
 // Pricing from selected rate (read-only)
 const rate_price = computed(() => selectedRate.value?.price || 0);
 const currency = computed(() => selectedRate.value?.currency || props.reservation.currency || 'IDR');
-const pricing_type = computed(() => selectedRate.value?.pricing_type || 'per_night');
+const pricing_type = computed(() => selectedRate.value?.pricing_type || 'night');
 
 const quantity = ref(1);
 const start_date = ref<DateValue>();
@@ -228,23 +229,13 @@ watch([start_time, end_time], ([newStart, newEnd]) => {
 });
 
 // Calculate line total preview
+// All pricing types use: quantity × duration_days × rate_price
 const lineTotal = computed(() => {
     const price = rate_price.value || 0;
     const qty = quantity.value || 1;
     const days = duration_days.value || 1;
 
-    switch (pricing_type.value) {
-        case 'per_night':
-            return qty * days * price;
-        case 'per_person':
-            return qty * price;
-        case 'per_hour':
-            return qty * price;
-        case 'flat':
-            return price;
-        default:
-            return qty * price;
-    }
+    return qty * days * price;
 });
 
 // Transform form data before submission - returns all data explicitly
@@ -481,76 +472,73 @@ const canSubmit = computed(() => {
                 <InputError :message="errors.rate_description" />
             </div>
 
-            <!-- Line Total Preview -->
+            <!-- Pricing Summary Preview -->
             <div class="grid gap-2">
-                <div class="text-sm font-semibold leading-none">Pricing Summary</div>
-                <div class="text-xs text-muted-foreground leading-none">Preview</div>
-            </div>
-
-            <!-- Line Total Preview -->
-            <div class="rounded-lg border bg-muted/50 p-4 space-y-3">
-                <div class="flex justify-between items-center border-b pb-2">
-                    <span class="text-sm font-semibold">Pricing Summary</span>
-                    <span class="text-xs text-muted-foreground">Preview</span>
-                </div>
-                
-                <!-- Product & Rate Info -->
-                <div class="grid grid-cols-2 gap-2 text-sm" v-if="selectedProduct && selectedRate">
-                    <div class="text-muted-foreground">Product</div>
-                    <div class="text-right font-medium">{{ selectedProduct.name }}</div>
-                    
-                    <div class="text-muted-foreground">Rate</div>
-                    <div class="text-right font-medium">{{ selectedRate.name }}</div>
-                    
-                    <div class="text-muted-foreground">Pricing Type</div>
-                    <div class="text-right">
-                        {{ pricingTypes.find(p => p.value === pricing_type)?.label || pricing_type }}
+                <div class="text-sm font-medium mb-0.5">Pricing Summary (Preview)</div>
+                <div class="mx-auto w-full">
+                    <div class="overflow-hidden rounded-md border">
+                        <Table>
+                            <TableBody>
+                                <!-- Product -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Product</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">
+                                        <span v-if="selectedProduct">{{ selectedProduct.name }}</span>
+                                        <span v-else class="text-muted-foreground italic">No item selected</span>
+                                    </TableCell>
+                                </TableRow>
+                                
+                                <!-- Rate -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Rate</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">
+                                        <span v-if="selectedRate">{{ selectedRate.name }}</span>
+                                        <span v-else class="text-muted-foreground italic">No item selected</span>
+                                    </TableCell>
+                                </TableRow>
+                                
+                                <!-- Unit Price -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Unit Price</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">
+                                        <span v-if="selectedRate">{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}<span v-if="pricing_type && pricing_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ pricing_type }}</span></span></span>
+                                        <span v-else class="text-muted-foreground italic">No item selected</span>
+                                    </TableCell>
+                                </TableRow>
+                                
+                                <!-- Quantity -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Quantity</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">{{ quantity }}</TableCell>
+                                </TableRow>
+                                
+                                <!-- Duration (Days) -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Duration (Days)</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">{{ formatDurationDays(duration_days, isUnit) }}</TableCell>
+                                </TableRow>
+                                
+                                <!-- Duration (Time) -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
+                                    <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Duration (Time)</TableCell>
+                                    <TableCell class="px-3 py-3 text-right">{{ isTimeFlexible ? 'Flexible' : formatDuration(duration_minutes) }}</TableCell>
+                                </TableRow>
+                                
+                                <!-- Line Total -->
+                                <TableRow class="*:border-border [&>:not(:last-child)]:border-r bg-primary/5">
+                                    <TableCell colspan="2" class="bg-muted/50 px-3 py-4 font-semibold">
+                                        <div class="flex items-center justify-between">
+                                            <div>Line Total</div>
+                                            <div>
+                                                {{ formatCurrencyLabel(currency) }} {{ formatNumber(lineTotal) }}
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
                 </div>
-                
-                <!-- Calculation Breakdown -->
-                <div class="border-t pt-2 space-y-1 text-sm" v-if="selectedRate">
-                    <div class="flex justify-between">
-                        <span class="text-muted-foreground">Unit Price</span>
-                        <span>{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}</span>
-                    </div>
-                    
-                    <div class="flex justify-between" v-if="pricing_type !== 'flat'">
-                        <span class="text-muted-foreground">Quantity</span>
-                        <span>× {{ quantity }}</span>
-                    </div>
-                    
-                    <div class="flex justify-between" v-if="pricing_type === 'per_night'">
-                        <span class="text-muted-foreground">Duration</span>
-                        <span>× {{ formatDurationDays(duration_days, isUnit) }}</span>
-                    </div>
-                    
-                    <div class="flex justify-between" v-if="pricing_type === 'per_hour' && !isTimeFlexible">
-                        <span class="text-muted-foreground">Time</span>
-                        <span>× {{ formatDuration(duration_minutes) }}</span>
-                    </div>
-                </div>
-                
-                <!-- Total -->
-                <div class="border-t pt-2 flex justify-between items-center">
-                    <span class="font-semibold">Line Total</span>
-                    <span class="text-xl font-bold text-primary">
-                        {{ formatCurrencyLabel(currency) }} {{ formatNumber(lineTotal) }}
-                    </span>
-                </div>
-                
-                <!-- Formula hint -->
-                <p class="text-xs text-muted-foreground text-right">
-                    <template v-if="pricing_type === 'per_night'">
-                        {{ formatNumber(rate_price) }} × {{ quantity }} × {{ duration_days }} = {{ formatNumber(lineTotal) }}
-                    </template>
-                    <template v-else-if="pricing_type === 'flat'">
-                        Flat rate pricing
-                    </template>
-                    <template v-else>
-                        {{ formatNumber(rate_price) }} × {{ quantity }} = {{ formatNumber(lineTotal) }}
-                    </template>
-                </p>
             </div>
 
             <SubmitButton

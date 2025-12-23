@@ -49,7 +49,7 @@ class GetRatesForResource
             }
 
             // Apply sorting
-            $sortField = request()->input('sort', 'created_at');
+            $sortField = request()->input('sort', 'price');
             $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
             $sortField = ltrim($sortField, '-');
 
@@ -79,6 +79,7 @@ class GetRatesForResource
                         'slug' => $rate->slug,
                         'description' => $rate->description,
                         'price' => $rate->price,
+                        'price_type' => $rate->price_type,
                         'currency' => $rate->currency,
                         'is_active' => $rate->is_active,
                         'is_default' => $rate->is_default,
