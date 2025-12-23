@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             ->withoutTwoFactor()
             ->create([
                 'global_id' => Str::uuid(),
-                'name' => 'Ega Rana',
+                'name' => 'Bali Simfoni Eksplorasi',
                 'email' => 'bimansaegarana@gmail.com',
                 'password' => Hash::make('Letdareca1#8'),
             ]);
