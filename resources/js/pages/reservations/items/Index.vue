@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import reservations from '@/routes/reservations';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { XCircle } from 'lucide-vue-next';
+import { XCircle, KeyRound, Footprints } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
 
@@ -23,8 +23,9 @@ const config = {
     endpoint: reservations.items.url([props.reservation.tenant_id, props.reservation.code]),
     resourceKey: 'items',
     columns: [
-        { key: 'resource_name', label: 'Resource', sortable: true, className: 'font-medium' },
+        { key: 'product', label: 'Product', sortable: true },
         { key: 'rate_name', label: 'Rate', sortable: true },
+        { key: 'price', label: 'Price', sortable: true },
         { key: 'dates', label: 'Dates', sortable: true },
         { key: 'quantity', label: 'Qty', sortable: true },
         { key: 'line_total', label: 'Total', sortable: true },
@@ -83,20 +84,23 @@ const formatDateRange = (startDate: string | null, endDate: string | null) => {
 
 <template>
     <BaseIndexPage :title="`Items for ${reservation.code}`" :config="config">
-        <template #cell-resource_name="{ item }">
-            <div class="flex flex-col">
-                <span class="font-medium">{{ item.resource_name }}</span>
-                <span class="text-xs text-muted-foreground">{{ item.resource_type_label }}</span>
+        <template #cell-product="{ item }">
+            <div class="flex items-start gap-2.5">
+                <KeyRound v-if="item.resource_type_label === 'Unit'" class="h-4 w-4 mt-1.5 text-muted-foreground" />
+                <Footprints v-else class="h-4 w-4 mt-1.5 text-muted-foreground" />
+                <div>
+                    <div>{{ item.resource_name }} <span class="text-muted-foreground">({{ item.resource_type_label }})</span></div>
+                    <div class="text-xs text-muted-foreground">{{ item.tenant_name }}</div>
+                </div>
             </div>
         </template>
 
         <template #cell-rate_name="{ item }">
-            <div class="flex flex-col">
-                <span>{{ item.rate_name || '-' }}</span>
-                <span v-if="item.pricing_type" class="text-xs text-muted-foreground capitalize">
-                    {{ item.pricing_type.replace('_', ' ') }}
-                </span>
-            </div>
+            {{ item.rate_name || '-' }}
+        </template>
+
+        <template #cell-price="{ item }">
+            {{ formatNumber(item.rate_price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
         </template>
 
         <template #cell-dates="{ item }">
@@ -116,7 +120,10 @@ const formatDateRange = (startDate: string | null, endDate: string | null) => {
         </template>
 
         <template #cell-status="{ item }">
-            <Badge :variant="item.status === 'ACTIVE' ? 'outline' : 'destructive'">
+            <Badge 
+                :variant="item.status === 'ACTIVE' ? 'outline' : 'destructive'"
+                :class="item.status === 'CANCELLED' ? 'bg-destructive/10 text-destructive' : ''"
+            >
                 {{ item.status === 'ACTIVE' ? 'Active' : 'Cancelled' }}
             </Badge>
         </template>

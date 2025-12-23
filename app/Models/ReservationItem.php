@@ -45,7 +45,7 @@ class ReservationItem extends Model
         'resource_description',
         'rate_name',
         'rate_description',
-        'pricing_type',
+        'price_type',
         'rate_price',
         'currency',
         'line_total',

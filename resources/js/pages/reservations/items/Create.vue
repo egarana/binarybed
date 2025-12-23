@@ -42,7 +42,7 @@ interface Rate {
     name: string;
     price: number;
     currency: string;
-    pricing_type: string;
+    price_type: string;
     description: string | null;
 }
 
@@ -103,7 +103,7 @@ const isTimeRangeEnabled = computed(() => isActivity.value); // Only for Activit
 // Pricing from selected rate (read-only)
 const rate_price = computed(() => selectedRate.value?.price || 0);
 const currency = computed(() => selectedRate.value?.currency || props.reservation.currency || 'IDR');
-const pricing_type = computed(() => selectedRate.value?.pricing_type || 'night');
+const price_type = computed(() => selectedRate.value?.price_type || 'night');
 
 const quantity = ref(1);
 const start_date = ref<DateValue>();
@@ -247,7 +247,7 @@ const transformData = () => {
         resource_name: selectedProduct.value?.name || '',
         resource_type_label: selectedProduct.value?.type_label || '',
         rate_name: selectedRate.value?.name || '',
-        pricing_type: pricing_type.value,
+        price_type: price_type.value,
         rate_price: rate_price.value,
         currency: currency.value,
         quantity: quantity.value,
@@ -266,6 +266,43 @@ const transformData = () => {
 const canSubmit = computed(() => {
     return selectedProduct.value && selectedRate.value;
 });
+
+// Debug mode toggle
+const showDebug = ref(false);
+
+// Debug data computed property
+const debugData = computed(() => ({
+    formState: {
+        selectedProductId: selectedProductId.value,
+        selectedRateId: selectedRateId.value,
+        selectedProduct: selectedProduct.value,
+        selectedRate: selectedRate.value,
+        start_date: start_date.value ? formatDateForApi(start_date.value) : null,
+        end_date: end_date.value ? formatDateForApi(end_date.value) : null,
+        start_time: start_time.value,
+        end_time: end_time.value,
+        quantity: quantity.value,
+        duration_days: duration_days.value,
+        duration_minutes: duration_minutes.value,
+        product_description: product_description.value,
+        rate_description: rate_description.value,
+    },
+    computed: {
+        isUnit: isUnit.value,
+        isActivity: isActivity.value,
+        isDateRangeEnabled: isDateRangeEnabled.value,
+        isTimeRangeEnabled: isTimeRangeEnabled.value,
+        isTimeFlexible: isTimeFlexible.value,
+        rate_price: rate_price.value,
+        currency: currency.value,
+        price_type: price_type.value,
+        lineTotal: lineTotal.value,
+        canSubmit: canSubmit.value,
+    },
+    transformedData: transformData(),
+    availableRates: availableRates.value,
+    loadingRates: loadingRates.value,
+}));
 </script>
 
 <template>
@@ -501,7 +538,7 @@ const canSubmit = computed(() => {
                                 <TableRow class="*:border-border [&>:not(:last-child)]:border-r">
                                     <TableCell class="w-44 whitespace-nowrap bg-muted/50 px-3 py-3 font-medium">Unit Price</TableCell>
                                     <TableCell class="px-3 py-3 text-right">
-                                        <span v-if="selectedRate">{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}<span v-if="pricing_type && pricing_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ pricing_type }}</span></span></span>
+                                        <span v-if="selectedRate">{{ formatCurrencyLabel(currency) }} {{ formatNumber(rate_price) }}<span v-if="price_type && price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ price_type }}</span></span></span>
                                         <span v-else class="text-muted-foreground italic">No item selected</span>
                                     </TableCell>
                                 </TableRow>
@@ -537,6 +574,88 @@ const canSubmit = computed(() => {
                                 </TableRow>
                             </TableBody>
                         </Table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Debugger -->
+            <div class="border border-dashed border-amber-500/50 rounded-lg overflow-hidden">
+                <button
+                    type="button"
+                    @click="showDebug = !showDebug"
+                    class="w-full px-4 py-2 text-left text-sm font-medium bg-amber-500/10 hover:bg-amber-500/20 transition-colors flex items-center justify-between"
+                >
+                    <span class="flex items-center gap-2">
+                        <span class="text-amber-600">🐛</span>
+                        <span>Validation Debugger</span>
+                    </span>
+                    <span class="text-xs text-muted-foreground">
+                        {{ showDebug ? '▼ Hide' : '▶ Show' }}
+                    </span>
+                </button>
+                
+                <div v-if="showDebug" class="p-4 space-y-4 bg-muted/30 text-xs font-mono">
+                    <!-- Errors Section -->
+                    <div class="space-y-2">
+                        <div class="font-semibold text-red-600 flex items-center gap-1">
+                            <span>❌</span> Validation Errors
+                        </div>
+                        <pre v-if="Object.keys(errors).length > 0" class="p-3 rounded bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 overflow-auto max-h-48">{{ JSON.stringify(errors, null, 2) }}</pre>
+                        <div v-else class="p-3 rounded bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400">
+                            ✅ No validation errors
+                        </div>
+                    </div>
+
+                    <!-- Can Submit Status -->
+                    <div class="space-y-2">
+                        <div class="font-semibold flex items-center gap-1">
+                            <span>📋</span> Submit Status
+                        </div>
+                        <div :class="[
+                            'p-3 rounded',
+                            canSubmit 
+                                ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400' 
+                                : 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400'
+                        ]">
+                            <div class="font-medium">{{ canSubmit ? '✅ Ready to submit' : '⚠️ Cannot submit yet' }}</div>
+                            <div v-if="!canSubmit" class="mt-1 text-xs opacity-80">
+                                <div v-if="!selectedProduct">• Product not selected</div>
+                                <div v-if="!selectedRate">• Rate not selected</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transformed Data (What will be sent) -->
+                    <div class="space-y-2">
+                        <div class="font-semibold text-blue-600 flex items-center gap-1">
+                            <span>📤</span> Data to Submit (transformData)
+                        </div>
+                        <pre class="p-3 rounded bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 overflow-auto max-h-64">{{ JSON.stringify(debugData.transformedData, null, 2) }}</pre>
+                    </div>
+
+                    <!-- Form State -->
+                    <div class="space-y-2">
+                        <div class="font-semibold text-purple-600 flex items-center gap-1">
+                            <span>📝</span> Current Form State
+                        </div>
+                        <pre class="p-3 rounded bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 overflow-auto max-h-64">{{ JSON.stringify(debugData.formState, null, 2) }}</pre>
+                    </div>
+
+                    <!-- Computed Values -->
+                    <div class="space-y-2">
+                        <div class="font-semibold text-cyan-600 flex items-center gap-1">
+                            <span>🔢</span> Computed Values
+                        </div>
+                        <pre class="p-3 rounded bg-cyan-100 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-400 overflow-auto max-h-48">{{ JSON.stringify(debugData.computed, null, 2) }}</pre>
+                    </div>
+
+                    <!-- Available Rates -->
+                    <div class="space-y-2">
+                        <div class="font-semibold text-orange-600 flex items-center gap-1">
+                            <span>💰</span> Available Rates ({{ availableRates.length }})
+                            <span v-if="loadingRates" class="animate-pulse">Loading...</span>
+                        </div>
+                        <pre class="p-3 rounded bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 overflow-auto max-h-48">{{ JSON.stringify(debugData.availableRates, null, 2) }}</pre>
                     </div>
                 </div>
             </div>

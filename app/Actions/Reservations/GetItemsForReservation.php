@@ -22,7 +22,7 @@ class GetItemsForReservation
      */
     public function execute(string $tenantId, string $reservationCode, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->executeInTenantContext($tenantId, function () use ($reservationCode, $perPage) {
+        return $this->executeInTenantContext($tenantId, function ($tenant) use ($reservationCode, $perPage) {
             $reservation = Reservation::where('code', $reservationCode)->firstOrFail();
 
             $query = ReservationItem::where('reservation_id', $reservation->id);
@@ -84,13 +84,13 @@ class GetItemsForReservation
             $items = $query->skip(($currentPage - 1) * $perPage)->take($perPage)->get();
 
             return new LengthAwarePaginator(
-                $items->map(function ($item) {
+                $items->map(function ($item) use ($tenant) {
                     return [
                         'id' => $item->id,
                         'resource_name' => $item->resource_name,
                         'resource_type_label' => $item->resource_type_label,
                         'rate_name' => $item->rate_name,
-                        'pricing_type' => $item->pricing_type,
+                        'price_type' => $item->price_type,
                         'start_date' => $item->start_date?->format('Y-m-d'),
                         'end_date' => $item->end_date?->format('Y-m-d'),
                         'duration_days' => $item->duration_days,
@@ -101,6 +101,7 @@ class GetItemsForReservation
                         'line_total' => $item->line_total,
                         'status' => $item->status,
                         'formatted_duration' => $item->formatted_duration,
+                        'tenant_name' => $tenant->name,
                         'created_at' => $item->created_at,
                         'updated_at' => $item->updated_at,
                     ];

@@ -154,7 +154,7 @@ class ReservationController extends Controller
                     'name' => $rate->name,
                     'price' => $rate->price,
                     'currency' => $rate->currency,
-                    'pricing_type' => $rate->price_type ?? ReservationItem::PRICING_PER_NIGHT,
+                    'price_type' => $rate->price_type ?? ReservationItem::PRICING_PER_NIGHT,
                     'description' => $rate->description,
                 ]);
 

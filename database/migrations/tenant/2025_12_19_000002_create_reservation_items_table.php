@@ -43,7 +43,7 @@ return new class extends Migration
             // Rate Snapshot (captured at booking time)
             $table->string('rate_name')->nullable();           // "Standard Rate"
             $table->text('rate_description')->nullable();
-            $table->string('pricing_type')->nullable();        // "night", "person", "hourly", "flat"
+            $table->string('price_type')->nullable();         // "night", "person", "hourly", "flat"
 
             // Price Snapshot (CRITICAL for accounting!)
             $table->unsignedBigInteger('rate_price');          // Harga satuan saat booking

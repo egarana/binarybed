@@ -15,7 +15,6 @@ const config = {
         { key: 'price', label: 'Price', sortable: true },
         { key: 'currency', label: 'Currency', sortable: true },
         { key: 'product', label: 'Product', sortable: true },
-        { key: 'type', label: 'Type', sortable: true },
         { key: 'status', label: 'Status', sortable: true },
         { key: 'created_at', label: 'Created At', sortable: true },
         { key: 'updated_at', label: 'Updated At', sortable: true },
@@ -77,15 +76,13 @@ const config = {
         </template>
 
         <template #cell-product="{ item }">
-            <div>{{ item.resource_name }}</div>
-            <div class="text-xs text-muted-foreground">{{ item.tenant_name }}</div>
-        </template>
-
-        <template #cell-type="{ item }">
-            <div class="flex items-center gap-2">
-                <KeyRound v-if="item.rateable_type === 'Unit'" class="h-4 w-4 text-muted-foreground" />
-                <Footprints v-else class="h-4 w-4 text-muted-foreground" />
-                {{ item.rateable_type }}
+            <div class="flex items-start gap-2.5">
+                <KeyRound v-if="item.rateable_type === 'Unit'" class="h-4 w-4 mt-1.5 text-muted-foreground" />
+                <Footprints v-else class="h-4 w-4 mt-1.5 text-muted-foreground" />
+                <div>
+                    <div>{{ item.resource_name }} <span class="text-muted-foreground">({{ item.rateable_type }})</span></div>
+                    <div class="text-xs text-muted-foreground">{{ item.tenant_name }}</div>
+                </div>
             </div>
         </template>
 

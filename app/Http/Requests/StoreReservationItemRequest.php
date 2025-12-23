@@ -49,13 +49,8 @@ class StoreReservationItemRequest extends FormRequest
             // Quantity
             'quantity' => ['required', 'integer', 'min:1'],
 
-            // Pricing (can be overridden by admin)
-            'pricing_type' => ['nullable', 'string', Rule::in([
-                ReservationItem::PRICING_PER_NIGHT,
-                ReservationItem::PRICING_PER_PERSON,
-                ReservationItem::PRICING_PER_HOUR,
-                ReservationItem::PRICING_FLAT,
-            ])],
+            // Pricing type - display only, not used in calculations
+            'price_type' => ['nullable', 'string', 'max:50'],
             'rate_price' => ['required', 'integer', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
 

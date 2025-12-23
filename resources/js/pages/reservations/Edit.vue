@@ -36,6 +36,7 @@ interface Props {
         notes: string | null;
         cancellation_reason: string | null;
         tenant_id: string;
+        tenant_name: string;
 
         created_at: string;
         updated_at: string;
@@ -47,7 +48,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs = [
     { title: 'Reservations', href: reservations.index.url() },
-    { title: `Edit: ${props.reservation.code}`, href: reservations.edit.url([props.reservation.tenant_id, props.reservation.code]) },
+    { title: `${props.reservation.code}`, href: reservations.edit.url([props.reservation.tenant_id, props.reservation.code]) },
 ];
 
 const { onSuccess, onError } = useFormNotifications({
@@ -103,6 +104,12 @@ function transformFormData(data: Record<string, any>) {
                 label="Reservation Code"
                 :value="reservation.code"
                 help-text="Reservation code cannot be changed"
+            />
+
+            <DisabledFormField
+                label="Tenant"
+                :value="reservation.tenant_name"
+                help-text="The tenant cannot be changed after the reservation has been made"
             />
 
             <FormField

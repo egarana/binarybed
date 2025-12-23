@@ -47,7 +47,7 @@ class AddReservationItem
             // Get the rate for snapshotting
             $rateName = $data['rate_name'] ?? null;
             $rateDescription = $data['rate_description'] ?? null;
-            $pricingType = $data['pricing_type'] ?? null;
+            $priceType = $data['price_type'] ?? null;
             $ratePrice = $data['rate_price'] ?? 0;
             $currency = $data['currency'] ?? 'IDR';
 
@@ -69,7 +69,6 @@ class AddReservationItem
             $durationMinutes = $data['duration_minutes'] ?? null;
 
             $lineTotal = $this->calculateLineTotal(
-                $pricingType,
                 $ratePrice,
                 $quantity,
                 $durationDays,
@@ -94,7 +93,7 @@ class AddReservationItem
                 'resource_description' => $resourceDescription,
                 'rate_name' => $rateName,
                 'rate_description' => $rateDescription,
-                'pricing_type' => $pricingType,
+                'price_type' => $priceType,
                 'rate_price' => $ratePrice,
                 'currency' => $currency,
                 'line_total' => $lineTotal,
@@ -123,10 +122,9 @@ class AddReservationItem
 
     /**
      * Calculate line total.
-     * All pricing types use: quantity × duration_days × rate_price
+     * Formula: quantity × duration_days × rate_price
      */
     private function calculateLineTotal(
-        ?string $pricingType,
         int $ratePrice,
         int $quantity,
         int $durationDays,
