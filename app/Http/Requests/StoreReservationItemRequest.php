@@ -38,10 +38,6 @@ class StoreReservationItemRequest extends FormRequest
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i'],
 
-            // Duration
-            'duration_days' => ['nullable', 'integer', 'min:1'],
-            'duration_minutes' => ['nullable', 'integer', 'min:30'],
-
             // Resource/Rate descriptions
             'resource_description' => ['nullable', 'string', 'max:1000'],
             'rate_description' => ['nullable', 'string', 'max:1000'],

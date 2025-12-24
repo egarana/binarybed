@@ -5,8 +5,10 @@ namespace App\Actions\Reservations;
 use App\HandlesTenancy;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
+use App\Models\Unit;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Carbon\Carbon;
 
 class GetItemsForReservation
 {
@@ -27,33 +29,19 @@ class GetItemsForReservation
 
             $query = ReservationItem::where('reservation_id', $reservation->id);
 
-            // Apply status filter with validation
-            $statusFilter = request()->input('status');
-            if ($statusFilter !== null && $statusFilter !== '') {
-                // Validate status value (only active or cancelled allowed)
-                $allowedStatuses = ['active', 'cancelled', 'ACTIVE', 'CANCELLED'];
-                if (in_array($statusFilter, $allowedStatuses)) {
-                    $query->where('status', strtoupper($statusFilter));
-                }
-            }
-
-            // Apply resource type filter with validation
-            $resourceTypeFilter = request()->input('resource_type');
-            if ($resourceTypeFilter !== null && $resourceTypeFilter !== '') {
-                // Validate resource type (only Room or Activity allowed)
-                $allowedTypes = ['Room', 'Activity'];
-                if (in_array($resourceTypeFilter, $allowedTypes)) {
-                    $query->where('resource_type_label', $resourceTypeFilter);
-                }
-            }
-
-            // Apply search filter
+            // Apply search filter - supports word-by-word matching
             $searchValue = request()->input('search');
             if ($searchValue) {
-                $query->where(function ($q) use ($searchValue) {
-                    $q->where('resource_name', 'like', "%{$searchValue}%")
-                        ->orWhere('rate_name', 'like', "%{$searchValue}%");
-                });
+                // Split search into words and search each word
+                $words = preg_split('/\s+/', trim($searchValue));
+                foreach ($words as $word) {
+                    if (strlen($word) > 0) {
+                        $query->where(function ($q) use ($word) {
+                            $q->where('resource_name', 'like', "%{$word}%")
+                                ->orWhere('rate_name', 'like', "%{$word}%");
+                        });
+                    }
+                }
             }
 
             // Apply sorting
@@ -61,23 +49,43 @@ class GetItemsForReservation
             $sortDirection = str_starts_with($sortField, '-') ? 'desc' : 'asc';
             $sortField = ltrim($sortField, '-');
 
-            // Validate sort field
-            $allowedSorts = [
-                'resource_name',
-                'rate_name',
-                'start_date',
-                'end_date',
-                'quantity',
-                'line_total',
-                'status',
-                'created_at',
-                'updated_at',
-            ];
-            if (!in_array($sortField, $allowedSorts)) {
-                $sortField = 'created_at';
-            }
+            // Special handling for duration sorting (calculated field)
+            if ($sortField === 'duration') {
+                $query->orderByRaw("DATEDIFF(end_date, start_date) {$sortDirection}");
+            } else {
+                // Map frontend column keys to database columns
+                $sortFieldMap = [
+                    'product' => 'resource_name',
+                    'schedule' => 'start_date',
+                    'rate' => 'rate_name',
+                    'total' => 'line_total',
+                ];
 
-            $query->orderBy($sortField, $sortDirection);
+                // Apply mapping if exists
+                if (isset($sortFieldMap[$sortField])) {
+                    $sortField = $sortFieldMap[$sortField];
+                }
+
+                // Validate sort field
+                $allowedSorts = [
+                    'resource_name',
+                    'rate_name',
+                    'rate_price',
+                    'currency',
+                    'start_date',
+                    'end_date',
+                    'quantity',
+                    'line_total',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ];
+                if (!in_array($sortField, $allowedSorts)) {
+                    $sortField = 'created_at';
+                }
+
+                $query->orderBy($sortField, $sortDirection);
+            }
 
             $currentPage = Paginator::resolveCurrentPage();
             $total = $query->count();
@@ -85,6 +93,11 @@ class GetItemsForReservation
 
             return new LengthAwarePaginator(
                 $items->map(function ($item) use ($tenant) {
+                    // Calculate duration based on resource type only
+                    $isUnit = $item->reservable_type === Unit::class || $item->resource_type_label === 'Unit';
+                    $duration = $this->calculateDuration($item->start_date, $item->end_date, $isUnit);
+                    $durationLabel = $this->formatDurationLabel($duration, $isUnit);
+
                     return [
                         'id' => $item->id,
                         'resource_name' => $item->resource_name,
@@ -93,14 +106,15 @@ class GetItemsForReservation
                         'price_type' => $item->price_type,
                         'start_date' => $item->start_date?->format('Y-m-d'),
                         'end_date' => $item->end_date?->format('Y-m-d'),
-                        'duration_days' => $item->duration_days,
-                        'duration_minutes' => $item->duration_minutes,
+                        'start_time' => $item->start_time,
+                        'end_time' => $item->end_time,
+                        'duration' => $duration,
+                        'duration_label' => $durationLabel,
                         'quantity' => $item->quantity,
                         'rate_price' => $item->rate_price,
                         'currency' => $item->currency,
                         'line_total' => $item->line_total,
                         'status' => $item->status,
-                        'formatted_duration' => $item->formatted_duration,
                         'tenant_name' => $tenant->name,
                         'created_at' => $item->created_at,
                         'updated_at' => $item->updated_at,
@@ -112,5 +126,37 @@ class GetItemsForReservation
                 ['path' => request()->url(), 'query' => request()->query()]
             );
         });
+    }
+
+    /**
+     * Calculate duration based on dates and resource type.
+     * Unit = nights (end - start)
+     * Activity = days (end - start + 1)
+     */
+    private function calculateDuration($startDate, $endDate, bool $isUnit): int
+    {
+        if (!$startDate || !$endDate) {
+            return 1;
+        }
+
+        $start = $startDate instanceof Carbon ? $startDate : Carbon::parse($startDate);
+        $end = $endDate instanceof Carbon ? $endDate : Carbon::parse($endDate);
+        $diffDays = $start->diffInDays($end);
+
+        // Unit: nights = end - start
+        // Activity: days = end - start + 1
+        return $isUnit ? max(1, $diffDays) : max(1, $diffDays + 1);
+    }
+
+    /**
+     * Format duration label for display.
+     * Unit = "X nights", Activity = "X days"
+     */
+    private function formatDurationLabel(int $duration, bool $isUnit): string
+    {
+        if ($isUnit) {
+            return $duration === 1 ? '1 night' : "{$duration} nights";
+        }
+        return $duration === 1 ? '1 day' : "{$duration} days";
     }
 }

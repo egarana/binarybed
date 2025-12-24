@@ -36,8 +36,6 @@ class ReservationItem extends Model
         'end_date',
         'start_time',
         'end_time',
-        'duration_days',
-        'duration_minutes',
         'quantity',
         // Granular Snapshotting
         'resource_name',
@@ -75,8 +73,6 @@ class ReservationItem extends Model
             'end_date' => 'date',
             'rate_price' => 'integer',
             'line_total' => 'integer',
-            'duration_days' => 'integer',
-            'duration_minutes' => 'integer',
             'quantity' => 'integer',
         ];
     }
@@ -123,49 +119,15 @@ class ReservationItem extends Model
 
     /**
      * Calculate line total based on pricing type.
-     * All pricing types use: quantity × duration_days × rate_price
+     * Formula: quantity × rate_price
      *
      * @return int
      */
     public function calculateLineTotal(): int
     {
         $quantity = $this->quantity ?? 1;
-        $durationDays = $this->duration_days ?? 1;
         $ratePrice = $this->rate_price ?? 0;
 
-        return $quantity * $durationDays * $ratePrice;
-    }
-
-    /**
-     * Format duration for display.
-     *
-     * @return string
-     */
-    public function getFormattedDurationAttribute(): string
-    {
-        if ($this->duration_days && $this->duration_days > 0) {
-            $nights = $this->duration_days;
-            return $nights . ' ' . ($nights > 1 ? 'nights' : 'night');
-        }
-
-        if ($this->duration_minutes && $this->duration_minutes > 0) {
-            $hours = floor($this->duration_minutes / 60);
-            $minutes = $this->duration_minutes % 60;
-
-            if ($hours > 0 && $minutes > 0) {
-                return "{$hours}h {$minutes}m";
-            } elseif ($hours > 0) {
-                return "{$hours} " . ($hours > 1 ? 'hours' : 'hour');
-            } else {
-                return "{$minutes} min";
-            }
-        }
-
-        // If no time set but it's an Activity, show 'Flexible'
-        if ($this->reservable_type === 'App\\Models\\Activity' && is_null($this->duration_minutes)) {
-            return 'Flexible';
-        }
-
-        return '';
+        return $quantity * $ratePrice;
     }
 }

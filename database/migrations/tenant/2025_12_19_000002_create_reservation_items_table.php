@@ -27,10 +27,6 @@ return new class extends Migration
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
 
-            // === DURATIONS ===
-            $table->integer('duration_days')->nullable();      // For rooms/multi-day
-            $table->integer('duration_minutes')->nullable();   // For activities (90 = 1.5 hours)
-
             // === QUANTITY ===
             $table->integer('quantity')->default(1);           // Rooms/persons
 

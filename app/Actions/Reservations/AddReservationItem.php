@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\Activity;
 use App\Models\Rate;
 use App\HandlesTenancy;
+use Carbon\Carbon;
 
 class AddReservationItem
 {
@@ -31,6 +32,7 @@ class AddReservationItem
             $resourceName = $data['resource_name'] ?? null;
             $resourceTypeLabel = $data['resource_type_label'] ?? null;
             $resourceDescription = $data['resource_description'] ?? null;
+            $reservableType = $data['reservable_type'] ?? null;
 
             if (isset($data['reservable_type'], $data['reservable_id'])) {
                 $reservableClass = $data['reservable_type'];
@@ -58,34 +60,31 @@ class AddReservationItem
                     // Snapshot rate data
                     $rateName = $rateName ?? $rate->name;
                     $rateDescription = $rateDescription ?? ($rate->description ?? null);
+                    $priceType = $priceType ?? $rate->price_type;
                     $ratePrice = $ratePrice ?: $rate->price;
                     $currency = $rate->currency ?? 'IDR';
                 }
             }
 
-            // Calculate line total
-            $quantity = $data['quantity'] ?? 1;
-            $durationDays = $data['duration_days'] ?? 1;
-            $durationMinutes = $data['duration_minutes'] ?? null;
+            // Calculate duration from dates based on resource type
+            $startDate = $data['start_date'] ?? null;
+            $endDate = $data['end_date'] ?? null;
+            $isUnit = $reservableType === Unit::class;
+            $duration = $this->calculateDuration($startDate, $endDate, $isUnit);
 
-            $lineTotal = $this->calculateLineTotal(
-                $ratePrice,
-                $quantity,
-                $durationDays,
-                $durationMinutes
-            );
+            // Calculate line total with duration
+            $quantity = $data['quantity'] ?? 1;
+            $lineTotal = $this->calculateLineTotal($ratePrice, $quantity, $duration);
 
             // Create the item with snapshots
             $item = $reservation->items()->create([
-                'reservable_type' => $data['reservable_type'] ?? null,
+                'reservable_type' => $reservableType,
                 'reservable_id' => $data['reservable_id'] ?? null,
                 'rate_id' => $data['rate_id'] ?? null,
-                'start_date' => $data['start_date'] ?? null,
-                'end_date' => $data['end_date'] ?? null,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
                 'start_time' => $data['start_time'] ?? null,
                 'end_time' => $data['end_time'] ?? null,
-                'duration_days' => $durationDays,
-                'duration_minutes' => $durationMinutes,
                 'quantity' => $quantity,
                 // Granular Snapshotting
                 'resource_name' => $resourceName,
@@ -121,15 +120,31 @@ class AddReservationItem
     }
 
     /**
-     * Calculate line total.
-     * Formula: quantity × duration_days × rate_price
+     * Calculate duration based on dates and resource type.
+     * Unit = nights (end - start)
+     * Activity = days (end - start + 1)
      */
-    private function calculateLineTotal(
-        int $ratePrice,
-        int $quantity,
-        int $durationDays,
-        ?int $durationMinutes
-    ): int {
-        return $quantity * $durationDays * $ratePrice;
+    private function calculateDuration(?string $startDate, ?string $endDate, bool $isUnit): int
+    {
+        if (!$startDate || !$endDate) {
+            return 1;
+        }
+
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        $diffDays = $start->diffInDays($end);
+
+        // Unit: nights = end - start
+        // Activity: days = end - start + 1
+        return $isUnit ? max(1, $diffDays) : max(1, $diffDays + 1);
+    }
+
+    /**
+     * Calculate line total.
+     * Formula: rate_price × quantity × duration
+     */
+    private function calculateLineTotal(int $ratePrice, int $quantity, int $duration): int
+    {
+        return $ratePrice * $quantity * $duration;
     }
 }
