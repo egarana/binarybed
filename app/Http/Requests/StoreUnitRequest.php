@@ -37,8 +37,9 @@ class StoreUnitRequest extends FormRequest
             'images'     => ['nullable', 'array', 'max:10'],
             'images.*'   => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             // Standard Rate fields
-            'standard_rate_price'    => ['required', 'numeric', 'min:0'],
-            'standard_rate_currency' => ['required', 'string', 'size:3'],
+            'standard_rate_price'      => ['required', 'numeric', 'min:0'],
+            'standard_rate_currency'   => ['required', 'string', 'size:3'],
+            'standard_rate_price_type' => ['nullable', 'string', 'max:50'],
         ];
     }
 

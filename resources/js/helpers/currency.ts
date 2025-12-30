@@ -1,20 +1,21 @@
 /**
- * Format a price value with international currency formatting
+ * Format a price value with ISO 4217 currency code
  * 
  * @param price - The numeric price value to format
- * @param currency - The currency code (e.g., 'IDR', 'USD', 'EUR')
- * @returns Formatted currency string with symbol
+ * @param currency - The ISO 4217 currency code (e.g., 'IDR', 'USD', 'EUR')
+ * @returns Formatted currency string with ISO 4217 code
  * 
  * @example
  * formatCurrency(1100000, 'IDR') // "IDR 1,100,000"
- * formatCurrency(99.99, 'USD') // "US$99"
+ * formatCurrency(99.99, 'USD') // "USD 100"
  */
 export function formatCurrency(price: number, currency: string): string {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: currency || 'IDR',
-        minimumFractionDigits: 0
+    const code = currency || 'IDR';
+    const formatted = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     }).format(price);
+    return `${code} ${formatted}`;
 }
 
 /**

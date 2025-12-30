@@ -8,7 +8,7 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
 import NumberFormField from '@/components/NumberFormField.vue';
-import CurrencyFormField from '@/components/CurrencyFormField.vue';
+import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -206,11 +206,10 @@ const transformData = (data: Record<string, any>) => ({
             />
 
             <!-- Currency -->
-            <CurrencyFormField
+            <CurrencySelect
                 id="currency"
                 label="Currency"
                 :tabindex="6"
-                placeholder="IDR"
                 v-model="currency"
                 :error="errors.currency"
             />

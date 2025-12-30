@@ -1,0 +1,142 @@
+[
+    {
+        "code": "IDR",
+        "numeric": "360",
+        "name": "Indonesian Rupiah",
+        "symbol": "Rp",
+        "decimals": 2
+    },
+    {
+        "code": "USD",
+        "numeric": "840",
+        "name": "United States Dollar",
+        "symbol": "$",
+        "decimals": 2
+    },
+    {
+        "code": "EUR",
+        "numeric": "978",
+        "name": "Euro",
+        "symbol": "€",
+        "decimals": 2
+    },
+    {
+        "code": "GBP",
+        "numeric": "826",
+        "name": "Pound Sterling",
+        "symbol": "£",
+        "decimals": 2
+    },
+    {
+        "code": "SGD",
+        "numeric": "702",
+        "name": "Singapore Dollar",
+        "symbol": "S$",
+        "decimals": 2
+    },
+    {
+        "code": "MYR",
+        "numeric": "458",
+        "name": "Malaysian Ringgit",
+        "symbol": "RM",
+        "decimals": 2
+    },
+    {
+        "code": "AUD",
+        "numeric": "036",
+        "name": "Australian Dollar",
+        "symbol": "A$",
+        "decimals": 2
+    },
+    {
+        "code": "JPY",
+        "numeric": "392",
+        "name": "Japanese Yen",
+        "symbol": "¥",
+        "decimals": 0
+    },
+    {
+        "code": "CNY",
+        "numeric": "156",
+        "name": "Chinese Yuan",
+        "symbol": "¥",
+        "decimals": 2
+    },
+    {
+        "code": "THB",
+        "numeric": "764",
+        "name": "Thai Baht",
+        "symbol": "฿",
+        "decimals": 2
+    },
+    {
+        "code": "PHP",
+        "numeric": "608",
+        "name": "Philippine Peso",
+        "symbol": "₱",
+        "decimals": 2
+    },
+    {
+        "code": "VND",
+        "numeric": "704",
+        "name": "Vietnamese Dong",
+        "symbol": "₫",
+        "decimals": 0
+    },
+    {
+        "code": "KRW",
+        "numeric": "410",
+        "name": "South Korean Won",
+        "symbol": "₩",
+        "decimals": 0
+    },
+    {
+        "code": "INR",
+        "numeric": "356",
+        "name": "Indian Rupee",
+        "symbol": "₹",
+        "decimals": 2
+    },
+    {
+        "code": "HKD",
+        "numeric": "344",
+        "name": "Hong Kong Dollar",
+        "symbol": "HK$",
+        "decimals": 2
+    },
+    {
+        "code": "TWD",
+        "numeric": "901",
+        "name": "New Taiwan Dollar",
+        "symbol": "NT$",
+        "decimals": 2
+    },
+    {
+        "code": "NZD",
+        "numeric": "554",
+        "name": "New Zealand Dollar",
+        "symbol": "NZ$",
+        "decimals": 2
+    },
+    {
+        "code": "CHF",
+        "numeric": "756",
+        "name": "Swiss Franc",
+        "symbol": "CHF",
+        "decimals": 2
+    },
+    {
+        "code": "CAD",
+        "numeric": "124",
+        "name": "Canadian Dollar",
+        "symbol": "C$",
+        "decimals": 2
+    },
+    {
+        "code": "AED",
+        "numeric": "784",
+        "name": "United Arab Emirates Dirham",
+        "symbol": "د.إ",
+        "decimals": 2
+    }
+]

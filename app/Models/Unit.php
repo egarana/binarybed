@@ -56,8 +56,16 @@ class Unit extends Model implements HasMedia
             'id',                  // parentKey - primary key di Unit table
             'global_id'            // relatedKey - primary key di UserTenant table (global_id)
         )
-            ->withPivot(['assigned_at', 'role'])
+            ->withPivot(['assigned_at', 'role', 'commission_split'])
             ->withTimestamps();
+    }
+
+    /**
+     * Get the commission config for this unit
+     */
+    public function commissionConfig(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(ResourceCommissionConfig::class, 'resourceable');
     }
 
     /**

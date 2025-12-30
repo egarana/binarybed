@@ -7,6 +7,7 @@ use App\Actions\Units\CreateUnit;
 use App\Actions\Units\DeleteUnit;
 use App\Actions\Units\DetachUserFromUnit;
 use App\Actions\Units\FindUnitByTenantAndSlug;
+use App\Actions\Units\FindUnitForCommission;
 use App\Actions\Units\GetAttachedUsersForUnit;
 use App\Actions\Units\UpdateUnit;
 use App\Actions\Units\UpdateUserUnitRole;
@@ -24,6 +25,7 @@ class UnitService
         protected UpdateUnit $updateUnit,
         protected DeleteUnit $deleteUnit,
         protected FindUnitByTenantAndSlug $findUnitByTenantAndSlug,
+        protected FindUnitForCommission $findUnitForCommission,
         protected AttachUserToUnit $attachUserToUnit,
         protected DetachUserFromUnit $detachUserFromUnit,
         protected GetAttachedUsersForUnit $getAttachedUsersForUnit,
@@ -38,6 +40,11 @@ class UnitService
     public function getForEdit(string $tenantId, string $slug): array
     {
         return $this->findUnitByTenantAndSlug->execute($tenantId, $slug);
+    }
+
+    public function getForCommission(string $tenantId, string $slug): array
+    {
+        return $this->findUnitForCommission->execute($tenantId, $slug);
     }
 
     public function create(array $data): Unit

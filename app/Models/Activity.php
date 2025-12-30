@@ -56,8 +56,16 @@ class Activity extends Model implements HasMedia
             'id',                  // parentKey - primary key di Activity table
             'global_id'            // relatedKey - primary key di UserTenant table (global_id)
         )
-            ->withPivot(['assigned_at', 'role'])
+            ->withPivot(['assigned_at', 'role', 'commission_split'])
             ->withTimestamps();
+    }
+
+    /**
+     * Get the commission config for this activity
+     */
+    public function commissionConfig(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(ResourceCommissionConfig::class, 'resourceable');
     }
 
     /**

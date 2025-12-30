@@ -11,7 +11,7 @@ class UpdateUserActivityRole
     use HandlesTenancy;
 
     /**
-     * Update a user's role for a specific activity.
+     * Update a user's assignment for a specific activity.
      *
      * @param string $tenantId
      * @param string $slug
@@ -25,11 +25,11 @@ class UpdateUserActivityRole
             // Find activity by slug in tenant database
             $activity = Activity::where('slug', $slug)->firstOrFail();
 
-            // Update user's role in the pivot table
+            // Update user's assignment in the pivot table
             UserSyncService::updateActivityUserRole(
                 centralUserId: $userGlobalId,
                 activity: $activity,
-                role: $data['role']
+                data: $data
             );
         });
     }

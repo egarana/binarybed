@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\Rates\DeleteRateFromResource;
 use App\Actions\Rates\GetRatesForResource;
+use App\Actions\Units\UpdateUnitCommission;
 use App\Http\Requests\AttachUserToUnitRequest;
 use App\Http\Requests\StoreUnitRequest;
+use App\Http\Requests\UpdateCommissionConfigRequest;
 use App\Http\Requests\UpdateUnitRequest;
 use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Unit;
@@ -26,7 +28,8 @@ class UnitController extends Controller
         protected UserService $userService,
         protected FeatureService $featureService,
         protected GetRatesForResource $getRatesForResource,
-        protected DeleteRateFromResource $deleteRateFromResource
+        protected DeleteRateFromResource $deleteRateFromResource,
+        protected UpdateUnitCommission $updateUnitCommission
     ) {}
 
     public function index(Request $request): Response
@@ -152,5 +155,24 @@ class UnitController extends Controller
         $this->deleteRateFromResource->execute($tenantId, $rateId);
 
         return redirect()->route('units.rates', [$tenantId, $slug]);
+    }
+
+    public function commission(string $tenantId, string $slug): Response
+    {
+        $unit = $this->unitService->getForCommission($tenantId, $slug);
+
+        return Inertia::render('units/Commission', [
+            'unit' => $unit,
+        ]);
+    }
+
+    public function updateCommission(
+        UpdateCommissionConfigRequest $request,
+        string $tenantId,
+        string $slug
+    ): RedirectResponse {
+        $this->updateUnitCommission->execute($tenantId, $slug, $request->validated());
+
+        return redirect()->route('units.index', ['sort' => '-updated_at']);
     }
 }

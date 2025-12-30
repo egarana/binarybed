@@ -24,15 +24,17 @@ class AttachUserToUnit
             // Find unit by slug in tenant database
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
+            // Build pivot data
+            $pivotData = ['role' => $data['role']];
+            if (isset($data['commission_split'])) {
+                $pivotData['commission_split'] = $data['commission_split'];
+            }
+
             // Sync user dari central ke tenant, lalu attach ke unit
-            // UserSyncService akan handle:
-            // 1. Fetch user dari central database
-            // 2. Create/update user di tenant database
-            // 3. Attach user ke unit via resource_users table
             UserSyncService::attachUnitToUser(
                 centralUserId: $data['user_id'],
                 unit: $unit,
-                pivotData: ['role' => $data['role']]
+                pivotData: $pivotData
             );
         });
     }

@@ -138,6 +138,14 @@ class Reservation extends Model
     }
 
     /**
+     * Get all settlement distributions for this reservation.
+     */
+    public function settlementDistributions(): HasMany
+    {
+        return $this->hasMany(SettlementDistribution::class);
+    }
+
+    /**
      * Generate a unique reservation code.
      * Format: 10 uppercase alphanumeric characters, excluding ambiguous chars (0, O, 1, I, L).
      *

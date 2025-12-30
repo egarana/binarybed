@@ -149,22 +149,29 @@ class UserSyncService
     }
 
     /**
-     * Update user's role for a specific unit
+     * Update user's assignment for a specific unit
      *
      * @param string $centralUserId - global_id dari central database (UUID string)
      * @param Unit $unit
-     * @param string $role - Role to set (partner/referrer)
+     * @param array $data - Data to update (role, commission_split)
      * @return void
      */
-    public static function updateUnitUserRole(string $centralUserId, Unit $unit, string $role): void
+    public static function updateUnitUserRole(string $centralUserId, Unit $unit, array $data): void
     {
         // Cari user di tenant
         $tenantUser = UserTenant::where('global_id', $centralUserId)->firstOrFail();
 
-        // Update pivot data (role kolom di resource_users table)
-        $unit->users()->updateExistingPivot($tenantUser->global_id, [
-            'role' => $role,
-        ]);
+        // Prepare pivot data
+        $pivotData = [];
+        if (isset($data['role'])) {
+            $pivotData['role'] = $data['role'];
+        }
+        if (isset($data['commission_split'])) {
+            $pivotData['commission_split'] = $data['commission_split'];
+        }
+
+        // Update pivot data
+        $unit->users()->updateExistingPivot($tenantUser->global_id, $pivotData);
 
         // Touch unit to update updated_at timestamp
         $unit->touch();
@@ -301,22 +308,29 @@ class UserSyncService
     }
 
     /**
-     * Update user's role for a specific activity
+     * Update user's assignment for a specific activity
      *
      * @param string $centralUserId - global_id dari central database (UUID string)
      * @param Activity $activity
-     * @param string $role - Role to set (partner/referrer)
+     * @param array $data - Data to update (role, commission_split)
      * @return void
      */
-    public static function updateActivityUserRole(string $centralUserId, Activity $activity, string $role): void
+    public static function updateActivityUserRole(string $centralUserId, Activity $activity, array $data): void
     {
         // Cari user di tenant
         $tenantUser = UserTenant::where('global_id', $centralUserId)->firstOrFail();
 
-        // Update pivot data (role kolom di resource_users table)
-        $activity->users()->updateExistingPivot($tenantUser->global_id, [
-            'role' => $role,
-        ]);
+        // Prepare pivot data
+        $pivotData = [];
+        if (isset($data['role'])) {
+            $pivotData['role'] = $data['role'];
+        }
+        if (isset($data['commission_split'])) {
+            $pivotData['commission_split'] = $data['commission_split'];
+        }
+
+        // Update pivot data
+        $activity->users()->updateExistingPivot($tenantUser->global_id, $pivotData);
 
         // Touch activity to update updated_at timestamp
         $activity->touch();

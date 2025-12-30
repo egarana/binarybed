@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Activities\UpdateActivityCommission;
 use App\Actions\Rates\DeleteRateFromResource;
 use App\Actions\Rates\GetRatesForResource;
 use App\Http\Requests\AttachUserToActivityRequest;
 use App\Http\Requests\StoreActivityRequest;
 use App\Http\Requests\UpdateActivityRequest;
+use App\Http\Requests\UpdateCommissionConfigRequest;
 use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Activity;
 use App\Services\FeatureService;
@@ -26,7 +28,8 @@ class ActivityController extends Controller
         protected UserService $userService,
         protected FeatureService $featureService,
         protected GetRatesForResource $getRatesForResource,
-        protected DeleteRateFromResource $deleteRateFromResource
+        protected DeleteRateFromResource $deleteRateFromResource,
+        protected UpdateActivityCommission $updateActivityCommission
     ) {}
 
     public function index(Request $request): Response
@@ -152,5 +155,24 @@ class ActivityController extends Controller
         $this->deleteRateFromResource->execute($tenantId, $rateId);
 
         return redirect()->route('activities.rates', [$tenantId, $slug]);
+    }
+
+    public function commission(string $tenantId, string $slug): Response
+    {
+        $activity = $this->activityService->getForCommission($tenantId, $slug);
+
+        return Inertia::render('activities/Commission', [
+            'activity' => $activity,
+        ]);
+    }
+
+    public function updateCommission(
+        UpdateCommissionConfigRequest $request,
+        string $tenantId,
+        string $slug
+    ): RedirectResponse {
+        $this->updateActivityCommission->execute($tenantId, $slug, $request->validated());
+
+        return redirect()->route('activities.index', ['sort' => '-updated_at']);
     }
 }

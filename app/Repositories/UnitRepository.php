@@ -34,7 +34,7 @@ class UnitRepository
                     ->orderByDesc('is_default')
                     ->orderBy('price')
                     ->limit(1);
-            }])
+            }, 'commissionConfig'])
             ->allowedFilters([
                 'name',
                 'slug',
@@ -63,7 +63,7 @@ class UnitRepository
             : ['name'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count', 'price', 'price_type', 'currency'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count', 'price', 'price_type', 'currency', 'commission', 'commission_sort_value'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
@@ -108,8 +108,34 @@ class UnitRepository
                 $unitArray['price_type'] = $rate?->price_type;
                 $unitArray['currency'] = $rate?->currency;
 
-                // Remove rates array from response (we only need the extracted price data)
-                unset($unitArray['rates']);
+                // Get commission config display
+                $config = $unit->commissionConfig;
+                if ($config) {
+                    $unitArray['commission_type'] = $config->commission_type;
+                    $unitArray['commission_value'] = $config->commission_type === 'percentage'
+                        ? (float) $config->commission_percentage
+                        : (float) $config->commission_fixed;
+                    $unitArray['commission_currency'] = $config->currency ?? 'IDR'; // Ensure returning currency for fixed
+
+                    if ($config->commission_type === 'percentage') {
+                        $unitArray['commission'] = (int) $config->commission_percentage . '%';
+                    } else {
+                        $currency = $config->currency ?? 'IDR';
+                        $unitArray['commission'] = $currency . ' ' . number_format($config->commission_fixed, 0, ',', '.');
+                    }
+                    // Sort value: percentage as-is, fixed/1000 to normalize scale
+                    $unitArray['commission_sort_value'] = $config->commission_type === 'percentage'
+                        ? (float) $config->commission_percentage
+                        : (float) $config->commission_fixed / 1000;
+                } else {
+                    $unitArray['commission'] = '-'; // Not set
+                    $unitArray['commission_type'] = null;
+                    $unitArray['commission_value'] = null;
+                    $unitArray['commission_sort_value'] = -1; // Sort last/first
+                }
+
+                // Remove rates and commissionConfig array from response
+                unset($unitArray['rates'], $unitArray['commission_config']);
 
                 return $unitArray;
             }
@@ -234,6 +260,7 @@ class UnitRepository
                 'name',
                 'email',
                 'role',
+                'commission_split',
                 'assigned_at', // This works because the pivot is already joined in the relationship
             ])
             ->defaultSort('-assigned_at');
@@ -249,6 +276,7 @@ class UnitRepository
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->pivot->role,
+                'commission_split' => $user->pivot->commission_split ?? 70.00,
                 'assigned_at' => $user->pivot->assigned_at ? Carbon::parse($user->pivot->assigned_at) : null,
             ];
         });

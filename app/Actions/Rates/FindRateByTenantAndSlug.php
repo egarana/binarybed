@@ -54,6 +54,7 @@ class FindRateByTenantAndSlug
                 'description' => $rate->description,
                 'price' => $rate->price,
                 'currency' => $rate->currency,
+                'price_type' => $rate->price_type,
                 'is_active' => $rate->is_active,
                 'is_default' => $rate->is_default,
             ];

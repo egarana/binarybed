@@ -8,7 +8,7 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import FormField from '@/components/FormField.vue';
 import NumberFormField from '@/components/NumberFormField.vue';
-import CurrencyFormField from '@/components/CurrencyFormField.vue';
+import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
@@ -58,6 +58,7 @@ const uploadedMediaIds = ref<number[]>([]);
 // Standard Rate fields
 const standardRatePrice = ref(0);
 const standardRateCurrency = ref('IDR');
+const standardRatePriceType = ref('flat');
 </script>
 
 <template>
@@ -70,9 +71,7 @@ const standardRateCurrency = ref('IDR');
         :onError="onError"
         :transform="(data) => ({ 
             ...data, 
-            uploaded_media_ids: uploadedMediaIds,
-            standard_rate_price: standardRatePrice,
-            standard_rate_currency: standardRateCurrency
+            uploaded_media_ids: uploadedMediaIds
         })"
     >
         <template #default="{ errors, processing }">
@@ -208,13 +207,24 @@ const standardRateCurrency = ref('IDR');
                     :error="errors.standard_rate_price"
                 />
 
-                <CurrencyFormField
+                <CurrencySelect
                     id="standard_rate_currency"
                     label="Currency"
-                    :tabindex="7"
-                    placeholder="IDR"
+                    :tabindex="6"
                     v-model="standardRateCurrency"
                     :error="errors.standard_rate_currency"
+                />
+
+                <FormField
+                    id="standard_rate_price_type"
+                    label="Price Type"
+                    type="text"
+                    :tabindex="7"
+                    autocomplete="off"
+                    placeholder="e.g. nightly, person, hourly"
+                    v-model="standardRatePriceType"
+                    :error="errors.standard_rate_price_type"
+                    help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
                 />
             </div>
 

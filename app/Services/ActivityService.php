@@ -7,6 +7,7 @@ use App\Actions\Activities\CreateActivity;
 use App\Actions\Activities\DeleteActivity;
 use App\Actions\Activities\DetachUserFromActivity;
 use App\Actions\Activities\FindActivityByTenantAndSlug;
+use App\Actions\Activities\FindActivityForCommission;
 use App\Actions\Activities\GetAttachedUsersForActivity;
 use App\Actions\Activities\UpdateActivity;
 use App\Actions\Activities\UpdateUserActivityRole;
@@ -24,6 +25,7 @@ class ActivityService
         protected UpdateActivity $updateActivity,
         protected DeleteActivity $deleteActivity,
         protected FindActivityByTenantAndSlug $findActivityByTenantAndSlug,
+        protected FindActivityForCommission $findActivityForCommission,
         protected AttachUserToActivity $attachUserToActivity,
         protected DetachUserFromActivity $detachUserFromActivity,
         protected GetAttachedUsersForActivity $getAttachedUsersForActivity,
@@ -38,6 +40,11 @@ class ActivityService
     public function getForEdit(string $tenantId, string $slug): array
     {
         return $this->findActivityByTenantAndSlug->execute($tenantId, $slug);
+    }
+
+    public function getForCommission(string $tenantId, string $slug): array
+    {
+        return $this->findActivityForCommission->execute($tenantId, $slug);
     }
 
     public function create(array $data): Activity

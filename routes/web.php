@@ -127,6 +127,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
                     Route::get('{tenant}/{slug}/rates/create', 'createRate')->name('rates.create');
                     Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
+
+                    // Commission config routes
+                    Route::get('{tenant}/{slug}/commission', 'commission')->name('commission');
+                    Route::post('{tenant}/{slug}/commission', 'updateCommission')->name('commission.update');
                 });
 
             /*
@@ -155,6 +159,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('{tenant}/{slug}/rates', 'rates')->name('rates');
                     Route::get('{tenant}/{slug}/rates/create', 'createRate')->name('rates.create');
                     Route::delete('{tenant}/{slug}/rates/{rate}', 'deleteRate')->name('rates.delete');
+
+                    // Commission config routes
+                    Route::get('{tenant}/{slug}/commission', 'commission')->name('commission');
+                    Route::post('{tenant}/{slug}/commission', 'updateCommission')->name('commission.update');
                 });
 
             /*

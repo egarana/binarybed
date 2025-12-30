@@ -11,7 +11,7 @@ class AttachUserToActivity
     use HandlesTenancy;
 
     /**
-     * Attach a user to a activity with automatic sync from central database.
+     * Attach a user to an activity with automatic sync from central database.
      *
      * @param string $tenantId
      * @param string $slug
@@ -24,15 +24,17 @@ class AttachUserToActivity
             // Find activity by slug in tenant database
             $activity = Activity::where('slug', $slug)->firstOrFail();
 
+            // Build pivot data
+            $pivotData = ['role' => $data['role']];
+            if (isset($data['commission_split'])) {
+                $pivotData['commission_split'] = $data['commission_split'];
+            }
+
             // Sync user dari central ke tenant, lalu attach ke activity
-            // UserSyncService akan handle:
-            // 1. Fetch user dari central database
-            // 2. Create/update user di tenant database
-            // 3. Attach user ke activity via resource_users table
             UserSyncService::attachActivityToUser(
                 centralUserId: $data['user_id'],
                 activity: $activity,
-                pivotData: ['role' => $data['role']]
+                pivotData: $pivotData
             );
         });
     }

@@ -29,6 +29,9 @@ return new class extends Migration
             // Role column: 'partner' or 'referrer'
             $table->string('role')->nullable()->comment('partner, referrer');
 
+            // Commission split percentage for this user on this resource
+            $table->decimal('commission_split', 5, 2)->default(70.00)->comment('Partner commission percentage');
+
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
 

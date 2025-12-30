@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import activities from '@/routes/activities';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Users, Tags } from 'lucide-vue-next';
-import { formatNumber } from '@/helpers/currency';
+import { Users, Tags, Percent } from 'lucide-vue-next';
+import { formatCurrency } from '@/helpers/currency';
 
 const config = {
     resourceName: 'Activity',
@@ -14,6 +14,7 @@ const config = {
         { key: 'slug', label: 'Slug', sortable: true },
         { key: 'tenant_name', label: 'Tenant', sortable: true },
         { key: 'price', label: 'Price', sortable: true },
+        { key: 'commission', label: 'Commission', sortable: true, sortKey: 'commission_sort_value' },
         { key: 'users_count', label: 'Users', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
         { key: 'rates_count', label: 'Rates', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
         { key: 'created_at', label: 'Created At', sortable: true },
@@ -41,15 +42,31 @@ const config = {
             url: (item: any) => activities.rates.url([item.tenant_id, item.slug]),
             variant: 'outline' as const,
         },
+        {
+            icon: Percent,
+            tooltip: 'Commission',
+            url: (item: any) => activities.commission.url([item.tenant_id, item.slug]),
+            variant: 'outline' as const,
+        },
     ],
 };
 </script>
 
 <template>
     <BaseIndexPage title="Activities" :config="config">
+        <template #cell-commission="{ item }">
+            <template v-if="item.commission_type === 'percentage'">
+                {{ item.commission_value }}%
+            </template>
+            <template v-else-if="item.commission_type === 'fixed'">
+                {{ formatCurrency(item.commission_value, item.commission_currency || item.currency || 'IDR') }}
+            </template>
+            <span v-else class="text-muted-foreground">-</span>
+        </template>
+
         <template #cell-price="{ item }">
             <template v-if="item.price">
-                {{ formatNumber(item.price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
+                {{ formatCurrency(item.price, item.currency || 'IDR') }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
             </template>
             <span v-else class="text-muted-foreground">-</span>
         </template>

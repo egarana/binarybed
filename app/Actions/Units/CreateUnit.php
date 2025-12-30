@@ -78,6 +78,7 @@ class CreateUnit
                 'slug' => 'standard-rate',
                 'price' => $data['standard_rate_price'] ?? 0,
                 'currency' => $data['standard_rate_currency'] ?? 'IDR',
+                'price_type' => $data['standard_rate_price_type'] ?? 'flat',
                 'is_default' => true,
                 'is_active' => true,
             ]);

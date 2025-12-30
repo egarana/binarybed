@@ -25,6 +25,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface Props {
     activity: {
@@ -41,6 +42,7 @@ const props = defineProps<Props>();
 
 const user = ref<ComboboxOption | undefined>(undefined);
 const role = ref<string>('partner');
+const commissionSplit = ref<number>(70);
 const dialogOpen = ref(false);
 
 const config = {
@@ -52,6 +54,7 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'email', label: 'Email', sortable: true },
         { key: 'role', label: 'Role', sortable: true },
+        { key: 'commission_split', label: 'Commission (%)', sortable: true },
         { key: 'assigned_at', label: 'Assigned At', sortable: true },
     ],
     searchFields: ['name', 'email'],
@@ -74,6 +77,7 @@ const config = {
     editAssignmentConfig: {
         getEditUrl: (item: any) => activities.users.update.url([props.activity.tenant_id, props.activity.slug, item.global_id]),
         getCurrentRole: (item: any) => item.role,
+        getCurrentCommissionSplit: (item: any) => item.commission_split,
         roleOptions: [
             { value: 'partner', label: 'Partner' },
             { value: 'referrer', label: 'Referrer' },
@@ -81,6 +85,7 @@ const config = {
         entityName: 'user assignment',
         userDisplayField: 'name',
         roleFieldName: 'role',
+        commissionSplitFieldName: 'commission_split',
         title: 'Edit user assignment',
         description: 'Update the user assignment for this user. Click save when you\'re done.',
         tooltip: 'Edit assignment',
@@ -102,6 +107,7 @@ const clearUser = () => {
     setTimeout(() => {
         user.value = undefined;
         role.value = 'partner';
+        commissionSplit.value = 70;
     }, 400);
 };
 
@@ -121,7 +127,7 @@ const clearUser = () => {
             <Form
                 :action="activities.users.attach.url([activity.tenant_id, activity.slug])"
                 method="post"
-                @success="(payload) => { notifySuccess(payload); user = undefined; role = 'partner'; dialogOpen = false; refresh(); }"
+                @success="(payload) => { notifySuccess(payload); user = undefined; role = 'partner'; commissionSplit = 70; dialogOpen = false; refresh(); }"
                 @error="notifyError"
                 class="grid gap-4 py-4"
                 v-slot="{ errors, processing }"
@@ -158,6 +164,20 @@ const clearUser = () => {
                     <InputError :message="errors.role" />
                 </div>
 
+                <div class="grid gap-2">
+                    <Label>Commission Share (%)</Label>
+                    <Input 
+                        type="number" 
+                        v-model="commissionSplit" 
+                        name="commission_split"
+                        min="0" 
+                        max="100" 
+                        step="0.01"
+                        :disabled="processing"
+                    />
+                    <InputError :message="errors.commission_split" />
+                </div>
+
                 <DialogFooter>
                     <DialogClose as-child>
                         <Button 
@@ -189,6 +209,10 @@ const clearUser = () => {
                 <CircleCheckBigIcon v-if="item.role === 'partner'" />
                 {{ item.role }}
             </Badge>
+        </template>
+
+        <template #cell-commission_split="{ item }">
+            <span class="font-medium">{{ item.commission_split }}%</span>
         </template>
     </BaseIndexPage>
 </template>

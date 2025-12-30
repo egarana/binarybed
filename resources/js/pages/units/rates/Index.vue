@@ -4,7 +4,14 @@ import rates from '@/routes/rates';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
 import { Trash2 } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
-import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
+import { formatCurrency } from '@/helpers/currency';
+import currenciesData from '@/data/currencies.json';
+
+// Build currency filter options from ISO 4217 data
+const currencyFilterOptions = currenciesData.map(c => ({
+    value: c.code,
+    label: `${c.code} (${c.symbol})`
+}));
 
 interface Props {
     unit: {
@@ -26,7 +33,6 @@ const config = {
     columns: [
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'price', label: 'Price', sortable: true },
-        { key: 'currency', label: 'Currency', sortable: true },
         { key: 'status', label: 'Status', sortable: true },
         { key: 'created_at', label: 'Created At', sortable: true },
         { key: 'updated_at', label: 'Updated At', sortable: true },
@@ -64,15 +70,7 @@ const config = {
             name: 'currency',
             label: 'Currency',
             placeholder: 'Select currency',
-            options: [
-                { value: 'IDR', label: 'IDR (Rp)' },
-                { value: 'USD', label: 'USD ($)' },
-                { value: 'EUR', label: 'EUR (€)' },
-                { value: 'JPY', label: 'JPY (¥)' },
-                { value: 'SGD', label: 'SGD (S$)' },
-                { value: 'AUD', label: 'AUD (A$)' },
-                { value: 'GBP', label: 'GBP (£)' },
-            ],
+            options: currencyFilterOptions,
         },
     ],
 };
@@ -81,11 +79,7 @@ const config = {
 <template>
     <BaseIndexPage :title="`Rates for ${unit.name}`" :config="config">
         <template #cell-price="{ item }">
-            {{ formatNumber(item.price) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
-        </template>
-
-        <template #cell-currency="{ item }">
-            {{ formatCurrencyLabel(item.currency) }}
+            {{ formatCurrency(item.price, item.currency) }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
         </template>
 
         <template #cell-status="{ item }">

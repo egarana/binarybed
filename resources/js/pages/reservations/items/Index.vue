@@ -3,7 +3,7 @@ import reservations from '@/routes/reservations';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
 import { XCircle, KeyRound, Footprints } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
-import { formatNumber, formatCurrencyLabel } from '@/helpers/currency';
+import { formatCurrency } from '@/helpers/currency';
 import { formatSchedule } from '@/helpers/date';
 
 interface Reservation {
@@ -50,7 +50,6 @@ const config = {
         { key: 'rate', label: 'Rate', sortable: true },
         { key: 'quantity', label: 'Qty', sortable: true },
         { key: 'total', label: 'Total', sortable: true },
-        { key: 'currency', label: 'Currency', sortable: true },
         { key: 'status', label: 'Status', sortable: true },
     ],
     searchFields: ['resource_name', 'rate_name'],
@@ -108,7 +107,7 @@ const config = {
             <div>
                 <div>{{ item.rate_name || '-' }}</div>
                 <div class="text-xs text-muted-foreground">
-                    {{ formatNumber(item.rate_price) }}<span v-if="item.price_type">/{{ item.price_type }}</span>
+                    {{ formatCurrency(item.rate_price, item.currency) }}<span v-if="item.price_type">/{{ item.price_type }}</span>
                 </div>
             </div>
         </template>
@@ -120,12 +119,7 @@ const config = {
 
         <!-- Total Column -->
         <template #cell-total="{ item }">
-            <div>{{ formatNumber(item.line_total) }}</div>
-        </template>
-
-        <!-- Currency Column -->
-        <template #cell-currency="{ item }">
-            {{ formatCurrencyLabel(item.currency) }}
+            <div>{{ formatCurrency(item.line_total, item.currency) }}</div>
         </template>
 
         <!-- Status Column -->

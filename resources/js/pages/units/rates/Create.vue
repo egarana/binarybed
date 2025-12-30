@@ -9,7 +9,7 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import NumberFormField from '@/components/NumberFormField.vue';
-import CurrencyFormField from '@/components/CurrencyFormField.vue';
+import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -141,11 +141,10 @@ const transformData = (data: Record<string, any>) => ({
             />
 
             <!-- Currency -->
-            <CurrencyFormField
+            <CurrencySelect
                 id="currency"
                 label="Currency"
-                :tabindex="5"
-                placeholder="IDR"
+                :tabindex="3"
                 v-model="currency"
                 :error="errors.currency"
             />

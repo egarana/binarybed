@@ -31,6 +31,12 @@ class AttachUserToUnitRequest extends FormRequest
                 'string',
                 'in:partner,referrer',
             ],
+            'commission_split' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:100',
+            ],
         ];
     }
 

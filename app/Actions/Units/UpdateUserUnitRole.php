@@ -11,7 +11,7 @@ class UpdateUserUnitRole
     use HandlesTenancy;
 
     /**
-     * Update a user's role for a specific unit.
+     * Update a user's assignment for a specific unit.
      *
      * @param string $tenantId
      * @param string $slug
@@ -25,11 +25,11 @@ class UpdateUserUnitRole
             // Find unit by slug in tenant database
             $unit = Unit::where('slug', $slug)->firstOrFail();
 
-            // Update user's role in the pivot table
+            // Update user's assignment in the pivot table
             UserSyncService::updateUnitUserRole(
                 centralUserId: $userGlobalId,
                 unit: $unit,
-                role: $data['role']
+                data: $data
             );
         });
     }
