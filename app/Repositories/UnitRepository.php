@@ -63,7 +63,7 @@ class UnitRepository
             : ['name'];
 
         // Define fields that only exist at collection level (added post-query)
-        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count', 'price', 'price_type', 'currency', 'commission', 'commission_sort_value'];
+        $collectionFields = ['tenant_name', 'tenant_id', 'users_count', 'rates_count', 'lowest_rate', 'price_type', 'currency', 'commission', 'commission_sort_value'];
 
         // Check if we need collection-level search
         $needsCollectionSearch = $searchValue && $this->needsCollectionLevelSearch($searchFields, $collectionFields);
@@ -102,9 +102,9 @@ class UnitRepository
                 $unitArray['tenant_id'] = $tenant->id;
                 $unitArray['tenant_name'] = $tenant->name ?? $tenant->id;
 
-                // Get price from default rate or lowest price rate
+                // Get lowest rate
                 $rate = $unit->rates->first();
-                $unitArray['price'] = $rate?->price;
+                $unitArray['lowest_rate'] = $rate?->price;
                 $unitArray['price_type'] = $rate?->price_type;
                 $unitArray['currency'] = $rate?->currency;
 
@@ -277,6 +277,7 @@ class UnitRepository
                 'email' => $user->email,
                 'role' => $user->pivot->role,
                 'commission_split' => $user->pivot->commission_split ?? 70.00,
+                'is_protected' => (bool) ($user->pivot->is_protected ?? false),
                 'assigned_at' => $user->pivot->assigned_at ? Carbon::parse($user->pivot->assigned_at) : null,
             ];
         });

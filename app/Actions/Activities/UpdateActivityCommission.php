@@ -29,7 +29,7 @@ class UpdateActivityCommission
                         'commission_type' => $data['commission_type'],
                         'commission_percentage' => $data['commission_type'] === 'percentage' ? $data['commission_percentage'] : null,
                         'commission_fixed' => $data['commission_type'] === 'fixed' ? ($data['commission_fixed'] ?? 0) : null,
-                        'currency' => $data['commission_type'] === 'fixed' ? ($data['currency'] ?? 'IDR') : null,
+                        'currency' => $data['currency'] ?? 'IDR', // Always provide currency, required by database
                         'is_active' => true,
                     ]
                 );

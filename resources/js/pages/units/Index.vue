@@ -13,7 +13,7 @@ const config = {
         { key: 'name', label: 'Name', sortable: true, className: 'font-medium' },
         { key: 'slug', label: 'Slug', sortable: true },
         { key: 'tenant_name', label: 'Tenant', sortable: true },
-        { key: 'price', label: 'Price', sortable: true },
+        { key: 'lowest_rate', label: 'Lowest Rate', sortable: true },
         { key: 'commission', label: 'Commission', sortable: true, sortKey: 'commission_sort_value' },
         { key: 'users_count', label: 'Users', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
         { key: 'rates_count', label: 'Rates', sortable: true, headClassName: 'w-[80px]', className: 'pe-6' },
@@ -64,9 +64,9 @@ const config = {
             <span v-else class="text-muted-foreground">-</span>
         </template>
 
-        <template #cell-price="{ item }">
-            <template v-if="item.price">
-                {{ formatCurrency(item.price, item.currency || 'IDR') }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
+        <template #cell-lowest_rate="{ item }">
+            <template v-if="item.lowest_rate">
+                {{ formatCurrency(item.lowest_rate, item.currency || 'IDR') }}<span v-if="item.price_type && item.price_type !== 'flat'" class="text-muted-foreground">/<span class="text-xs">{{ item.price_type }}</span></span>
             </template>
             <span v-else class="text-muted-foreground">-</span>
         </template>

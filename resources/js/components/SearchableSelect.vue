@@ -108,6 +108,8 @@ interface Props {
     disablePortal?: boolean;
     /** Show/hide label - default true */
     showLabel?: boolean;
+    /** Values to exclude from the options list */
+    excludeValues?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -136,8 +138,16 @@ const emit = defineEmits<{
 // Gunakan options atau initialItems sebagai initial data
 const initialData = computed(() => props.options ?? props.initialItems ?? []);
 
-// Available items untuk ditampilkan di dropdown
-const items = ref<ComboboxOption[]>(initialData.value);
+// Available items untuk ditampilkan di dropdown (excluding excludeValues)
+const rawItems = ref<ComboboxOption[]>(initialData.value);
+
+// Filtered items excluding values in excludeValues prop
+const items = computed(() => {
+    if (!props.excludeValues || props.excludeValues.length === 0) {
+        return rawItems.value;
+    }
+    return rawItems.value.filter(item => !props.excludeValues!.includes(item.value));
+});
 
 // Search term
 const searchTerm = ref('');
@@ -213,7 +223,7 @@ watch(selectedMultiple, (newVal) => {
 // Sync initialItems/options when props change
 watch([() => props.initialItems, () => props.options], ([newInitial, newOptions]) => {
     if (!searchTerm.value) {
-        items.value = newOptions ?? newInitial ?? [];
+        rawItems.value = newOptions ?? newInitial ?? [];
     }
 }, { deep: true });
 
@@ -236,7 +246,7 @@ const fetchItems = debounce(() => {
         only: [dataKey.value],
         onSuccess: () => {
             const newItems = usePage().props[dataKey.value] as ComboboxOption[] ?? [];
-            items.value = newItems;
+            rawItems.value = newItems;
         }
     });
 }, props.debounceMs);
@@ -244,7 +254,7 @@ const fetchItems = debounce(() => {
 // Watch search term
 watch(searchTerm, (term) => {
     if (!term) {
-        items.value = initialData.value;
+        rawItems.value = initialData.value;
         return;
     }
     if (props.fetchUrl) {

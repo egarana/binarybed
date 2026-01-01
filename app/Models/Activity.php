@@ -56,7 +56,7 @@ class Activity extends Model implements HasMedia
             'id',                  // parentKey - primary key di Activity table
             'global_id'            // relatedKey - primary key di UserTenant table (global_id)
         )
-            ->withPivot(['assigned_at', 'role', 'commission_split'])
+            ->withPivot(['assigned_at', 'role', 'commission_split', 'is_protected'])
             ->withTimestamps();
     }
 

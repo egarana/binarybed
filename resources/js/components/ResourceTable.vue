@@ -60,6 +60,7 @@ const props = defineProps<{
         tooltip?: string;
         icon?: any;
         submitButtonLabel?: string;
+        totalCommissionSplit?: number;
     };
     deleteIcon?: any;
     deleteActionLabel?: string;
@@ -196,6 +197,7 @@ const handleDelete = () => {
                                             :tooltip="editAssignmentConfig.tooltip"
                                             :icon="editAssignmentConfig.icon"
                                             :submit-button-label="editAssignmentConfig.submitButtonLabel"
+                                            :total-commission-split="editAssignmentConfig.totalCommissionSplit"
                                             @updated="handleDelete"
                                         />
                                     </template>
@@ -284,6 +286,7 @@ const handleDelete = () => {
                                             :tooltip="editAssignmentConfig.tooltip"
                                             :icon="editAssignmentConfig.icon"
                                             :submit-button-label="editAssignmentConfig.submitButtonLabel"
+                                            :total-commission-split="editAssignmentConfig.totalCommissionSplit"
                                             @updated="handleDelete"
                                         />
                                     </template>

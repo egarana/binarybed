@@ -88,7 +88,10 @@ class UnitController extends Controller
         $users = $this->userService->search($request->input('search'));
         $attachedUsers = $this->unitService->getAttachedUsers($tenantId, $slug);
 
-        return Inertia::render('units/users/Index', compact('unit', 'users', 'attachedUsers'));
+        // Calculate total commission split for remaining allocation display
+        $totalCommissionSplit = $attachedUsers->sum('commission_split');
+
+        return Inertia::render('units/users/Index', compact('unit', 'users', 'attachedUsers', 'totalCommissionSplit'));
     }
 
     public function attachUser(AttachUserToUnitRequest $request, string $tenantId, string $slug): RedirectResponse

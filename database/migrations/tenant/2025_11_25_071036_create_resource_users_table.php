@@ -32,6 +32,9 @@ return new class extends Migration
             // Commission split percentage for this user on this resource
             $table->decimal('commission_split', 5, 2)->default(70.00)->comment('Partner commission percentage');
 
+            // Protection flag - protected users cannot be removed
+            $table->boolean('is_protected')->default(false)->comment('Protected users cannot be removed from the resource');
+
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
 

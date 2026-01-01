@@ -13,12 +13,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-vue-next';
 import { Form } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -40,19 +41,24 @@ interface Props {
     entityName?: string;
     userDisplayField?: string;
     roleFieldName?: string;
+    commissionSplitFieldName?: string;
+    getCurrentCommissionSplit?: (item: any) => number;
     title?: string;
     description?: string;
     tooltip?: string;
     icon?: any;
     submitButtonLabel?: string;
+    totalCommissionSplit?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     entityName: 'user assignment',
     userDisplayField: 'name',
     roleFieldName: 'role',
+    commissionSplitFieldName: 'commission_split',
     tooltip: 'Edit assignment',
     submitButtonLabel: 'Save',
+    totalCommissionSplit: 0,
 });
 
 const emit = defineEmits<{
@@ -64,7 +70,16 @@ const tooltipKey = ref(0);
 const tooltipOpen = ref(false);
 const preventTooltipOpen = ref(false);
 const role = ref(props.currentRole);
+const commissionSplit = ref(Number(props.getCurrentCommissionSplit?.(props.item) ?? props.item?.commission_split ?? 0));
 const dialogKey = ref(0);
+
+// Check if user is protected (platform owner)
+const isProtected = computed(() => props.item?.is_protected === true);
+
+// Calculate remaining commission available globally
+// For editing: we show global remaining (100 - total)
+// This is consistent with "Assign new user" dialog
+const remainingAvailable = computed(() => Math.max(0, 100 - props.totalCommissionSplit));
 
 // Prevent tooltip from opening immediately after dialog closes
 watch(tooltipOpen, (newVal) => {
@@ -79,9 +94,10 @@ watch(open, (isOpen) => {
         tooltipOpen.value = false;
         preventTooltipOpen.value = true;
         
-        // Reset role when dialog closes
+        // Reset role and commission when dialog closes
         setTimeout(() => {
             role.value = props.currentRole;
+            commissionSplit.value = Number(props.getCurrentCommissionSplit?.(props.item) ?? props.item?.commission_split ?? 0);
         }, 400);
         
         // Allow tooltip to open again after dialog animation completes
@@ -93,8 +109,9 @@ watch(open, (isOpen) => {
         tooltipOpen.value = false;
         tooltipKey.value++;
         
-        // Update role when dialog opens (in case currentRole changed)
+        // Update role and commission when dialog opens (in case they changed)
         role.value = props.currentRole;
+        commissionSplit.value = Number(props.getCurrentCommissionSplit?.(props.item) ?? props.item?.commission_split ?? 0);
         dialogKey.value++;
     }
 });
@@ -162,7 +179,8 @@ const handleSuccess = (payload: any) => {
                     :value="item[userDisplayField]"
                 />
 
-                <div class="grid gap-2">
+                <!-- Role select - hidden for protected users (platform owner) -->
+                <div v-if="!isProtected" class="grid gap-2">
                     <Label>Role</Label>
                     <Select v-model="role" :name="roleFieldName" :disabled="processing">
                         <SelectTrigger>
@@ -179,6 +197,28 @@ const handleSuccess = (payload: any) => {
                         </SelectContent>
                     </Select>
                     <InputError :message="errors[roleFieldName]" />
+                </div>
+
+                <!-- Show role as disabled field for protected users -->
+                <DisabledFormField
+                    v-else
+                    label="Role"
+                    value="Platform Owner"
+                />
+
+                <!-- Commission split field -->
+                <div class="grid gap-2">
+                    <Label>Commission Share (%)</Label>
+                    <Input 
+                        type="number" 
+                        v-model="commissionSplit" 
+                        :name="commissionSplitFieldName"
+                        min="0" 
+                        step="0.01"
+                        :disabled="processing"
+                    />
+                    <p class="text-xs text-muted-foreground">Available: {{ remainingAvailable }}% remaining</p>
+                    <InputError :message="errors[commissionSplitFieldName]" />
                 </div>
 
                 <DialogFooter>
@@ -204,3 +244,4 @@ const handleSuccess = (payload: any) => {
         </DialogContent>
     </Dialog>
 </template>
+

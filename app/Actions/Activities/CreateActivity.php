@@ -24,7 +24,11 @@ class CreateActivity
     {
         $tenantId = $data['tenant_id'];
 
-        return $this->executeInTenantContext($tenantId, function () use ($data) {
+        // Get platform owner from central database BEFORE entering tenant context
+        // Because roles table is in central database, not tenant database
+        $platformOwner = \App\Models\User::role('super-admin')->first();
+
+        return $this->executeInTenantContext($tenantId, function () use ($data, $platformOwner) {
             $activity = $this->activityRepository->create($data);
 
             // Attach features if provided
@@ -82,6 +86,19 @@ class CreateActivity
                 'is_default' => true,
                 'is_active' => true,
             ]);
+
+            // Auto-assign platform owner (super-admin) with 100% commission split
+            if ($platformOwner) {
+                \App\Services\UserSyncService::attachActivityToUser(
+                    centralUserId: $platformOwner->global_id,
+                    activity: $activity,
+                    pivotData: [
+                        'role' => 'platform',
+                        'commission_split' => 100.00,
+                        'is_protected' => true,
+                    ]
+                );
+            }
 
             // Handle pre-uploaded media (immediate upload feature)
             if (isset($data['uploaded_media_ids']) && is_array($data['uploaded_media_ids']) && !empty($data['uploaded_media_ids'])) {

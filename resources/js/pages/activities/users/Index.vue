@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import activities from '@/routes/activities';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Form } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Form, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, reactive } from 'vue';
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import InputError from '@/components/InputError.vue';
@@ -36,14 +36,53 @@ interface Props {
         slug: string;
     };
     users?: ComboboxOption[];
+    totalCommissionSplit?: number;
 }
 
 const props = defineProps<Props>();
 
+const remainingAllocation = computed(() => Math.max(0, 100 - (props.totalCommissionSplit ?? 0)));
+
 const user = ref<ComboboxOption | undefined>(undefined);
 const role = ref<string>('partner');
-const commissionSplit = ref<number>(70);
+const commissionSplit = ref<number>(0);
 const dialogOpen = ref(false);
+
+// Reset commission split to remaining allocation when dialog opens
+watch(dialogOpen, (isOpen) => {
+    if (isOpen) {
+        commissionSplit.value = remainingAllocation.value;
+    }
+});
+
+// Get attached user IDs to exclude from dropdown
+const attachedUserIds = computed(() => {
+    const pageProps = usePage().props as any;
+    const attached = pageProps.attachedUsers?.data ?? pageProps.attachedUsers ?? [];
+    return attached.map((u: any) => u.global_id);
+});
+
+const editAssignmentConfig = reactive({
+    getEditUrl: (item: any) => activities.users.update.url([props.activity.tenant_id, props.activity.slug, item.global_id]),
+    getCurrentRole: (item: any) => item.role,
+    getCurrentCommissionSplit: (item: any) => item.commission_split,
+    roleOptions: [
+        { value: 'partner', label: 'Partner' },
+        { value: 'referrer', label: 'Referrer' },
+    ],
+    entityName: 'user assignment',
+    userDisplayField: 'name',
+    roleFieldName: 'role',
+    commissionSplitFieldName: 'commission_split',
+    title: 'Edit user assignment',
+    description: 'Update the user assignment for this user. Click save when you\'re done.',
+    tooltip: 'Edit assignment',
+    totalCommissionSplit: props.totalCommissionSplit ?? 0,
+});
+
+watch(() => props.totalCommissionSplit, (newVal) => {
+    editAssignmentConfig.totalCommissionSplit = newVal ?? 0;
+}, { immediate: true });
 
 const config = {
     resourceName: 'User',
@@ -66,7 +105,7 @@ const config = {
         { title: 'Manage Users', href: '#' },
     ],
     dialogOpen,
-    deleteRoute: (item: any) => ({ 
+    deleteRoute: (item: any) => item.is_protected ? null : ({ 
         url: activities.users.detach.url([props.activity.tenant_id, props.activity.slug, item.global_id])
     }),
     deleteIcon: Unlink,
@@ -74,22 +113,7 @@ const config = {
     deleteTitle: 'Remove user from this activity?',
     deleteDescription: 'If you remove this user, they will no longer be associated with this activity. You can add them back anytime.',
     deleteConfirmLabel: 'Remove user',
-    editAssignmentConfig: {
-        getEditUrl: (item: any) => activities.users.update.url([props.activity.tenant_id, props.activity.slug, item.global_id]),
-        getCurrentRole: (item: any) => item.role,
-        getCurrentCommissionSplit: (item: any) => item.commission_split,
-        roleOptions: [
-            { value: 'partner', label: 'Partner' },
-            { value: 'referrer', label: 'Referrer' },
-        ],
-        entityName: 'user assignment',
-        userDisplayField: 'name',
-        roleFieldName: 'role',
-        commissionSplitFieldName: 'commission_split',
-        title: 'Edit user assignment',
-        description: 'Update the user assignment for this user. Click save when you\'re done.',
-        tooltip: 'Edit assignment',
-    },
+    editAssignmentConfig,
 };
 
 // useResourceIndex is called internally by BaseIndexPage
@@ -107,7 +131,7 @@ const clearUser = () => {
     setTimeout(() => {
         user.value = undefined;
         role.value = 'partner';
-        commissionSplit.value = 70;
+        commissionSplit.value = remainingAllocation.value;
     }, 400);
 };
 
@@ -127,7 +151,7 @@ const clearUser = () => {
             <Form
                 :action="activities.users.attach.url([activity.tenant_id, activity.slug])"
                 method="post"
-                @success="(payload) => { notifySuccess(payload); user = undefined; role = 'partner'; commissionSplit = 70; dialogOpen = false; refresh(); }"
+                @success="(payload) => { notifySuccess(payload); user = undefined; role = 'partner'; commissionSplit = remainingAllocation; dialogOpen = false; refresh(); }"
                 @error="notifyError"
                 class="grid gap-4 py-4"
                 v-slot="{ errors, processing }"
@@ -148,6 +172,7 @@ const clearUser = () => {
                     :clearable="true"
                     :disable-portal="true"
                     :disabled="processing"
+                    :exclude-values="attachedUserIds"
                 />
 
                 <div class="grid gap-2">
@@ -171,10 +196,10 @@ const clearUser = () => {
                         v-model="commissionSplit" 
                         name="commission_split"
                         min="0" 
-                        max="100" 
                         step="0.01"
                         :disabled="processing"
                     />
+                    <p class="text-xs text-muted-foreground">Available: {{ remainingAllocation }}% remaining</p>
                     <InputError :message="errors.commission_split" />
                 </div>
 
@@ -212,7 +237,7 @@ const clearUser = () => {
         </template>
 
         <template #cell-commission_split="{ item }">
-            <span class="font-medium">{{ item.commission_split }}%</span>
+            <span class="font-medium">{{ Number(item.commission_split) % 1 === 0 ? Math.round(item.commission_split) : item.commission_split }}%</span>
         </template>
     </BaseIndexPage>
 </template>

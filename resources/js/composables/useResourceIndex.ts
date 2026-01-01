@@ -47,6 +47,7 @@ export interface UseResourceIndexConfig {
         tooltip?: string;
         icon?: any;
         submitButtonLabel?: string;
+        totalCommissionSplit?: number;
     };
     showTable?: boolean;
     breadcrumbs: BreadcrumbItem[];

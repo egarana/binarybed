@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Activity;
+use App\Models\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class AttachUserToActivityRequest extends FormRequest
 {
@@ -31,7 +34,58 @@ class AttachUserToActivityRequest extends FormRequest
                 'string',
                 'in:partner,referrer',
             ],
+            'commission_split' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:100',
+            ],
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $newCommissionSplit = (float) $this->input('commission_split', 0);
+            if ($newCommissionSplit <= 0) {
+                return; // Skip validation if no commission split provided
+            }
+
+            $tenantId = $this->route('tenant');
+            $slug = $this->route('slug');
+
+            if (!$tenantId || !$slug) {
+                return;
+            }
+
+            $tenant = Tenant::find($tenantId);
+            if (!$tenant) {
+                return;
+            }
+
+            $currentTotal = $tenant->run(function () use ($slug) {
+                $resource = Activity::where('slug', $slug)->first();
+
+                if (!$resource) {
+                    return 0;
+                }
+
+                // Sum all existing commission splits
+                return $resource->users()->sum('commission_split') ?? 0;
+            });
+
+            $total = $currentTotal + $newCommissionSplit;
+            if ($total > 100) {
+                $remaining = max(0, 100 - $currentTotal);
+                $validator->errors()->add(
+                    'commission_split',
+                    "Total commission split cannot exceed 100%. Current total: {$currentTotal}%. Maximum allowed: {$remaining}%."
+                );
+            }
+        });
     }
 
     /**

@@ -88,7 +88,10 @@ class ActivityController extends Controller
         $users = $this->userService->search($request->input('search'));
         $attachedUsers = $this->activityService->getAttachedUsers($tenantId, $slug);
 
-        return Inertia::render('activities/users/Index', compact('activity', 'users', 'attachedUsers'));
+        // Calculate total commission split for remaining allocation display
+        $totalCommissionSplit = $attachedUsers->sum('commission_split');
+
+        return Inertia::render('activities/users/Index', compact('activity', 'users', 'attachedUsers', 'totalCommissionSplit'));
     }
 
     public function attachUser(AttachUserToActivityRequest $request, string $tenantId, string $slug): RedirectResponse
