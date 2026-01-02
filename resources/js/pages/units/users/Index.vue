@@ -15,7 +15,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Unlink, CircleCheckBigIcon } from 'lucide-vue-next';
+import { Unlink, CircleCheckBigIcon, ShieldCheck } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import {
     Select,
@@ -34,6 +34,12 @@ interface Props {
         tenant_name: string;
         name: string;
         slug: string;
+        commission_config?: {
+            commission_type: string;
+            commission_percentage: number | null;
+            commission_fixed: number | null;
+            currency: string | null;
+        } | null;
     };
     users?: ComboboxOption[];
     totalCommissionSplit?: number;
@@ -42,6 +48,24 @@ interface Props {
 const props = defineProps<Props>();
 
 const remainingAllocation = computed(() => Math.max(0, 100 - (props.totalCommissionSplit ?? 0)));
+
+// Format commission info text
+const commissionInfoText = computed(() => {
+    const config = props.unit.commission_config;
+    if (!config) return null;
+    
+    if (config.commission_type === 'fixed' && config.commission_fixed) {
+        const formatted = new Intl.NumberFormat('id-ID').format(config.commission_fixed);
+        return `of ${config.currency} ${formatted}`;
+    } else if (config.commission_type === 'percentage' && config.commission_percentage) {
+        // Remove trailing zeros (e.g., 5.00 -> 5, 5.50 -> 5.5)
+        const percentage = Number(config.commission_percentage) % 1 === 0 
+            ? Math.round(config.commission_percentage) 
+            : parseFloat(config.commission_percentage.toFixed(2));
+        return `of ${percentage}% commission`;
+    }
+    return null;
+});
 
 const user = ref<ComboboxOption | undefined>(undefined);
 const role = ref<string>('partner');
@@ -102,6 +126,7 @@ const config = {
     addButtonBehavior: 'dialog' as const,
     breadcrumbs: [
         { title: 'Units', href: units.index.url() },
+        { title: props.unit.name, href: units.edit.url([props.unit.tenant_id, props.unit.slug]) },
         { title: 'Manage Users', href: '#' },
     ],
     dialogOpen,
@@ -228,6 +253,14 @@ const clearUser = () => {
 
         <template #cell-role="{ item }">
             <Badge 
+                v-if="item.is_protected"
+                variant="default"
+            >
+                <ShieldCheck />
+                Platform
+            </Badge>
+            <Badge 
+                v-else
                 :variant="item.role === 'partner' ? 'secondary' : 'outline'" 
                 class="capitalize"
             >
@@ -237,8 +270,10 @@ const clearUser = () => {
         </template>
 
         <template #cell-commission_split="{ item }">
-            <span class="font-medium">{{ Number(item.commission_split) % 1 === 0 ? Math.round(item.commission_split) : item.commission_split }}%</span>
+            <div class="flex flex-col">
+                <span class="font-medium">{{ Number(item.commission_split) % 1 === 0 ? Math.round(item.commission_split) : item.commission_split }}%</span>
+                <span v-if="commissionInfoText" class="text-xs text-muted-foreground">{{ commissionInfoText }}</span>
+            </div>
         </template>
     </BaseIndexPage>
 </template>
-

@@ -20,7 +20,7 @@ class FindUnitByTenantAndSlug
     public function execute(string $tenantId, string $slug): array
     {
         return $this->executeInTenantContext($tenantId, function ($tenant) use ($slug) {
-            $unit = Unit::where('slug', $slug)->with('features')->firstOrFail();
+            $unit = Unit::where('slug', $slug)->with(['features', 'commissionConfig'])->firstOrFail();
 
             return [
                 'id' => $unit->id,
@@ -28,6 +28,12 @@ class FindUnitByTenantAndSlug
                 'tenant_name' => $tenant->name,
                 'name' => $unit->name,
                 'slug' => $unit->slug,
+                'commission_config' => $unit->commissionConfig ? [
+                    'commission_type' => $unit->commissionConfig->commission_type,
+                    'commission_percentage' => $unit->commissionConfig->commission_percentage,
+                    'commission_fixed' => $unit->commissionConfig->commission_fixed,
+                    'currency' => $unit->commissionConfig->currency ?? 'IDR',
+                ] : null,
                 'features' => $unit->features->map(function ($feature) {
                     return [
                         'value' => (string) $feature->feature_id, // Use feature_id untuk SearchableSelect
