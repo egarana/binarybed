@@ -3,13 +3,13 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { provide, onMounted, watch } from 'vue';
 import type { PageProps as InertiaPageProps } from '@inertiajs/core';
 import type { Tenant } from '@/types/tenant';
+import type { Component } from 'vue';
 
 // Pinia stores
 import { useTenantStore } from '@/stores/useTenantStore';
 import { useResourceStore } from '@/stores/useResourceStore';
-
-// Dev tools - only import in development
-import TenantDebugger from '@/components/dev/TenantDebugger.vue';
+import Navbar from '@/components/tenants/default/Navbar.vue';
+import Footer from '@/components/tenants/default/Footer.vue';
 
 interface SharedResources {
     units: Array<{ id: number; name: string; slug: string; created_at: string }>;
@@ -21,8 +21,17 @@ interface PageProps extends InertiaPageProps {
     sharedResources?: SharedResources;
 }
 
+export interface NavItem {
+    href: string;
+    label: string;
+    icon: Component;
+}
+
 interface Props {
     title?: string;
+    navItems: NavItem[];
+    whatsapp: string;
+    logo?: Component;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -68,17 +77,22 @@ watch(() => page.props, (newProps) => {
 
 // Provide tenant data to all child components (legacy support)
 provide('tenant', tenant);
-
-// Check if in development mode
-const isDev = import.meta.env.DEV;
 </script>
 
 <template>
     <Head>
         <title>{{ props.title }} - {{ tenant.name }}</title>
     </Head>
-    <slot :tenant="tenant" />
+
+    <Navbar :nav-items="props.navItems" :whatsapp="props.whatsapp" :logo="props.logo">
+        <template #cta>
+            <slot name="cta" />
+        </template>
+    </Navbar>
     
-    <!-- Development Debugger -->
-    <TenantDebugger v-if="isDev" :enabled="isDev" position="bottom-right" />
+    <main class="px-6 max-w-screen-xl mx-auto">
+        <slot :tenant="tenant" />
+    </main>
+
+    <Footer />
 </template>
