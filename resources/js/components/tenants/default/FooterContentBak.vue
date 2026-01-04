@@ -7,43 +7,44 @@ import { Facebook, Instagram, ShieldCheck, Youtube } from 'lucide-vue-next';
 </script>
 
 <template>
-    <div class="px-6 md:px-0">
-        <div class="md:flex md:items-center md:justify-between md:mx-auto md:max-w-screen-xl md:py-4 md:px-6">
-            <ul class="py-6 md:py-0 md:flex md:items-center md:gap-3 md:text-sm">
-                <li class="py-2 md:py-0">
+    <div>
+        <div class="flex items-center justify-between mx-auto max-w-screen-xl px-6 py-4">
+            <ul class="flex items-center gap-3 text-sm">
+                <li>
                     <Link href="/cancellation-policy" class="whitespace-nowrap">Cancellation Policy</Link>
                 </li>
-                <li class="py-2 md:py-0">
+                <li>
                     <Link href="/privacy-policy" class="whitespace-nowrap">Privacy Policy</Link>
                 </li>
-                <li class="py-2 md:py-0">
+                <li>
                     <Link href="/about" class="whitespace-nowrap">About</Link>
                 </li>
-                <li class="py-2 md:py-0">
+                <li>
                     <Link href="/faq" class="whitespace-nowrap">F.A.Q</Link>
                 </li>
-                <li class="py-2 md:py-0">
+                <li>
                     <Link href="/terms-and-conditions" class="whitespace-nowrap">Terms &amp; Conditions</Link>
                 </li>
             </ul>
-            <ul class="flex items-center gap-2 border-t pt-8 md:border-t-0 md:pt-0 md:flex-row-reverse">
-                <li>
-                    <img src="https://assets.binarybed.com/master.webp" alt="Visa" class="block w-auto h-3.5">
-                </li>
-                <li>
-                    <img src="https://assets.binarybed.com/visa.webp" alt="Visa" class="block w-auto h-3.5">
-                </li>
+            <ul class="flex items-center gap-2">
                 <li>
                     <Badge variant="outline" class="rounded-full">
                         <ShieldCheck class="text-green-600" />
                         Secure Payment
                     </Badge>
                 </li>
+                <li>
+                    <img src="https://assets.binarybed.com/visa.webp" alt="Visa" class="block w-auto h-3.5">
+                </li>
+                <li>
+                    <img src="https://assets.binarybed.com/master.webp" alt="Visa" class="block w-auto h-3.5">
+                </li>
             </ul>
         </div>
     </div>
-    <div class="px-6 pt-4 pb-6 md:border-t md:py-0 md:px-0">
-        <div class="md:mx-auto md:max-w-screen-xl md:py-5 md:px-6 md:flex md:justify-start md:items-center md:flex-row-reverse">
+    <div class="border-t">
+        <div class="mx-auto max-w-screen-xl px-6 py-5 flex justify-end items-center">
+            <p class="text-sm text-balance text-muted-foreground me-auto">2026 Lake Batur Cabin, Jalan Ulun Danu Songan A Kintamani Bangli Bali 80652 Indonesia</p>
             <ul class="flex items-center gap-5">
                 <li>
                     <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary">
@@ -61,7 +62,6 @@ import { Facebook, Instagram, ShieldCheck, Youtube } from 'lucide-vue-next';
                     </a>
                 </li>
             </ul>
-            <p class="text-xs text-balance text-muted-foreground mt-6 md:text-sm md:mt-0 md:me-auto">2026 Lake Batur Cabin, Jalan Ulun Danu Songan A Kintamani Bangli Bali 80652 Indonesia</p>
         </div>
     </div>
 </template>

@@ -89,7 +89,7 @@ const shouldShowNavActive = (href: string) => {
         <div class="mx-auto max-w-screen-xl flex items-center justify-between py-3 border-b md:px-6 md:py-0 md:justify-end md:border-b-0 md:gap-4">
             <div class="ps-6 md:ps-0 md:me-auto">
                 <Link href="/">
-                    <component :is="props.logo || AppLogoIcon" class="h-8 w-auto lg:h-10" />
+                    <component :is="props.logo || AppLogoIcon" class="h-8 w-auto lg:h-9" />
                 </Link>
             </div>
             <div class="fixed bottom-0 w-full bg-background px-6 border-t pt-3 pb-2.5 md:bg-transparent md:static md:w-auto md:py-0 md:border-t-0 md:px-0">
