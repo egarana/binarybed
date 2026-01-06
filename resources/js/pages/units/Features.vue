@@ -118,7 +118,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="amenities"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="amenitiesExcluded"
                         :fetch-url="() => units.features.url([unit.tenant_id, unit.slug])"
                         response-key="allFeatures"
@@ -142,7 +142,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="facilities"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="facilitiesExcluded"
                         :fetch-url="() => units.features.url([unit.tenant_id, unit.slug])"
                         response-key="allFeatures"
@@ -166,7 +166,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="inclusions"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="inclusionsExcluded"
                         :fetch-url="() => units.features.url([unit.tenant_id, unit.slug])"
                         response-key="allFeatures"
@@ -190,7 +190,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="exclusions"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="exclusionsExcluded"
                         :fetch-url="() => units.features.url([unit.tenant_id, unit.slug])"
                         response-key="allFeatures"

@@ -40,19 +40,23 @@ const inclusions = ref<ComboboxOption[]>(props.activity.features?.inclusion || [
 const exclusions = ref<ComboboxOption[]>(props.activity.features?.exclusion || []);
 const equipment = ref<ComboboxOption[]>(props.activity.features?.equipment || []);
 const requirements = ref<ComboboxOption[]>(props.activity.features?.requirement || []);
+const suggestions = ref<ComboboxOption[]>(props.activity.features?.suggestion || []);
 
 // Computed excluded values for each category - includes values from OTHER categories
 const inclusionsExcluded = computed(() => 
-    [...exclusions.value, ...equipment.value, ...requirements.value].map(f => f.value)
+    [...exclusions.value, ...equipment.value, ...requirements.value, ...suggestions.value].map(f => f.value)
 );
 const exclusionsExcluded = computed(() => 
-    [...inclusions.value, ...equipment.value, ...requirements.value].map(f => f.value)
+    [...inclusions.value, ...equipment.value, ...requirements.value, ...suggestions.value].map(f => f.value)
 );
 const equipmentExcluded = computed(() => 
-    [...inclusions.value, ...exclusions.value, ...requirements.value].map(f => f.value)
+    [...inclusions.value, ...exclusions.value, ...requirements.value, ...suggestions.value].map(f => f.value)
 );
 const requirementsExcluded = computed(() => 
-    [...inclusions.value, ...exclusions.value, ...equipment.value].map(f => f.value)
+    [...inclusions.value, ...exclusions.value, ...equipment.value, ...suggestions.value].map(f => f.value)
+);
+const suggestionsExcluded = computed(() => 
+    [...inclusions.value, ...exclusions.value, ...equipment.value, ...requirements.value].map(f => f.value)
 );
 
 // Transform form data to send categorized features
@@ -63,6 +67,7 @@ const transformData = (data: Record<string, any>) => ({
         exclusion: exclusions.value.map(f => f.value),
         equipment: equipment.value.map(f => f.value),
         requirement: requirements.value.map(f => f.value),
+        suggestion: suggestions.value.map(f => f.value),
     },
 });
 </script>
@@ -110,6 +115,12 @@ const transformData = (data: Record<string, any>) => ({
                             {{ requirements.length }}
                         </Badge>
                     </TabsTrigger>
+                    <TabsTrigger value="suggestions">
+                        Suggestions
+                        <Badge variant="secondary" class="ml-1.5">
+                            {{ suggestions.length }}
+                        </Badge>
+                    </TabsTrigger>
                 </TabsList>
 
                 <!-- Inclusions Tab -->
@@ -118,7 +129,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="inclusions"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="inclusionsExcluded"
                         :fetch-url="() => activities.features.url([activity.tenant_id, activity.slug])"
                         response-key="allFeatures"
@@ -142,7 +153,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="exclusions"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="exclusionsExcluded"
                         :fetch-url="() => activities.features.url([activity.tenant_id, activity.slug])"
                         response-key="allFeatures"
@@ -166,7 +177,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="equipment"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="equipmentExcluded"
                         :fetch-url="() => activities.features.url([activity.tenant_id, activity.slug])"
                         response-key="allFeatures"
@@ -190,7 +201,7 @@ const transformData = (data: Record<string, any>) => ({
                     <SearchableSelect
                         mode="multiple"
                         v-model="requirements"
-                        :options="allFeatures"
+                        :options="[]"
                         :exclude-values="requirementsExcluded"
                         :fetch-url="() => activities.features.url([activity.tenant_id, activity.slug])"
                         response-key="allFeatures"
@@ -207,11 +218,35 @@ const transformData = (data: Record<string, any>) => ({
                         :show-label="false"
                     />
                 </TabsContent>
+
+                <!-- Suggestions Tab -->
+                <TabsContent value="suggestions" class="space-y-4 mt-4">
+                    <p class="text-sm text-muted-foreground">Suggested items to bring (Camera, Sunscreen, Cash)</p>
+                    <SearchableSelect
+                        mode="multiple"
+                        v-model="suggestions"
+                        :options="[]"
+                        :exclude-values="suggestionsExcluded"
+                        :fetch-url="() => activities.features.url([activity.tenant_id, activity.slug])"
+                        response-key="allFeatures"
+                        search-param="search"
+                        label="Suggestions"
+                        placeholder="Select suggested items"
+                        search-placeholder="Search features..."
+                        name="features[suggestion]"
+                        :tabindex="5"
+                        :error="errors['features.suggestion']"
+                        :required="false"
+                        :draggable="true"
+                        :disabled="processing"
+                        :show-label="false"
+                    />
+                </TabsContent>
             </Tabs>
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="5"
+                :tabindex="6"
                 test-id="update-features-button"
                 label="Save"
             />
