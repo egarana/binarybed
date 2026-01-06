@@ -131,6 +131,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     // Commission config routes
                     Route::get('{tenant}/{slug}/commission', 'commission')->name('commission');
                     Route::post('{tenant}/{slug}/commission', 'updateCommission')->name('commission.update');
+
+                    // Features routes
+                    Route::get('{tenant}/{slug}/features', 'features')->name('features');
+                    Route::post('{tenant}/{slug}/features', 'syncFeatures')->name('features.sync');
                 });
 
             /*
@@ -163,6 +167,10 @@ foreach (config('tenancy.central_domains') as $domain) {
                     // Commission config routes
                     Route::get('{tenant}/{slug}/commission', 'commission')->name('commission');
                     Route::post('{tenant}/{slug}/commission', 'updateCommission')->name('commission.update');
+
+                    // Features routes
+                    Route::get('{tenant}/{slug}/features', 'features')->name('features');
+                    Route::post('{tenant}/{slug}/features', 'syncFeatures')->name('features.sync');
                 });
 
             /*

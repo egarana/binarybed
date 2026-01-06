@@ -26,9 +26,7 @@ class FeatureController extends Controller
 
     public function create(): Response
     {
-        $categories = Feature::getCategories();
-
-        return Inertia::render('features/Create', compact('categories'));
+        return Inertia::render('features/Create');
     }
 
     public function store(StoreFeatureRequest $request): RedirectResponse
@@ -41,9 +39,8 @@ class FeatureController extends Controller
     public function edit(Feature $feature): Response
     {
         $feature = $this->service->getForEdit($feature);
-        $categories = Feature::getCategories();
 
-        return Inertia::render('features/Edit', compact('feature', 'categories'));
+        return Inertia::render('features/Edit', compact('feature'));
     }
 
     public function update(UpdateFeatureRequest $request, Feature $feature): RedirectResponse

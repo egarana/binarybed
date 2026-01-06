@@ -82,7 +82,7 @@ class Unit extends Model implements HasMedia
             'id',                    // parentKey - primary key di Unit table
             'feature_id'             // relatedKey - feature_id di ResourceFeature table (bukan id!)
         )
-            ->withPivot(['assigned_at', 'order'])
+            ->withPivot(['assigned_at', 'order', 'category'])
             ->withTimestamps()
             ->orderBy('resource_features.order');
     }

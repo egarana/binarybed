@@ -20,7 +20,6 @@ class ResourceFeature extends Model
         'value',
         'description',
         'icon',
-        'category',
     ];
 
     /**

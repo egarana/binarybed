@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('value')->index();
             $table->text('description')->nullable();
             $table->text('icon')->nullable();
-            $table->string('category');
             $table->timestamps();
 
             // Index untuk sync

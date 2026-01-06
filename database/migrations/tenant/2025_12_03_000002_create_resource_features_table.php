@@ -19,6 +19,9 @@ return new class extends Migration
             // Note: Foreign key constraint tidak bisa dibuat karena cross-database
             // Constraint akan dienforce di application level
 
+            // Category for grouping features within the resource
+            $table->string('category')->nullable();
+
             // Polymorphic columns untuk attach ke berbagai resources (Unit, Activity, etc)
             $table->string('featureable_type');
             $table->unsignedBigInteger('featureable_id');

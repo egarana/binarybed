@@ -81,4 +81,14 @@ class UnitService
     {
         return $this->getAttachedUsersForUnit->execute($tenantId, $slug);
     }
+
+    public function getForFeatures(string $tenantId, string $slug): array
+    {
+        return $this->findUnitByTenantAndSlug->executeForFeatures($tenantId, $slug);
+    }
+
+    public function syncFeatures(string $tenantId, string $slug, array $featuresData): void
+    {
+        $this->updateUnit->syncFeatures($tenantId, $slug, $featuresData);
+    }
 }

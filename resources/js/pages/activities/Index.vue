@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import activities from '@/routes/activities';
 import BaseIndexPage from '@/components/BaseIndexPage.vue';
-import { Users, Tags, Percent } from 'lucide-vue-next';
+import { Users, Tags, Percent, Star } from 'lucide-vue-next';
 import { formatCurrency } from '@/helpers/currency';
 
 const config = {
@@ -46,6 +46,12 @@ const config = {
             icon: Percent,
             tooltip: 'Commission',
             url: (item: any) => activities.commission.url([item.tenant_id, item.slug]),
+            variant: 'outline' as const,
+        },
+        {
+            icon: Star,
+            tooltip: 'Features',
+            url: (item: any) => activities.features.url([item.tenant_id, item.slug]),
             variant: 'outline' as const,
         },
     ],

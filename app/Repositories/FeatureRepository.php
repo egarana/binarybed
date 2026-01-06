@@ -24,25 +24,15 @@ class FeatureRepository
             )]);
         }
 
-        // Map category parameter to Spatie QueryBuilder format
-        if ($request->has('category')) {
-            $request->merge(['filter' => array_merge(
-                $request->input('filter', []),
-                ['category' => $request->input('category')]
-            )]);
-        }
-
         return QueryBuilder::for(Feature::class)
             ->allowedFilters([
                 'name',
                 'value',
                 AllowedFilter::custom('search', new MultiFieldSearchFilter(['name', 'value', 'description'])),
-                AllowedFilter::exact('category'),
             ])
             ->allowedSorts([
                 'name',
                 'value',
-                'category',
                 'created_at',
                 'updated_at',
             ])

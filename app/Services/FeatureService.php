@@ -28,7 +28,6 @@ class FeatureService
             'value' => $feature->value,
             'description' => $feature->description,
             'icon' => $feature->icon,
-            'category' => $feature->category,
         ];
     }
 
@@ -44,7 +43,6 @@ class FeatureService
             'value' => $data['value'],
             'description' => $data['description'] ?? null,
             'icon' => $data['icon'] ?? null,
-            'category' => $data['category'] ?? Feature::CATEGORY_AMENITY,
         ]);
     }
 
@@ -55,7 +53,6 @@ class FeatureService
             'value' => $data['value'] ?? $feature->value,
             'description' => $data['description'] ?? $feature->description,
             'icon' => $data['icon'] ?? $feature->icon,
-            'category' => $data['category'] ?? $feature->category,
         ]);
 
         $updatedFeature = $feature->fresh();
@@ -69,7 +66,6 @@ class FeatureService
                         'value' => $updatedFeature->value,
                         'description' => $updatedFeature->description,
                         'icon' => $updatedFeature->icon,
-                        'category' => $updatedFeature->category,
                     ]);
             });
         }

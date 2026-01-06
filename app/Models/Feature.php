@@ -18,33 +18,7 @@ class Feature extends Model
         'value',
         'description',
         'icon',
-        'category',
     ];
-
-    /**
-     * Category constants
-     */
-    const CATEGORY_AMENITY = 'amenity';
-    const CATEGORY_EQUIPMENT = 'equipment';
-    const CATEGORY_EXCLUSION = 'exclusion';
-    const CATEGORY_FACILITY = 'facility';
-    const CATEGORY_INCLUSION = 'inclusion';
-    const CATEGORY_REQUIREMENT = 'requirement';
-
-    /**
-     * Get all available categories
-     */
-    public static function getCategories(): array
-    {
-        return [
-            self::CATEGORY_AMENITY => 'Amenity',
-            self::CATEGORY_EQUIPMENT => 'Equipment',
-            self::CATEGORY_EXCLUSION => 'Exclusion',
-            self::CATEGORY_FACILITY => 'Facility',
-            self::CATEGORY_INCLUSION => 'Inclusion',
-            self::CATEGORY_REQUIREMENT => 'Requirement',
-        ];
-    }
 
     /**
      * Get the attributes that should be cast.

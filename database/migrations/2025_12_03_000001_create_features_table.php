@@ -17,14 +17,6 @@ return new class extends Migration
             $table->string('value')->unique(); // Unique identifier: 'wifi', 'breakfast', 'guide'
             $table->text('description')->nullable(); // Optional description
             $table->text('icon')->nullable(); // Icon class atau SVG
-            $table->enum('category', [
-                'amenity',      // Amenities: WiFi, AC, Pool (untuk units)
-                'equipment',    // Equipment: Diving gear, Bicycle (untuk activities)
-                'exclusion',    // Exclusions: Personal expenses, Tips (untuk activities/rates)
-                'facility',     // Facilities: Gym, Restaurant, Spa (untuk properties)
-                'inclusion',    // Inclusions: Breakfast, Guide, Insurance (untuk rates/activities)
-                'requirement'   // Requirements: Swimming ability, License (untuk activities)
-            ])->default('amenity');
             $table->timestamps();
         });
     }

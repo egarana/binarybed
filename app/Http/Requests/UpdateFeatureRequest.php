@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Feature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,7 +36,6 @@ class UpdateFeatureRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'icon' => ['nullable', 'string'],
-            'category' => ['required', 'string', Rule::in(array_keys(Feature::getCategories()))],
         ];
     }
 
@@ -51,7 +49,6 @@ class UpdateFeatureRequest extends FormRequest
             'value' => 'feature value',
             'description' => 'feature description',
             'icon' => 'feature icon',
-            'category' => 'feature category',
         ];
     }
 
@@ -71,10 +68,6 @@ class UpdateFeatureRequest extends FormRequest
             'value.max'      => 'The value cannot be longer than 255 characters',
             'value.regex'    => 'The value must only contain lowercase letters, numbers, and hyphens (e.g., wifi-access)',
             'value.unique'   => 'This value is already in use. Please choose a different value',
-
-            'category.required' => 'Please select a category',
-            'category.string'   => 'The category must be valid text',
-            'category.in'       => 'Please select a valid category',
         ];
     }
 }

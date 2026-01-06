@@ -81,4 +81,14 @@ class ActivityService
     {
         return $this->getAttachedUsersForActivity->execute($tenantId, $slug);
     }
+
+    public function getForFeatures(string $tenantId, string $slug): array
+    {
+        return $this->findActivityByTenantAndSlug->executeForFeatures($tenantId, $slug);
+    }
+
+    public function syncFeatures(string $tenantId, string $slug, array $featuresData): void
+    {
+        $this->updateActivity->syncFeatures($tenantId, $slug, $featuresData);
+    }
 }

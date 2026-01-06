@@ -42,10 +42,8 @@ class ActivityController extends Controller
     public function create(Request $request): Response
     {
         $tenants = $this->tenantService->search($request->input('search'));
-        // Get features for SearchableSelect (with search support)
-        $features = $this->featureService->search($request->input('search'), 5);
 
-        return Inertia::render('activities/Create', compact('tenants', 'features'));
+        return Inertia::render('activities/Create', compact('tenants'));
     }
 
     public function store(StoreActivityRequest $request): RedirectResponse
@@ -59,13 +57,7 @@ class ActivityController extends Controller
     {
         $activity = $this->activityService->getForEdit($tenant, $slug);
 
-        // Get features for SearchableSelect (with search support)
-        $features = $this->featureService->search(
-            $request->input('search'),
-            5
-        );
-
-        return Inertia::render('activities/Edit', compact('activity', 'features'));
+        return Inertia::render('activities/Edit', compact('activity'));
     }
 
     public function update(UpdateActivityRequest $request, string $tenantId, string $slug): RedirectResponse
@@ -175,6 +167,26 @@ class ActivityController extends Controller
         string $slug
     ): RedirectResponse {
         $this->updateActivityCommission->execute($tenantId, $slug, $request->validated());
+
+        return redirect()->route('activities.index', ['sort' => '-updated_at']);
+    }
+
+    public function features(Request $request, string $tenantId, string $slug): Response
+    {
+        $activity = $this->activityService->getForFeatures($tenantId, $slug);
+
+        // Get all features for SearchableSelect (with search support)
+        $allFeatures = $this->featureService->search($request->input('search'), 50);
+
+        return Inertia::render('activities/Features', [
+            'activity' => $activity,
+            'allFeatures' => $allFeatures,
+        ]);
+    }
+
+    public function syncFeatures(Request $request, string $tenantId, string $slug): RedirectResponse
+    {
+        $this->activityService->syncFeatures($tenantId, $slug, $request->input('features', []));
 
         return redirect()->route('activities.index', ['sort' => '-updated_at']);
     }

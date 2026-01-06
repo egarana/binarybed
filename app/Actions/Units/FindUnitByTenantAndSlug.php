@@ -52,4 +52,40 @@ class FindUnitByTenantAndSlug
             ];
         });
     }
+
+    /**
+     * Find a unit with features grouped by category for Features management page.
+     *
+     * @param string $tenantId
+     * @param string $slug
+     * @return array
+     */
+    public function executeForFeatures(string $tenantId, string $slug): array
+    {
+        return $this->executeInTenantContext($tenantId, function ($tenant) use ($slug) {
+            $unit = Unit::where('slug', $slug)->with(['features'])->firstOrFail();
+
+            // Group features by category
+            $featuresByCategory = $unit->features->groupBy(function ($feature) {
+                return $feature->pivot->category ?? 'amenity';
+            })->map(function ($features) {
+                return $features->map(function ($feature) {
+                    return [
+                        'value' => (string) $feature->feature_id,
+                        'label' => $feature->name,
+                        'icon' => $feature->icon,
+                    ];
+                })->values()->toArray();
+            })->toArray();
+
+            return [
+                'id' => $unit->id,
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'name' => $unit->name,
+                'slug' => $unit->slug,
+                'features' => $featuresByCategory,
+            ];
+        });
+    }
 }

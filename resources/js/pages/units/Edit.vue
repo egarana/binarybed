@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import units from '@/routes/units';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
 import { useFormNotifications } from '@/composables/useFormNotifications';
 import { useAutoSlug } from '@/composables/useAutoSlug';
 import BaseFormPage from '@/components/BaseFormPage.vue';
-import SearchableSelect, { type ComboboxOption } from '@/components/SearchableSelect.vue';
 import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Plus, Star } from 'lucide-vue-next';
 
 interface Props {
     unit: {
@@ -22,10 +17,8 @@ interface Props {
         tenant_name: string;
         name: string;
         slug: string;
-        features?: ComboboxOption[];
         images?: ExistingImage[];
     };
-    features?: ComboboxOption[];
 }
 
 const props = defineProps<Props>();
@@ -39,20 +32,6 @@ const { onSuccess, onError } = useFormNotifications({
     resourceName: 'unit',
     action: 'update',
 });
-
-// Form fields
-const selectedFeatures = ref<ComboboxOption[]>(props.unit.features || []);
-
-// Ref for SearchableSelect
-const featuresSelectRef = ref<InstanceType<typeof SearchableSelect>>();
-
-// Control features visibility - only hide empty state when features are selected
-const hasFeatures = computed(() => selectedFeatures.value.length > 0);
-
-// Open features dropdown
-const openFeaturesDropdown = () => {
-    featuresSelectRef.value?.open();
-};
 
 const name = ref(props.unit.name || '');
 const { slug } = useAutoSlug(name, {
@@ -115,68 +94,6 @@ function transformFormData(data: Record<string, any>) {
                 v-model="slug"
                 :error="errors.slug"
             />
-
-
-            <!-- Features Selection -->
-            <div class="grid gap-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <Label>Features <span class="text-muted-foreground">(Optional)</span></Label>
-                        <p class="text-xs text-muted-foreground mt-1">
-                            Add features to highlight your unit's amenities and characteristics.
-                        </p>
-                    </div>
-                </div>
-
-                <SearchableSelect
-                    ref="featuresSelectRef"
-                    mode="multiple"
-                    v-model="selectedFeatures"
-                    :options="features"
-                    :fetch-url="() => units.edit.url([unit.tenant_id, unit.slug])"
-                    response-key="features"
-                    search-param="search"
-                    label="Features"
-                    placeholder="Select features"
-                    search-placeholder="Search features..."
-                    name="features"
-                    :tabindex="4"
-                    :error="errors.features"
-                    :required="false"
-                    :draggable="true"
-                    :disabled="processing"
-                    :show-label="false"
-                />
-
-                <Empty 
-                    v-if="!hasFeatures" 
-                    class="border border-dashed cursor-pointer hover:border-primary/50 transition-colors"
-                    @click="openFeaturesDropdown"
-                >
-                    <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                            <Star />
-                        </EmptyMedia>
-                        <EmptyTitle>No features selected</EmptyTitle>
-                        <EmptyDescription>
-                            Click to add features to enhance your unit listing.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                    <EmptyContent>
-                        <Button type="button" variant="outline" @click.stop="openFeaturesDropdown">
-                            <Plus /> Add Features
-                        </Button>
-                    </EmptyContent>
-                </Empty>
-
-                <!-- Flag to indicate features have been cleared (for empty array detection) -->
-                <input
-                    v-if="selectedFeatures.length === 0"
-                    type="hidden"
-                    name="_features_cleared"
-                    value="1"
-                />
-            </div>
 
             <ImageUploader
                 :existing-images="existingImages"

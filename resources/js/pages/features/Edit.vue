@@ -8,7 +8,6 @@ import BaseFormPage from '@/components/BaseFormPage.vue';
 import FormField from '@/components/FormField.vue';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/InputError.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 
@@ -19,9 +18,7 @@ interface Props {
         value: string;
         description?: string;
         icon?: string;
-        category: string;
     };
-    categories: Record<string, string>;
 }
 
 const props = defineProps<Props>();
@@ -45,7 +42,6 @@ const { slug: value } = useAutoSlug(name, {
 });
 const description = ref(props.feature.description || '');
 const icon = ref(props.feature.icon || '');
-const category = ref(props.feature.category || 'amenity');
 </script>
 
 <template>
@@ -81,26 +77,11 @@ const category = ref(props.feature.category || 'amenity');
             />
 
             <div class="grid gap-2">
-                <Label for="category">Category</Label>
-                <Select v-model="category" name="category">
-                    <SelectTrigger id="category" :tabindex="3">
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem v-for="(label, key) in categories" :key="key" :value="key">
-                            {{ label }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-                <InputError :message="errors.category" />
-            </div>
-
-            <div class="grid gap-2">
                 <Label for="description">Description <span class="text-muted-foreground">(Optional)</span></Label>
                 <Textarea
                     id="description"
                     name="description"
-                    :tabindex="4"
+                    :tabindex="3"
                     placeholder="Optional description"
                     v-model="description"
                     rows="6"
@@ -113,7 +94,7 @@ const category = ref(props.feature.category || 'amenity');
                 <Textarea
                     id="icon"
                     name="icon"
-                    :tabindex="5"
+                    :tabindex="4"
                     placeholder="e.g. <svg>...</svg> or lucide-wifi"
                     v-model="icon"
                     rows="6"
@@ -123,7 +104,7 @@ const category = ref(props.feature.category || 'amenity');
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="6"
+                :tabindex="5"
                 test-id="update-feature-button"
                 label="Save"
             />

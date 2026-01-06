@@ -57,7 +57,6 @@ class UpdateActivity
                                 'value' => $centralFeature->value,
                                 'description' => $centralFeature->description,
                                 'icon' => $centralFeature->icon,
-                                'category' => $centralFeature->category,
                             ];
                         }
                     }
@@ -66,7 +65,7 @@ class UpdateActivity
                         \App\Models\ResourceFeature::upsert(
                             $upsertData,
                             ['feature_id'],
-                            ['name', 'value', 'description', 'icon', 'category']
+                            ['name', 'value', 'description', 'icon']
                         );
                     }
                 }
@@ -202,6 +201,78 @@ class UpdateActivity
             }
 
             return $updatedActivity;
+        });
+    }
+
+    /**
+     * Sync features for an activity with categories from the Features management page.
+     *
+     * @param string $tenantId
+     * @param string $slug
+     * @param array $featuresData Array of category => [feature_ids]
+     * @return void
+     */
+    public function syncFeatures(string $tenantId, string $slug, array $featuresData): void
+    {
+        $this->executeInTenantContext($tenantId, function () use ($slug, $featuresData) {
+            $activity = Activity::where('slug', $slug)->firstOrFail();
+
+            // Collect all feature IDs with their categories
+            $allFeatureIds = [];
+            $featureCategories = [];
+
+            foreach ($featuresData as $category => $featureIds) {
+                if (!is_array($featureIds)) continue;
+
+                foreach ($featureIds as $order => $featureId) {
+                    if (empty($featureId)) continue;
+                    $allFeatureIds[] = $featureId;
+                    $featureCategories[$featureId] = [
+                        'category' => $category,
+                        'order' => $order,
+                    ];
+                }
+            }
+
+            // Batch fetch and upsert features to tenant database
+            if (!empty($allFeatureIds)) {
+                $centralFeatures = \App\Models\Feature::whereIn('id', $allFeatureIds)->get()->keyBy('id');
+
+                $upsertData = [];
+                foreach ($allFeatureIds as $featureId) {
+                    $centralFeature = $centralFeatures->get($featureId);
+                    if ($centralFeature) {
+                        $upsertData[] = [
+                            'feature_id' => $centralFeature->id,
+                            'name' => $centralFeature->name,
+                            'value' => $centralFeature->value,
+                            'description' => $centralFeature->description,
+                            'icon' => $centralFeature->icon,
+                        ];
+                    }
+                }
+
+                if (!empty($upsertData)) {
+                    \App\Models\ResourceFeature::upsert(
+                        $upsertData,
+                        ['feature_id'],
+                        ['name', 'value', 'description', 'icon']
+                    );
+                }
+            }
+
+            // Build sync data with order and category
+            $syncData = [];
+            foreach ($featureCategories as $featureId => $data) {
+                $syncData[$featureId] = [
+                    'order' => $data['order'],
+                    'category' => $data['category'],
+                    'assigned_at' => now(),
+                ];
+            }
+
+            $activity->features()->sync($syncData);
+            $activity->touch();
         });
     }
 }

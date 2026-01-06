@@ -42,10 +42,8 @@ class UnitController extends Controller
     public function create(Request $request): Response
     {
         $tenants = $this->tenantService->search($request->input('search'));
-        // Get features for SearchableSelect (with search support)
-        $features = $this->featureService->search($request->input('search'), 5);
 
-        return Inertia::render('units/Create', compact('tenants', 'features'));
+        return Inertia::render('units/Create', compact('tenants'));
     }
 
     public function store(StoreUnitRequest $request): RedirectResponse
@@ -59,13 +57,7 @@ class UnitController extends Controller
     {
         $unit = $this->unitService->getForEdit($tenant, $slug);
 
-        // Get features for SearchableSelect (with search support)
-        $features = $this->featureService->search(
-            $request->input('search'),
-            5
-        );
-
-        return Inertia::render('units/Edit', compact('unit', 'features'));
+        return Inertia::render('units/Edit', compact('unit'));
     }
 
     public function update(UpdateUnitRequest $request, string $tenantId, string $slug): RedirectResponse
@@ -175,6 +167,26 @@ class UnitController extends Controller
         string $slug
     ): RedirectResponse {
         $this->updateUnitCommission->execute($tenantId, $slug, $request->validated());
+
+        return redirect()->route('units.index', ['sort' => '-updated_at']);
+    }
+
+    public function features(Request $request, string $tenantId, string $slug): Response
+    {
+        $unit = $this->unitService->getForFeatures($tenantId, $slug);
+
+        // Get all features for SearchableSelect (with search support)
+        $allFeatures = $this->featureService->search($request->input('search'), 50);
+
+        return Inertia::render('units/Features', [
+            'unit' => $unit,
+            'allFeatures' => $allFeatures,
+        ]);
+    }
+
+    public function syncFeatures(Request $request, string $tenantId, string $slug): RedirectResponse
+    {
+        $this->unitService->syncFeatures($tenantId, $slug, $request->input('features', []));
 
         return redirect()->route('units.index', ['sort' => '-updated_at']);
     }
