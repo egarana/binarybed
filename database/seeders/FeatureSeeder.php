@@ -223,6 +223,55 @@ class FeatureSeeder extends Seeder
                 "description" => "Someone is available 24 hours a day to let guests in",
                 "icon" => null
             ],
+            // Not included / Unavailable features (can be used for exclusions)
+            [
+                "name" => "Exterior Security Cameras",
+                "value" => "exterior-security-cameras",
+                "description" => "Security cameras on property exterior",
+                "icon" => null
+            ],
+            [
+                "name" => "Washer",
+                "value" => "washer",
+                "description" => "Washing machine available",
+                "icon" => null
+            ],
+            [
+                "name" => "Dryer",
+                "value" => "dryer",
+                "description" => "Clothes dryer available",
+                "icon" => null
+            ],
+            [
+                "name" => "Air Conditioning",
+                "value" => "air-conditioning",
+                "description" => "Air conditioning unit available",
+                "icon" => null
+            ],
+            [
+                "name" => "Essentials",
+                "value" => "essentials",
+                "description" => "Towels, bed sheets, soap, and toilet paper",
+                "icon" => null
+            ],
+            [
+                "name" => "Smoke Alarm",
+                "value" => "smoke-alarm",
+                "description" => "Smoke detector installed on property",
+                "icon" => null
+            ],
+            [
+                "name" => "Carbon Monoxide Alarm",
+                "value" => "carbon-monoxide-alarm",
+                "description" => "Carbon monoxide detector installed",
+                "icon" => null
+            ],
+            [
+                "name" => "Heating",
+                "value" => "heating",
+                "description" => "Heating system available",
+                "icon" => null
+            ],
         ];
 
         foreach ($features as $feature) {

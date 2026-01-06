@@ -132,6 +132,9 @@ class DummyDataSeeder extends Seeder
             // 4. Create media for units and activities
             $this->createMedia($units, $activities);
 
+            // 5. Create features for units and activities
+            $this->createFeatures($units, $activities);
+
             $this->command->info('   Tenant seeding completed');
         } finally {
             tenancy()->end();
@@ -526,5 +529,145 @@ class DummyDataSeeder extends Seeder
         }
 
         $this->command->info('   Created 10 media records for units and activities');
+    }
+
+    /**
+     * Create features for units and activities
+     * Based on current database data
+     *
+     * @param array<Unit> $units
+     * @param array<Activity> $activities
+     */
+    private function createFeatures(array $units, array $activities): void
+    {
+        // ==========================================
+        // UNIT FEATURES (Rahajeng & Rahayu Cabin)
+        // ==========================================
+        $unitFeaturesData = [
+            // Amenities
+            'bidet' => ['amenity', 0],
+            'hot-water' => ['amenity', 1],
+            'tv' => ['amenity', 2],
+            'wifi' => ['amenity', 3],
+            'dedicated-workspace' => ['amenity', 4],
+            'kitchen' => ['amenity', 5],
+            'barbecue-utensils' => ['amenity', 6],
+            'dining-table' => ['amenity', 7],
+            'coffee' => ['amenity', 8],
+            'patio-balcony' => ['amenity', 9],
+            // Facilities
+            'first-aid-kit' => ['facility', 0],
+            'lake-access' => ['facility', 1],
+            'bbq-grill' => ['facility', 2],
+            'free-parking' => ['facility', 3],
+            'street-parking' => ['facility', 4],
+            'pets-allowed' => ['facility', 5],
+            'smoking-allowed' => ['facility', 6],
+            'self-check-in' => ['facility', 7],
+            'building-staff' => ['facility', 8],
+            // Exclusions (not available)
+            'exterior-security-cameras' => ['exclusion', 0],
+            'washer' => ['exclusion', 1],
+            'dryer' => ['exclusion', 2],
+            'air-conditioning' => ['exclusion', 3],
+            'essentials' => ['exclusion', 4],
+            'smoke-alarm' => ['exclusion', 5],
+            'carbon-monoxide-alarm' => ['exclusion', 6],
+            'heating' => ['exclusion', 7],
+        ];
+
+        foreach ($units as $unit) {
+            $this->syncFeaturesForResource($unit, Unit::class, $unitFeaturesData);
+        }
+
+        $this->command->info('   Created features for ' . count($units) . ' units');
+
+        // ==========================================
+        // ACTIVITY FEATURES (Mount Batur Trekking)
+        // ==========================================
+        $activityFeaturesData = [
+            // Inclusions
+            'hotel-transfer' => ['inclusion', 0],
+            'entrance-fees' => ['inclusion', 1],
+            'professional-guide' => ['inclusion', 2],
+            'safety-equipment' => ['inclusion', 3],
+            'breakfast' => ['inclusion', 4],
+            'hot-beverages' => ['inclusion', 5],
+            'mineral-water' => ['inclusion', 6],
+            // Exclusions
+            'travel-insurance' => ['exclusion', 0],
+            'tipping' => ['exclusion', 1],
+            'personal-expenses' => ['exclusion', 2],
+            // Suggestions
+            'hiking-shoes' => ['suggestion', 0],
+            'camera' => ['suggestion', 1],
+            'warm-clothing' => ['suggestion', 2],
+            'sunscreen' => ['suggestion', 3],
+            'cash' => ['suggestion', 4],
+        ];
+
+        foreach ($activities as $activity) {
+            $this->syncFeaturesForResource($activity, Activity::class, $activityFeaturesData);
+        }
+
+        $this->command->info('   Created features for ' . count($activities) . ' activities');
+    }
+
+    /**
+     * Sync features for a resource (unit or activity)
+     *
+     * @param mixed $resource
+     * @param string $resourceClass
+     * @param array $featuresData
+     */
+    private function syncFeaturesForResource($resource, string $resourceClass, array $featuresData): void
+    {
+        // Check if features already exist
+        $existingCount = $resource->features()->count();
+        if ($existingCount > 0) {
+            $this->command->warn("   Features already exist for {$resource->name}, skipping...");
+            return;
+        }
+
+        // Get central features by value
+        $centralFeatures = \App\Models\Feature::whereIn('value', array_keys($featuresData))->get()->keyBy('value');
+
+        // Upsert to resource_features table (tenant)
+        $upsertData = [];
+        foreach ($featuresData as $value => $data) {
+            $centralFeature = $centralFeatures->get($value);
+            if ($centralFeature) {
+                $upsertData[] = [
+                    'feature_id' => $centralFeature->id,
+                    'name' => $centralFeature->name,
+                    'value' => $centralFeature->value,
+                    'description' => $centralFeature->description,
+                    'icon' => $centralFeature->icon,
+                ];
+            }
+        }
+
+        if (!empty($upsertData)) {
+            \App\Models\ResourceFeature::upsert(
+                $upsertData,
+                ['feature_id'],
+                ['name', 'value', 'description', 'icon']
+            );
+        }
+
+        // Attach features to resource
+        $syncData = [];
+        foreach ($featuresData as $value => $data) {
+            $centralFeature = $centralFeatures->get($value);
+            if ($centralFeature) {
+                $syncData[$centralFeature->id] = [
+                    'category' => $data[0],
+                    'order' => $data[1],
+                    'assigned_at' => now(),
+                ];
+            }
+        }
+
+        $resource->features()->sync($syncData);
     }
 }
