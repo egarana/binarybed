@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import Layout from './Layout.vue';
 </script>
 
 <template>
-    Terms and Conditions
+    <Layout title="Terms and Conditions">
+        
+    </Layout>
 </template>

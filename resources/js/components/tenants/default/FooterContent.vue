@@ -2,8 +2,38 @@
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@inertiajs/vue3';
 import { Facebook, Instagram, ShieldCheck, Youtube } from 'lucide-vue-next';
+import { computed, type Component } from 'vue';
 
+export interface SocialLink {
+    platform: 'facebook' | 'instagram' | 'youtube';
+    url: string;
+}
 
+interface Props {
+    socialLinks?: SocialLink[];
+    address?: string;
+    brandName?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    socialLinks: () => [
+        { platform: 'facebook', url: 'https://facebook.com' },
+        { platform: 'instagram', url: 'https://instagram.com' },
+        { platform: 'youtube', url: 'https://youtube.com' },
+    ],
+    address: '123 Example Street, City Name, Country 12345',
+    brandName: 'Your Brand Name',
+});
+
+// Auto-computed copyright year
+const copyrightYear = computed(() => new Date().getFullYear());
+
+// Map platform to icon component
+const platformIcons: Record<SocialLink['platform'], Component> = {
+    facebook: Facebook,
+    instagram: Instagram,
+    youtube: Youtube,
+};
 </script>
 
 <template>
@@ -28,10 +58,10 @@ import { Facebook, Instagram, ShieldCheck, Youtube } from 'lucide-vue-next';
             </ul>
             <ul class="flex items-center gap-2 border-t pt-8 md:border-t-0 md:pt-0 md:flex-row-reverse">
                 <li>
-                    <img src="https://assets.binarybed.com/master.webp" alt="Visa" class="block w-auto h-3.5">
+                    <img src="/mastercard.svg" alt="Mastercard" class="block w-auto h-3.5">
                 </li>
                 <li>
-                    <img src="https://assets.binarybed.com/visa.webp" alt="Visa" class="block w-auto h-3.5">
+                    <img src="/visa.svg" alt="Visa" class="block w-auto h-3.5">
                 </li>
                 <li>
                     <Badge variant="outline" class="rounded-full">
@@ -44,24 +74,21 @@ import { Facebook, Instagram, ShieldCheck, Youtube } from 'lucide-vue-next';
     </div>
     <div class="px-6 pt-4 pb-6 md:border-t md:py-0 md:px-0">
         <div class="md:mx-auto md:max-w-screen-xl md:py-5 md:px-6 md:flex md:justify-start md:items-center md:flex-row-reverse">
-            <ul class="flex items-center gap-5">
-                <li>
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary">
-                        <Facebook class="w-4 h-4" />
-                    </a>
-                </li>
-                <li>
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary">
-                        <Instagram class="w-4 h-4" />
-                    </a>
-                </li>
-                <li>
-                    <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary">
-                        <Youtube class="w-4 h-4" />
+            <ul v-if="props.socialLinks.length > 0" class="flex items-center gap-5">
+                <li v-for="link in props.socialLinks" :key="link.platform">
+                    <a 
+                        :href="link.url" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        class="text-muted-foreground hover:text-primary"
+                    >
+                        <component :is="platformIcons[link.platform]" class="w-4 h-4" />
                     </a>
                 </li>
             </ul>
-            <p class="text-xs text-balance text-muted-foreground mt-6 md:text-sm md:mt-0 md:me-auto">2026 Lake Batur Cabin, Jalan Ulun Danu Songan A Kintamani Bangli Bali 80652 Indonesia</p>
+            <p class="text-xs text-balance text-muted-foreground mt-6 md:text-sm md:mt-0 md:me-auto">
+                {{ copyrightYear }} {{ props.brandName }}, {{ props.address }}
+            </p>
         </div>
     </div>
 </template>

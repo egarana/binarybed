@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import Layout from './Layout.vue';
 </script>
 
 <template>
-    Privacy Policy
+    <Layout title="Privacy Policy">
+        
+    </Layout>
 </template>

@@ -10,6 +10,7 @@ import { useTenantStore } from '@/stores/useTenantStore';
 import { useResourceStore } from '@/stores/useResourceStore';
 import Navbar from '@/components/tenants/default/Navbar.vue';
 import Footer from '@/components/tenants/default/Footer.vue';
+import type { SocialLink } from '@/components/tenants/default/FooterContent.vue';
 
 interface SharedResources {
     units: Array<{ id: number; name: string; slug: string; created_at: string }>;
@@ -32,6 +33,10 @@ interface Props {
     navItems: NavItem[];
     whatsapp: string;
     logo?: Component;
+    // Footer props
+    socialLinks?: SocialLink[];
+    address?: string;
+    brandName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -94,5 +99,9 @@ provide('tenant', tenant);
         <slot :tenant="tenant" />
     </main>
 
-    <Footer />
+    <Footer 
+        :social-links="props.socialLinks" 
+        :address="props.address" 
+        :brand-name="props.brandName" 
+    />
 </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import Layout from './Layout.vue';
 </script>
 
 <template>
-    Cancellation Policy
+    <Layout title="Cancellation Policy">
+        
+    </Layout>
 </template>

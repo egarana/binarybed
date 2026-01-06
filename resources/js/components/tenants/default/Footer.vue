@@ -8,7 +8,15 @@ import {
 } from '@/components/ui/drawer';
 import { useMoreDrawer } from '@/composables/useMoreDrawer';
 import { useMediaQuery } from '@vueuse/core';
-import FooterContent from '@/components/tenants/default/FooterContent.vue';
+import FooterContent, { type SocialLink } from '@/components/tenants/default/FooterContent.vue';
+
+interface Props {
+    socialLinks?: SocialLink[];
+    address?: string;
+    brandName?: string;
+}
+
+const props = defineProps<Props>();
 
 const { isOpen } = useMoreDrawer()
 const isDesktop = useMediaQuery('(min-width: 768px)')
@@ -18,17 +26,25 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
 <template>
     <!-- Desktop: show content directly -->
     <footer v-if="isDesktop" class="md:fixed md:bottom-0 md:left-0 md:right-0">
-        <FooterContent />
+        <FooterContent 
+            :social-links="props.socialLinks" 
+            :address="props.address" 
+            :brand-name="props.brandName" 
+        />
     </footer>
 
     <!-- Mobile: show inside drawer -->
     <Drawer v-else v-model:open="isOpen">
         <DrawerContent>
             <DrawerHeader class="sr-only">
-                <DrawerTitle>Move Goal</DrawerTitle>
-                <DrawerDescription>Set your daily activity goal.</DrawerDescription>
+                <DrawerTitle>Footer Content</DrawerTitle>
+                <DrawerDescription>Footer Content</DrawerDescription>
             </DrawerHeader>
-            <FooterContent />
+            <FooterContent 
+                :social-links="props.socialLinks" 
+                :address="props.address" 
+                :brand-name="props.brandName" 
+            />
         </DrawerContent>
     </Drawer>
 </template>

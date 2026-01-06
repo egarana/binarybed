@@ -116,10 +116,10 @@ class TenantPageController extends Controller
     {
         $tenantSlug = $this->getTenantId();
 
-        // Load data from appropriate model
+        // Load data from appropriate model with all fields and relations
         $resources = match ($resourceType) {
-            'units' => Unit::select(['id', 'name', 'slug', 'created_at'])->orderBy('name')->get(),
-            'activities' => Activity::select(['id', 'name', 'slug', 'created_at'])->orderBy('name')->get(),
+            'units' => Unit::with(['features', 'rates', 'media'])->orderBy('name')->get(),
+            'activities' => Activity::with(['features', 'rates', 'media'])->orderBy('name')->get(),
             default => collect([]),
         };
 
