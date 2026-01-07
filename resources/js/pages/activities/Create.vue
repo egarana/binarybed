@@ -11,7 +11,9 @@ import NumberFormField from '@/components/NumberFormField.vue';
 import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import InputError from '@/components/InputError.vue';
 
 defineProps<{
     tenants?: ComboboxOption[];
@@ -43,6 +45,7 @@ const uploadedMediaIds = ref<number[]>([]);
 const standardRatePrice = ref(0);
 const standardRateCurrency = ref('IDR');
 const standardRatePriceType = ref('flat');
+const description = ref('');
 </script>
 
 <template>
@@ -99,16 +102,21 @@ const standardRatePriceType = ref('flat');
                 :error="errors.slug"
             />
 
-            <ImageUploader
-                label="Images"
-                name="images"
-                :multiple="true"
-                :max-files="25"
-                :error="errors.images || errors.uploaded_media_ids"
-                :tabindex="5"
-                :disabled="processing"
-                @update:uploaded-media-ids="uploadedMediaIds = $event"
-            />
+            <div class="grid gap-2">
+                <Label for="description" class="flex items-center gap-1">
+                    Description
+                    <span class="text-muted-foreground">(Optional)</span>
+                </Label>
+                <Textarea
+                    id="description"
+                    name="description"
+                    :tabindex="4"
+                    placeholder="Describe this activity..."
+                    v-model="description"
+                    rows="12"
+                />
+                <InputError :message="errors.description" />
+            </div>
 
             <!-- Standard Rate -->
             <div class="grid gap-4">
@@ -122,7 +130,7 @@ const standardRatePriceType = ref('flat');
                 <NumberFormField
                     id="standard_rate_price"
                     label="Price"
-                    :tabindex="6"
+                    :tabindex="5"
                     placeholder="0"
                     v-model="standardRatePrice"
                     :min="0"
@@ -150,9 +158,20 @@ const standardRatePriceType = ref('flat');
                 />
             </div>
 
+            <ImageUploader
+                label="Images"
+                name="images"
+                :multiple="true"
+                :max-files="25"
+                :error="errors.images || errors.uploaded_media_ids"
+                :tabindex="8"
+                :disabled="processing"
+                @update:uploaded-media-ids="uploadedMediaIds = $event"
+            />
+
             <SubmitButton
                 :processing="processing"
-                :tabindex="8"
+                :tabindex="9"
                 test-id="create-activity-button"
                 label="Create"
             />

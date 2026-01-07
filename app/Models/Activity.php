@@ -19,6 +19,7 @@ class Activity extends Model implements HasMedia
     protected $fillable = [
         'name',
         'slug',
+        'description',
     ];
 
     /**

@@ -28,6 +28,7 @@ class FindActivityByTenantAndSlug
                 'tenant_name' => $tenant->name,
                 'name' => $activity->name,
                 'slug' => $activity->slug,
+                'description' => $activity->description,
                 'commission_config' => $activity->commissionConfig ? [
                     'commission_type' => $activity->commissionConfig->commission_type,
                     'commission_percentage' => $activity->commissionConfig->commission_percentage,

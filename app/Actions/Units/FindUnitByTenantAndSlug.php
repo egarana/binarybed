@@ -28,6 +28,7 @@ class FindUnitByTenantAndSlug
                 'tenant_name' => $tenant->name,
                 'name' => $unit->name,
                 'slug' => $unit->slug,
+                'description' => $unit->description,
                 'commission_config' => $unit->commissionConfig ? [
                     'commission_type' => $unit->commissionConfig->commission_type,
                     'commission_percentage' => $unit->commissionConfig->commission_percentage,

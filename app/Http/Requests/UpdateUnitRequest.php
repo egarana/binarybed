@@ -52,6 +52,7 @@ class UpdateUnitRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'description' => ['nullable', 'string', 'max:65535'],
             'features'   => ['nullable', 'array'],
             'features.*' => ['nullable', 'integer', 'exists:features,id'],
             'existing_images'   => ['nullable', 'array'],

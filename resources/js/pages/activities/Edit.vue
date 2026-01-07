@@ -9,6 +9,9 @@ import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/InputError.vue';
 
 interface Props {
     activity: {
@@ -17,6 +20,7 @@ interface Props {
         tenant_name: string;
         name: string;
         slug: string;
+        description?: string;
         images?: ExistingImage[];
     };
 }
@@ -43,6 +47,7 @@ const { slug } = useAutoSlug(name, {
 // Image management
 const existingImages = ref<ExistingImage[]>(props.activity.images || []);
 const uploadedMediaIds = ref<number[]>([]);
+const description = ref(props.activity.description || '');
 
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
@@ -94,6 +99,22 @@ function transformFormData(data: Record<string, any>) {
                 v-model="slug"
                 :error="errors.slug"
             />
+
+            <div class="grid gap-2">
+                <Label for="description" class="flex items-center gap-1">
+                    Description
+                    <span class="text-muted-foreground">(Optional)</span>
+                </Label>
+                <Textarea
+                    id="description"
+                    name="description"
+                    :tabindex="3"
+                    placeholder="Describe this activity..."
+                    v-model="description"
+                    rows="12"
+                />
+                <InputError :message="errors.description" />
+            </div>
 
             <ImageUploader
                 :existing-images="existingImages"
