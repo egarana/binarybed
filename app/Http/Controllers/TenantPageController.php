@@ -200,10 +200,14 @@ class TenantPageController extends Controller
     {
         $tenantSlug = $this->getTenantId();
 
-        // Load single resource by slug
+        // Load single resource by slug with all relations for guest display
         $resource = match ($resourceType) {
-            'units' => Unit::where('slug', $resourceSlug)->first(),
-            'activities' => Activity::where('slug', $resourceSlug)->first(),
+            'units' => Unit::with(['features', 'rates', 'media'])
+                ->where('slug', $resourceSlug)
+                ->first(),
+            'activities' => Activity::with(['features', 'rates', 'media'])
+                ->where('slug', $resourceSlug)
+                ->first(),
             default => null,
         };
 
@@ -211,8 +215,20 @@ class TenantPageController extends Controller
             abort(404, "Resource '{$resourceSlug}' not found");
         }
 
-        // Check for tenant-specific detail component first
-        // e.g., tenants/pages/baliadvtours/tours/AtvRidingAdventure.vue
+        // Prepare common props for all render paths
+        $props = [
+            'tenant' => [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'domain' => request()->getHost(),
+            ],
+            'resource' => $resource,
+            'resourceType' => $resourceType,
+            'parentSlug' => $parentSlug,
+        ];
+
+        // Priority 1: Check for resource-specific detail component
+        // e.g., tenants/pages/lakebaturcabin/cabins/RahajengCabin.vue
         $childPascal = str($resourceSlug)
             ->kebab()
             ->replace('-', ' ')
@@ -223,30 +239,17 @@ class TenantPageController extends Controller
         $specificPage = $parentSlug . '/' . $childPascal;
 
         if ($this->tenantHasPage($specificPage)) {
-            // Render tenant-specific detail page
-            return Inertia::render("tenants/pages/{$tenantSlug}/{$specificPage}", [
-                'tenant' => [
-                    'id' => tenant('id'),
-                    'name' => tenant('name'),
-                    'domain' => request()->getHost(),
-                ],
-                'resource' => $resource,
-                'resourceType' => $resourceType,
-                'parentSlug' => $parentSlug,
-            ]);
+            return Inertia::render("tenants/pages/{$tenantSlug}/{$specificPage}", $props);
         }
 
-        // Fallback to shared ResourceDetail component
-        return Inertia::render("tenants/pages/_shared/ResourceDetail", [
-            'tenant' => [
-                'id' => tenant('id'),
-                'name' => tenant('name'),
-                'domain' => request()->getHost(),
-            ],
-            'resource' => $resource,
-            'resourceType' => $resourceType,
-            'parentSlug' => $parentSlug,
-        ]);
+        // Priority 2: Check for tenant-level ProductDetail.vue
+        // e.g., tenants/pages/lakebaturcabin/ProductDetail.vue
+        if ($this->tenantHasPage('ProductDetail')) {
+            return Inertia::render("tenants/pages/{$tenantSlug}/ProductDetail", $props);
+        }
+
+        // No detail page found - abort with helpful message
+        abort(404, "No detail page found for '{$resourceSlug}'. Create ProductDetail.vue in tenant folder.");
     }
 
     /**

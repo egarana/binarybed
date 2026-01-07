@@ -101,6 +101,12 @@ class UnitRepository
                 $unitArray = $unit->toArray();
                 $unitArray['tenant_id'] = $tenant->id;
                 $unitArray['tenant_name'] = $tenant->name ?? $tenant->id;
+                $unitArray['tenant_domain'] = $tenant->domain;
+
+                // Find resource_route_slug for units (reverse lookup from resource_routes)
+                // Default to 'units' if no custom mapping exists
+                $resourceRoutes = $tenant->resource_routes ?? [];
+                $unitArray['resource_route_slug'] = array_search('units', $resourceRoutes) ?: 'units';
 
                 // Get lowest rate
                 $rate = $unit->rates->first();

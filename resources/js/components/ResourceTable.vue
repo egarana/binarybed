@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, EllipsisVertical } from 'lucide-vue-next';
+import { ChevronsUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, EllipsisVertical, Eye } from 'lucide-vue-next';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -47,6 +47,7 @@ const props = defineProps<{
         url: (item: any) => string;
         variant?: 'ghost' | 'outline' | 'default' | 'secondary' | 'destructive';
         condition?: (item: any) => boolean; // Optional condition to show/hide button
+        external?: boolean; // If true, opens in new tab with native <a> tag
     }>;
     editAssignmentConfig?: {
         getEditUrl: (item: any) => string;
@@ -67,6 +68,7 @@ const props = defineProps<{
     deleteTitle?: string;
     deleteDescription?: string;
     deleteConfirmLabel?: string;
+    previewRoute?: (item: any) => string | null; // External preview URL
 }>();
 
 const items = computed(() => props.data?.data ?? []);
@@ -202,6 +204,15 @@ const handleDelete = () => {
                                         />
                                     </template>
 
+                                    <!-- Preview Button (external link) -->
+                                    <template v-if="previewRoute && previewRoute(item)">
+                                        <a :href="previewRoute(item)!" target="_blank" rel="noopener" :title="'Preview'">
+                                            <Button variant="ghost" size="icon">
+                                                <Eye class="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                        </a>
+                                    </template>
+
                                     <template v-if="deleteRoute && deleteRoute(item)">
                                         <ConfirmDeleteDialog
                                             :delete-url="deleteRoute(item)!.url"
@@ -234,7 +245,10 @@ const handleDelete = () => {
                                                 <DropdownMenuSeparator />
                                                 <template v-for="(action, index) in customActions" :key="index">
                                                     <DropdownMenuItem v-if="!action.condition || action.condition(item)" as-child>
-                                                        <Link :href="action.url(item)">
+                                                        <a v-if="action.external" :href="action.url(item)" target="_blank" rel="noopener">
+                                                            {{ action.tooltip }}
+                                                        </a>
+                                                        <Link v-else :href="action.url(item)">
                                                             {{ action.tooltip }}
                                                         </Link>
                                                     </DropdownMenuItem>
@@ -291,6 +305,15 @@ const handleDelete = () => {
                                         />
                                     </template>
 
+                                    <!-- Preview Button (external link) -->
+                                    <template v-if="previewRoute && previewRoute(item)">
+                                        <a :href="previewRoute(item)!" target="_blank" rel="noopener" :title="'Preview'">
+                                            <Button variant="ghost" size="icon">
+                                                <Eye class="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                        </a>
+                                    </template>
+
                                     <template v-if="deleteRoute && deleteRoute(item)">
                                         <ConfirmDeleteDialog
                                             :delete-url="deleteRoute(item)!.url"
@@ -323,7 +346,10 @@ const handleDelete = () => {
                                                 <DropdownMenuSeparator />
                                                 <template v-for="(action, index) in customActions" :key="index">
                                                     <DropdownMenuItem v-if="!action.condition || action.condition(item)" as-child>
-                                                        <Link :href="action.url(item)">
+                                                        <a v-if="action.external" :href="action.url(item)" target="_blank" rel="noopener">
+                                                            {{ action.tooltip }}
+                                                        </a>
+                                                        <Link v-else :href="action.url(item)">
                                                             {{ action.tooltip }}
                                                         </Link>
                                                     </DropdownMenuItem>

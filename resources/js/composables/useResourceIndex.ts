@@ -34,6 +34,7 @@ export interface UseResourceIndexConfig {
     editRoute?: (item: any) => string;
     deleteRoute?: (item: any) => { url: string } | null;
     itemKey?: (item: any) => string;
+    previewRoute?: (item: any) => string | null;
     customActions?: CustomAction[];
     editAssignmentConfig?: {
         getEditUrl: (item: any) => string;
@@ -101,6 +102,7 @@ export function useResourceIndex(config: UseResourceIndexConfig) {
         itemKey: config.itemKey,
         customActions: config.customActions,
         editAssignmentConfig: config.editAssignmentConfig,
+        previewRoute: config.previewRoute,
         deleteIcon: config.deleteIcon,
         deleteActionLabel: config.deleteActionLabel,
         deleteTitle: config.deleteTitle,

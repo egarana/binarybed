@@ -101,6 +101,12 @@ class ActivityRepository
                 $activityArray = $activity->toArray();
                 $activityArray['tenant_id'] = $tenant->id;
                 $activityArray['tenant_name'] = $tenant->name ?? $tenant->id;
+                $activityArray['tenant_domain'] = $tenant->domain;
+
+                // Find resource_route_slug for activities (reverse lookup from resource_routes)
+                // Default to 'activities' if no custom mapping exists
+                $resourceRoutes = $tenant->resource_routes ?? [];
+                $activityArray['resource_route_slug'] = array_search('activities', $resourceRoutes) ?: 'activities';
 
                 // Get lowest rate
                 $rate = $activity->rates->first();

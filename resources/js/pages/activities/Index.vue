@@ -29,6 +29,7 @@ const config = {
     editRoute: (item: any) => activities.edit.url([item.tenant_id, item.slug]),
     deleteRoute: (item: any) => ({ url: activities.destroy.url([item.tenant_id, item.slug]) }),
     itemKey: (item: any) => `${item.tenant_id}-${item.id}`,
+    previewRoute: (item: any) => `http://${item.tenant_domain}/${item.resource_route_slug}/${item.slug}`,
     customActions: [
         {
             icon: Users,
