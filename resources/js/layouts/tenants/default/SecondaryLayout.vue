@@ -81,7 +81,7 @@ provide('tenant', tenant);
     <SecondaryNavbar />
     
     <main>
-        <!-- <slot :tenant="tenant" /> -->
+        <slot :tenant="tenant" />
     </main>
 
     <footer class="bg-accent">
