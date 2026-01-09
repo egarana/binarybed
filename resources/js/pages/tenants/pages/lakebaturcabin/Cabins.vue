@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import Layout from './Layout.vue';
-import { useResourceStore, type Resource } from '@/stores/useResourceStore';
+import { Link } from '@inertiajs/vue3';
+import { useResourceStore, type Resource, type Feature } from '@/stores/useResourceStore';
+import { formatCurrency } from '@/helpers/currency';
 
-// Rate interface - NOT cached, always fetch fresh
 interface Rate {
     id: number;
     rateable_type: string;
@@ -16,13 +17,11 @@ interface Rate {
     price_type: string | null;
     is_active: boolean;
     is_default: boolean;
-    created_at: string;
-    updated_at: string;
 }
 
-// Full resource with rates (from Inertia props)
 interface ResourceWithRates extends Resource {
     rates: Rate[];
+    description?: string;
 }
 
 interface Props {
@@ -34,18 +33,65 @@ interface Props {
 const props = defineProps<Props>();
 const resourceStore = useResourceStore();
 
-// Hydrate store on mount (rates will be stripped automatically)
 onMounted(() => {
-    if (props.resources && props.resources.length > 0) {
+    if (props.resources?.length > 0) {
         resourceStore.hydrate({ [props.resourceType]: props.resources });
     }
 });
+
+const getLowestPrice = (rates: Rate[]) => {
+    const active = rates.filter(r => r.is_active);
+    return active.length ? active.reduce((min, r) => r.price < min.price ? r : min, active[0]) : null;
+};
+
+const getImage = (r: ResourceWithRates) => r.media?.[0]?.original_url || null;
+
+const getFeatures = (r: ResourceWithRates, n = 3): Feature[] => r.features?.slice(0, n) || [];
+
+const getRemainingFeatures = (r: ResourceWithRates, shown = 3) => {
+    const total = r.features?.length || 0;
+    return total > shown ? total - shown : 0;
+};
+
+const formatPrice = (type: string | null) => {
+    if (!type || type === 'flat') return '';
+    const labels: Record<string, string> = { night: '/night', person: '/person', unit: '/unit' };
+    return labels[type] || `/${type}`;
+};
 </script>
 
 <template>
-    <Layout title="Cabins">
-        <pre class="text-xs">
-            {{ resources }}
-        </pre>
+    <Layout title="Our Cabins">
+        <section>
+            <div class="px-6 py-8 mx-auto max-w-screen-xl">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Link 
+                        v-for="r in resources" :key="r.id"
+                        :href="`/cabins/${r.slug}`"
+                        class="group block"
+                    >
+                        <div class="aspect-[4/3] rounded-lg overflow-hidden bg-muted-foreground">
+                            <img v-if="getImage(r)" :src="getImage(r)!" :alt="r.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        </div>
+                        <div class="space-y-1.5 mt-6">
+                            <h2 class="text-lg font-semibold">{{ r.name }}</h2>
+                            <p v-if="r.description" class="line-clamp-2">{{ r.description }}</p>
+                            <ul v-if="getFeatures(r).length" class="text-muted-foreground text-sm flex flex-wrap gap-x-1.5">
+                                <template v-for="(f, index) in getFeatures(r, 2)" :key="f.id">
+                                    <li v-if="index > 0">·</li>
+                                    <li>{{ f.name }}</li>
+                                </template>
+                                <li v-if="getRemainingFeatures(r, 2)">·</li>
+                                <li v-if="getRemainingFeatures(r, 2)">{{ getRemainingFeatures(r, 2) }} more</li>
+                            </ul>
+                        </div>
+                        <p v-if="getLowestPrice(r.rates)" class="mt-4">
+                            {{ formatCurrency(getLowestPrice(r.rates)!.price, getLowestPrice(r.rates)!.currency) }}
+                            <span class="text-muted-foreground text-sm">{{ formatPrice(getLowestPrice(r.rates)!.price_type) }}</span>
+                        </p>
+                    </Link>
+                </div>
+            </div>
+        </section>
     </Layout>
 </template>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import PrimaryLayout from '@/layouts/tenants/default/PrimaryLayout.vue';
+import SecondaryLayout from '@/layouts/tenants/default/SecondaryLayout.vue';
 import { KeyRound, Footprints } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import type { Component } from 'vue';
+import { computed, type Component } from 'vue';
 import type { SocialLink } from '@/components/tenants/default/FooterContent.vue';
 
 interface Props {
@@ -13,6 +14,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
     title: 'Lake Batur Cabin',
 });
+
+// Get layoutType from Inertia page props (passed from backend)
+const page = usePage();
+const isSecondaryLayout = computed(() => (page.props as any).layoutType === 'secondary');
 
 // Tenant-specific navigation items (Home is always included by default)
 const navItems: { href: string; label: string; icon: Component }[] = [
@@ -35,7 +40,14 @@ const address = 'Jalan Ulun Danu Songan A Kintamani Bangli Bali 80652 Indonesia'
 </script>
 
 <template>
+    <!-- Secondary Layout for detail pages -->
+    <SecondaryLayout v-if="isSecondaryLayout" :title="props.title">
+        <slot />
+    </SecondaryLayout>
+
+    <!-- Primary Layout for main pages -->
     <PrimaryLayout 
+        v-else
         :title="props.title" 
         :nav-items="navItems" 
         :whatsapp="whatsapp"

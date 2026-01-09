@@ -25,7 +25,7 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
 
 <template>
     <!-- Desktop: show content directly -->
-    <footer v-if="isDesktop" class="md:fixed md:bottom-0 md:left-0 md:right-0">
+    <footer v-if="isDesktop">
         <FooterContent 
             :social-links="props.socialLinks" 
             :address="props.address" 

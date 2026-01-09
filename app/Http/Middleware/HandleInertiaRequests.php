@@ -53,7 +53,38 @@ class HandleInertiaRequests extends Middleware
             // Uses lazy loading via closures - only executed when accessed
             'tenant' => fn() => $this->getTenantData(),
             'sharedResources' => fn() => $this->getSharedResources(),
+
+            // Layout type for tenant pages (primary or secondary)
+            'layoutType' => fn() => $this->getLayoutType($request),
         ];
+    }
+
+    /**
+     * Determine the layout type based on current route
+     * 
+     * Routes that use 'secondary' layout:
+     * - tenant.page.nested (resource detail pages like /cabins/cabin-1)
+     * - Any route containing 'book' (future booking pages)
+     * 
+     * All other routes use 'primary' layout (default)
+     */
+    protected function getLayoutType(Request $request): string
+    {
+        $routeName = $request->route()?->getName() ?? '';
+
+        // Define patterns for secondary layout
+        $secondaryPatterns = [
+            'tenant.page.nested',  // Resource detail pages
+            'tenant.book',         // Future booking pages
+        ];
+
+        foreach ($secondaryPatterns as $pattern) {
+            if (str_contains($routeName, $pattern)) {
+                return 'secondary';
+            }
+        }
+
+        return 'primary';
     }
 
     /**

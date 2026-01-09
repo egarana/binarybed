@@ -3,14 +3,11 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { provide, onMounted, watch } from 'vue';
 import type { PageProps as InertiaPageProps } from '@inertiajs/core';
 import type { Tenant } from '@/types/tenant';
-import type { Component } from 'vue';
 
 // Pinia stores
 import { useTenantStore } from '@/stores/useTenantStore';
 import { useResourceStore } from '@/stores/useResourceStore';
-import PrimaryNavbar from '@/components/tenants/default/PrimaryNavbar.vue';
-import Footer from '@/components/tenants/default/Footer.vue';
-import type { SocialLink } from '@/components/tenants/default/FooterContent.vue';
+import SecondaryNavbar from '@/components/tenants/default/SecondaryNavbar.vue';
 
 interface SharedResources {
     units: Array<{ id: number; name: string; slug: string; created_at: string }>;
@@ -22,21 +19,8 @@ interface PageProps extends InertiaPageProps {
     sharedResources?: SharedResources;
 }
 
-export interface NavItem {
-    href: string;
-    label: string;
-    icon: Component;
-}
-
 interface Props {
     title?: string;
-    navItems: NavItem[];
-    whatsapp: string;
-    logo?: Component;
-    // Footer props
-    socialLinks?: SocialLink[];
-    address?: string;
-    brandName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -89,21 +73,8 @@ provide('tenant', tenant);
         <title>{{ props.title }} - {{ tenant.name }}</title>
     </Head>
 
-    <PrimaryNavbar :nav-items="props.navItems" :whatsapp="props.whatsapp" :logo="props.logo">
-        <template #cta>
-            <slot name="cta" />
-        </template>
-    </PrimaryNavbar>
+    <SecondaryNavbar />
     
     <main>
-        <slot :tenant="tenant" />
-
-        <section class="h-[66px] md:hidden"></section>
     </main>
-
-    <Footer 
-        :social-links="props.socialLinks" 
-        :address="props.address" 
-        :brand-name="props.brandName" 
-    />
 </template>

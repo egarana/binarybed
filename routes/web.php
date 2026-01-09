@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TemporaryUploadController;
@@ -21,6 +22,9 @@ foreach (config('tenancy.central_domains') as $domain) {
                 'canRegister' => Features::enabled(Features::registration()),
             ]);
         })->name('home');
+
+        // Design System (public)
+        Route::get('/design-system', [DesignSystemController::class, 'index'])->name('design-system');
 
         Route::middleware(['auth', 'verified'])->group(function () {
 
