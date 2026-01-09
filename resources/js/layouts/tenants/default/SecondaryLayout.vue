@@ -8,6 +8,7 @@ import type { Tenant } from '@/types/tenant';
 import { useTenantStore } from '@/stores/useTenantStore';
 import { useResourceStore } from '@/stores/useResourceStore';
 import SecondaryNavbar from '@/components/tenants/default/SecondaryNavbar.vue';
+import FooterContent, { type SocialLink } from '@/components/tenants/default/FooterContent.vue';
 
 interface SharedResources {
     units: Array<{ id: number; name: string; slug: string; created_at: string }>;
@@ -21,6 +22,10 @@ interface PageProps extends InertiaPageProps {
 
 interface Props {
     title?: string;
+    // Footer props
+    socialLinks?: SocialLink[];
+    address?: string;
+    brandName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -76,5 +81,15 @@ provide('tenant', tenant);
     <SecondaryNavbar />
     
     <main>
+        <!-- <slot :tenant="tenant" /> -->
     </main>
+
+    <footer class="bg-accent">
+        <FooterContent 
+            :social-links="props.socialLinks" 
+            :address="props.address" 
+            :brand-name="props.brandName"
+            compact
+        />
+    </footer>
 </template>

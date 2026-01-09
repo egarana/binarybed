@@ -13,6 +13,7 @@ interface Props {
     socialLinks?: SocialLink[];
     address?: string;
     brandName?: string;
+    compact?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,8 +39,8 @@ const platformIcons: Record<SocialLink['platform'], Component> = {
 
 <template>
     <div class="px-6 md:px-0">
-        <div class="md:flex md:items-center md:justify-between md:mx-auto md:max-w-screen-xl md:py-4 md:px-6">
-            <ul class="py-6 md:py-0 md:flex md:items-center md:gap-3 md:text-sm">
+        <div class="md:flex md:items-center md:justify-between md:mx-auto md:max-w-screen-xl md:py-6 md:px-6">
+            <ul :class="['py-6 md:py-0 md:flex md:items-center md:gap-3 md:text-sm', { 'text-sm': props.compact }]">
                 <li class="py-2 md:py-0">
                     <Link href="/cancellation-policy" class="whitespace-nowrap">Cancellation Policy</Link>
                 </li>
@@ -64,7 +65,7 @@ const platformIcons: Record<SocialLink['platform'], Component> = {
                     <img src="/visa.svg" alt="Visa" class="block w-auto h-3.5">
                 </li>
                 <li>
-                    <Badge variant="outline" class="rounded-full">
+                    <Badge variant="outline" class="rounded-full bg-background">
                         <ShieldCheck class="text-green-600" />
                         Secure Payment
                     </Badge>

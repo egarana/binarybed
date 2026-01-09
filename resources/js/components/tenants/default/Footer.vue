@@ -25,7 +25,7 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
 
 <template>
     <!-- Desktop: show content directly -->
-    <footer v-if="isDesktop">
+    <footer v-if="isDesktop" class="md:bg-accent">
         <FooterContent 
             :social-links="props.socialLinks" 
             :address="props.address" 
