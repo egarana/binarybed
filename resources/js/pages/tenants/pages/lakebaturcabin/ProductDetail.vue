@@ -48,7 +48,9 @@ import {
     Award,
     Percent,
     ArrowRight,
-    Zap
+    Zap,
+    Minus,
+    Plus
 } from 'lucide-vue-next';
 
 // ============================================
@@ -147,6 +149,23 @@ const rates = [
 const nights = ref(2);
 const checkInDate = ref('Jan 15');
 const checkOutDate = ref('Jan 17');
+
+// Guest selection
+const adults = ref(2);
+const children = ref(0);
+const infants = ref(0);
+const totalGuests = computed(() => adults.value + children.value);
+const isGuestSelectorOpen = ref(false);
+
+function adjustGuests(type: 'adults' | 'children' | 'infants', delta: number) {
+    if (type === 'adults') {
+        adults.value = Math.max(1, Math.min(4, adults.value + delta));
+    } else if (type === 'children') {
+        children.value = Math.max(0, Math.min(4 - adults.value, children.value + delta));
+    } else {
+        infants.value = Math.max(0, Math.min(2, infants.value + delta));
+    }
+}
 
 // Hardcoded location
 const locationInfo = {
@@ -654,30 +673,132 @@ const formatCurrency = (amount: number, currency: string) => {
                                 </p>
                             </div>
 
-                            <!-- Best Price Guaranteed Badge -->
-                            <div class="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
-                                <BadgeCheck class="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <!-- Direct Booking Benefits Badge -->
+                            <div class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg mb-4">
+                                <BadgeCheck class="w-5 h-5 text-emerald-600 flex-shrink-0" />
                                 <div>
-                                    <p class="text-sm font-medium text-green-800">Best Price Guaranteed</p>
-                                    <p class="text-xs text-green-600">Book direct — no OTA fees</p>
+                                    <p class="text-sm font-medium text-emerald-800">Direct Booking Benefits</p>
+                                    <p class="text-xs text-emerald-600">Best rate + no middleman fees</p>
                                 </div>
                             </div>
 
-                            <!-- Date picker placeholder -->
+                            <!-- Date & Guest picker -->
                             <div class="border border-stone-300 rounded-xl overflow-hidden mb-4">
                                 <div class="grid grid-cols-2 divide-x divide-stone-300">
                                     <div class="p-3 cursor-pointer hover:bg-stone-50">
                                         <p class="text-xs font-medium uppercase text-stone-700">Check-in</p>
-                                        <p class="text-sm text-stone-500">Add date</p>
+                                        <p class="text-sm font-medium">{{ checkInDate }}</p>
                                     </div>
                                     <div class="p-3 cursor-pointer hover:bg-stone-50">
                                         <p class="text-xs font-medium uppercase text-stone-700">Checkout</p>
-                                        <p class="text-sm text-stone-500">Add date</p>
+                                        <p class="text-sm font-medium">{{ checkOutDate }}</p>
                                     </div>
                                 </div>
-                                <div class="border-t border-stone-300 p-3 cursor-pointer hover:bg-stone-50">
-                                    <p class="text-xs font-medium uppercase text-stone-700">Guests</p>
-                                    <p class="text-sm text-stone-500">1 guest</p>
+                                <div class="border-t border-stone-300 relative">
+                                    <button 
+                                        @click="isGuestSelectorOpen = !isGuestSelectorOpen"
+                                        class="w-full p-3 text-left hover:bg-stone-50 flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <p class="text-xs font-medium uppercase text-stone-700">Guests</p>
+                                            <p class="text-sm font-medium">
+                                                {{ totalGuests }} guest{{ totalGuests > 1 ? 's' : '' }}
+                                                <span v-if="infants > 0" class="text-stone-500">, {{ infants }} infant{{ infants > 1 ? 's' : '' }}</span>
+                                            </p>
+                                        </div>
+                                        <ChevronDown class="w-4 h-4 text-stone-400 transition-transform" :class="{ 'rotate-180': isGuestSelectorOpen }" />
+                                    </button>
+                                    
+                                    <!-- Guest selector dropdown -->
+                                    <div 
+                                        v-if="isGuestSelectorOpen"
+                                        class="absolute left-0 right-0 top-full z-20 bg-white border border-stone-200 rounded-xl shadow-lg p-4 mt-2"
+                                    >
+                                        <!-- Adults -->
+                                        <div class="flex items-center justify-between py-3 border-b border-stone-100">
+                                            <div>
+                                                <p class="font-medium text-stone-900">Adults</p>
+                                                <p class="text-xs text-stone-500">Age 13+</p>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <button 
+                                                    @click="adjustGuests('adults', -1)"
+                                                    :disabled="adults <= 1"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Minus class="w-3 h-3" />
+                                                </button>
+                                                <span class="w-6 text-center font-semibold">{{ adults }}</span>
+                                                <button 
+                                                    @click="adjustGuests('adults', 1)"
+                                                    :disabled="adults >= 4"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus class="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Children -->
+                                        <div class="flex items-center justify-between py-3 border-b border-stone-100">
+                                            <div>
+                                                <p class="font-medium text-stone-900">Children</p>
+                                                <p class="text-xs text-stone-500">Age 2-12</p>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <button 
+                                                    @click="adjustGuests('children', -1)"
+                                                    :disabled="children <= 0"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Minus class="w-3 h-3" />
+                                                </button>
+                                                <span class="w-6 text-center font-semibold">{{ children }}</span>
+                                                <button 
+                                                    @click="adjustGuests('children', 1)"
+                                                    :disabled="totalGuests >= 4"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus class="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Infants -->
+                                        <div class="flex items-center justify-between py-3">
+                                            <div>
+                                                <p class="font-medium text-stone-900">Infants</p>
+                                                <p class="text-xs text-stone-500">Under 2</p>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <button 
+                                                    @click="adjustGuests('infants', -1)"
+                                                    :disabled="infants <= 0"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Minus class="w-3 h-3" />
+                                                </button>
+                                                <span class="w-6 text-center font-semibold">{{ infants }}</span>
+                                                <button 
+                                                    @click="adjustGuests('infants', 1)"
+                                                    :disabled="infants >= 2"
+                                                    class="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus class="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-xs text-stone-500 mt-3">This cabin allows up to 4 guests, plus 2 infants.</p>
+                                        
+                                        <Button 
+                                            @click="isGuestSelectorOpen = false"
+                                            size="sm"
+                                            class="w-full mt-3 bg-stone-900 hover:bg-stone-800"
+                                        >
+                                            Done
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -731,10 +852,10 @@ const formatCurrency = (amount: number, currency: string) => {
 
         <!-- Mobile: Fixed bottom pricing bar -->
         <div class="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-            <!-- Best Price Banner -->
-            <div class="bg-green-600 text-white text-center py-1.5 text-xs font-medium">
+            <!-- Direct Booking Banner -->
+            <div class="bg-emerald-600 text-white text-center py-1.5 text-xs font-medium">
                 <BadgeCheck class="w-3.5 h-3.5 inline mr-1" />
-                Best Price Guaranteed — All-in, No Hidden Fees
+                Direct Booking Benefits — Best Rate, No Hidden Fees
             </div>
             
             <!-- Pricing Bar -->
@@ -800,24 +921,102 @@ const formatCurrency = (amount: number, currency: string) => {
                                 </div>
                             </div>
 
-                            <!-- Date & Guests (placeholder) -->
+                            <!-- Date & Guests -->
                             <div class="space-y-3">
                                 <p class="font-medium text-stone-900">Stay details</p>
                                 <div class="border border-stone-200 rounded-xl overflow-hidden">
                                     <div class="grid grid-cols-2 divide-x divide-stone-200">
                                         <div class="p-4">
                                             <p class="text-xs font-medium uppercase text-stone-500">Check-in</p>
-                                            <p class="font-medium">Add date</p>
+                                            <p class="font-medium">{{ checkInDate }}</p>
                                         </div>
                                         <div class="p-4">
                                             <p class="text-xs font-medium uppercase text-stone-500">Checkout</p>
-                                            <p class="font-medium">Add date</p>
+                                            <p class="font-medium">{{ checkOutDate }}</p>
                                         </div>
                                     </div>
-                                    <div class="border-t border-stone-200 p-4">
-                                        <p class="text-xs font-medium uppercase text-stone-500">Guests</p>
-                                        <p class="font-medium">1 guest</p>
+                                </div>
+                                
+                                <!-- Guest selector inline -->
+                                <div class="border border-stone-200 rounded-xl p-4 space-y-4">
+                                    <p class="font-medium text-stone-900">Guests</p>
+                                    
+                                    <!-- Adults -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-stone-900">Adults</p>
+                                            <p class="text-xs text-stone-500">Age 13+</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <button 
+                                                @click="adjustGuests('adults', -1)"
+                                                :disabled="adults <= 1"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Minus class="w-4 h-4" />
+                                            </button>
+                                            <span class="w-6 text-center font-semibold">{{ adults }}</span>
+                                            <button 
+                                                @click="adjustGuests('adults', 1)"
+                                                :disabled="adults >= 4"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Plus class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
+                                    
+                                    <!-- Children -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-stone-900">Children</p>
+                                            <p class="text-xs text-stone-500">Age 2-12</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <button 
+                                                @click="adjustGuests('children', -1)"
+                                                :disabled="children <= 0"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Minus class="w-4 h-4" />
+                                            </button>
+                                            <span class="w-6 text-center font-semibold">{{ children }}</span>
+                                            <button 
+                                                @click="adjustGuests('children', 1)"
+                                                :disabled="totalGuests >= 4"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Plus class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Infants -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-stone-900">Infants</p>
+                                            <p class="text-xs text-stone-500">Under 2</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <button 
+                                                @click="adjustGuests('infants', -1)"
+                                                :disabled="infants <= 0"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Minus class="w-4 h-4" />
+                                            </button>
+                                            <span class="w-6 text-center font-semibold">{{ infants }}</span>
+                                            <button 
+                                                @click="adjustGuests('infants', 1)"
+                                                :disabled="infants >= 2"
+                                                class="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center hover:border-stone-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Plus class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-xs text-stone-500">Max 4 guests, plus 2 infants.</p>
                                 </div>
                             </div>
                         </div>

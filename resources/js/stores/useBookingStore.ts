@@ -17,24 +17,37 @@ export interface BookingItem {
     resourceType: 'units' | 'activities';
     resourceName: string;
     resourceSlug: string;
+    resourceImage?: string;
+    resourceLocation?: string;
+    resourceRating?: number;
+    resourceReviews?: number;
     rateId: number;
     rateName: string;
     ratePrice: number;
+    originalPrice?: number;
     currency: string;
     priceType: 'night' | 'person' | 'hourly' | 'flat';
-    quantity: number;
+    // Guest counts
+    adults: number;
+    children: number;
+    infants: number;
+    // Dates
     startDate: string | null;
     endDate: string | null;
+    // Fees
+    cleaningFee?: number;
+    serviceFee?: number;
 }
 
 export interface GuestInfo {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: {
         countryCode: string;
         number: string;
     };
-    notes?: string;
+    specialRequests?: string;
 }
 
 const STORAGE_KEY = 'binarybed_booking';
@@ -48,9 +61,9 @@ export const useBookingStore = defineStore('booking', () => {
     // Getters
     const hasItem = computed(() => item.value !== null);
 
-    const subtotal = computed(() => {
+    const totalGuests = computed(() => {
         if (!item.value) return 0;
-        return item.value.ratePrice * item.value.quantity;
+        return item.value.adults + item.value.children;
     });
 
     const nights = computed(() => {
@@ -61,19 +74,24 @@ export const useBookingStore = defineStore('booking', () => {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     });
 
-    const total = computed(() => {
+    const subtotal = computed(() => {
         if (!item.value) return 0;
-
-        // Calculate based on price type
+        // For units: price per night * nights
+        // For activities: price per person * guests
         switch (item.value.priceType) {
             case 'night':
-                return item.value.ratePrice * (nights.value || 1) * item.value.quantity;
+                return item.value.ratePrice * (nights.value || 1);
             case 'person':
-            case 'hourly':
-            case 'flat':
+                return item.value.ratePrice * totalGuests.value;
             default:
-                return item.value.ratePrice * item.value.quantity;
+                return item.value.ratePrice;
         }
+    });
+
+    const total = computed(() => {
+        if (!item.value) return 0;
+        const fees = (item.value.cleaningFee || 0) + (item.value.serviceFee || 0);
+        return subtotal.value + fees;
     });
 
     // Actions
@@ -95,9 +113,11 @@ export const useBookingStore = defineStore('booking', () => {
         }
     }
 
-    function setQuantity(quantity: number) {
-        if (item.value && quantity > 0) {
-            item.value.quantity = quantity;
+    function setGuests(adults: number, children: number, infants: number) {
+        if (item.value) {
+            item.value.adults = Math.max(1, adults);
+            item.value.children = Math.max(0, children);
+            item.value.infants = Math.max(0, infants);
             persistToStorage();
         }
     }
@@ -154,6 +174,7 @@ export const useBookingStore = defineStore('booking', () => {
         isHydrated,
         // Getters
         hasItem,
+        totalGuests,
         subtotal,
         nights,
         total,
@@ -161,7 +182,7 @@ export const useBookingStore = defineStore('booking', () => {
         setBookingItem,
         setGuestInfo,
         setDates,
-        setQuantity,
+        setGuests,
         clear,
         hydrateFromStorage,
     };

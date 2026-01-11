@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, type Component } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -10,6 +11,21 @@ import {
 import { router } from '@inertiajs/vue3';
 import { ArrowLeft, Share, Copy, Check, Mail } from 'lucide-vue-next';
 import { useMediaQuery, useClipboard } from '@vueuse/core';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+
+// Props for logo customization
+interface Props {
+    logo?: Component;
+}
+
+const props = defineProps<Props>();
+
+// Route detection using Inertia's usePage (most robust method)
+const page = usePage();
+const isBookRoute = computed(() => {
+    // Check if current URL starts with /book
+    return page.url.startsWith('/book');
+});
 
 const isDesktop = useMediaQuery('(min-width: 768px)');
 const buttonSize = computed(() => isDesktop.value ? 'lg' : 'icon');
@@ -75,7 +91,13 @@ const shareOnTwitter = () => {
                 </Button>
             </div>
             <div class="pe-6 md:pe-0">
-                <nav>
+                <!-- On /book route: show logo -->
+                <Link v-if="isBookRoute" href="/">
+                    <component :is="props.logo || AppLogoIcon" class="h-8 w-auto lg:h-9" />
+                </Link>
+                
+                <!-- On other routes: show share buttons -->
+                <nav v-else>
                     <ul class="flex items-center gap-2 md:gap-4">
                         <li>
                             <Button @click="copyLink" variant="outline" :size="isCopied ? (isDesktop ? 'lg' : 'default') : buttonSize" aria-label="Copy Link" class="gap-2 hover:cursor-pointer">

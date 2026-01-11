@@ -62,20 +62,27 @@ class HandleInertiaRequests extends Middleware
     /**
      * Determine the layout type based on current route
      * 
+     * Routes that use 'booking' layout:
+     * - Routes starting with /book (booking flow pages)
+     * 
      * Routes that use 'secondary' layout:
      * - tenant.page.nested (resource detail pages like /cabins/cabin-1)
-     * - Any route containing 'book' (future booking pages)
      * 
      * All other routes use 'primary' layout (default)
      */
     protected function getLayoutType(Request $request): string
     {
         $routeName = $request->route()?->getName() ?? '';
+        $path = $request->path();
+
+        // Check for booking layout first (highest priority)
+        if (str_starts_with($path, 'book') || str_contains($routeName, 'book')) {
+            return 'booking';
+        }
 
         // Define patterns for secondary layout
         $secondaryPatterns = [
             'tenant.page.nested',  // Resource detail pages
-            'tenant.book',         // Future booking pages
         ];
 
         foreach ($secondaryPatterns as $pattern) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PrimaryLayout from '@/layouts/tenants/default/PrimaryLayout.vue';
 import SecondaryLayout from '@/layouts/tenants/default/SecondaryLayout.vue';
+import BookingLayout from '@/layouts/tenants/default/BookingLayout.vue';
 import { KeyRound, Footprints } from 'lucide-vue-next';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Get layoutType from Inertia page props (passed from backend)
 const page = usePage();
-const isSecondaryLayout = computed(() => (page.props as any).layoutType === 'secondary');
+const layoutType = computed(() => (page.props as any).layoutType ?? 'primary');
 
 // Tenant-specific navigation items (Home is always included by default)
 const navItems: { href: string; label: string; icon: Component }[] = [
@@ -40,12 +41,17 @@ const address = 'Jalan Ulun Danu Songan A Kintamani Bangli Bali 80652 Indonesia'
 </script>
 
 <template>
+    <!-- Booking Layout for booking flow pages -->
+    <BookingLayout v-if="layoutType === 'booking'" :title="props.title">
+        <slot />
+    </BookingLayout>
+
     <!-- Secondary Layout for detail pages -->
-    <SecondaryLayout v-if="isSecondaryLayout" :title="props.title">
+    <SecondaryLayout v-else-if="layoutType === 'secondary'" :title="props.title">
         <slot />
     </SecondaryLayout>
 
-    <!-- Primary Layout for main pages -->
+    <!-- Primary Layout for main pages (default) -->
     <PrimaryLayout 
         v-else
         :title="props.title" 
