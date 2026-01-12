@@ -85,8 +85,8 @@ const shouldShowNavActive = (href: string) => {
 </script>
 
 <template>
-    <header class="bg-background sticky top-0 z-50 w-full md:py-5 lg:py-7 md:backdrop-blur md:bg-card/75">
-        <div class="mx-auto max-w-screen-xl flex items-center justify-between py-3 border-b md:px-6 md:py-0 md:justify-end md:border-b-0 md:gap-4">
+    <header class="bg-background border-b sticky top-0 z-50 w-full md:py-5 lg:py-7 md:backdrop-blur md:bg-card/75 md:border-b-0">
+        <div class="mx-auto max-w-screen-xl flex items-center justify-between py-3 md:px-6 md:py-0 md:justify-end md:gap-4">
             <div class="ps-6 md:ps-0 md:me-auto">
                 <Link href="/">
                     <component :is="props.logo || AppLogoIcon" class="h-8 w-auto lg:h-9" />

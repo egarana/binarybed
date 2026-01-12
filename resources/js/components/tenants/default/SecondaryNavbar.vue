@@ -83,8 +83,8 @@ const shareOnTwitter = () => {
 </script>
 
 <template>
-    <header class="bg-background w-full py-0.5 md:py-5 lg:py-7">
-        <div class="mx-auto max-w-screen-xl flex items-center justify-between py-3 border-b md:px-6 md:py-0 md:border-b-0 md:gap-4">
+    <header class="bg-background border-b w-full py-0.5 md:py-5 md:border-b-0 lg:py-7">
+        <div class="mx-auto max-w-screen-xl flex items-center justify-between py-3 md:px-6 md:py-0 md:gap-4">
             <div class="ps-3.5 md:ps-0 md:me-auto">
                 <Button @click="goBack" variant="ghost" :size="buttonSize" aria-label="Go back" class="hover:cursor-pointer md:max-w-10">
                     <ArrowLeft class="stroke-[1.5px]" />
