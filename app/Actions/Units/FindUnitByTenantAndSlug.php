@@ -28,7 +28,13 @@ class FindUnitByTenantAndSlug
                 'tenant_name' => $tenant->name,
                 'name' => $unit->name,
                 'slug' => $unit->slug,
+                'subtitle' => $unit->subtitle,
                 'description' => $unit->description,
+                // Capacity & View
+                'max_guests' => $unit->max_guests,
+                'bedroom_count' => $unit->bedroom_count,
+                'bathroom_count' => $unit->bathroom_count,
+                'view' => $unit->view,
                 'commission_config' => $unit->commissionConfig ? [
                     'commission_type' => $unit->commissionConfig->commission_type,
                     'commission_percentage' => $unit->commissionConfig->commission_percentage,

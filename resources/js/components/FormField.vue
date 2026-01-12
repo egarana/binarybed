@@ -13,6 +13,7 @@ interface Props {
     modelValue: string | number;
     error?: string;
     helpText?: string;
+    optional?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -26,7 +27,11 @@ const emit = defineEmits<{
 
 <template>
     <div class="grid gap-2">
-        <Label :for="id">{{ label }}</Label>
+        <Label :for="id" class="flex items-center gap-1">
+            {{ label }}
+            <span v-if="optional" class="text-muted-foreground">(Optional)</span>
+        </Label>
+        
         <Input
             :id="id"
             :name="id"
@@ -37,6 +42,7 @@ const emit = defineEmits<{
             :model-value="modelValue"
             @update:model-value="emit('update:modelValue', $event)"
         />
+        
         <InputError :message="error" />
         <p v-if="helpText" class="text-xs text-muted-foreground">
             {{ helpText }}

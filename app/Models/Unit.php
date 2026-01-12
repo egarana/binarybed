@@ -19,7 +19,12 @@ class Unit extends Model implements HasMedia
     protected $fillable = [
         'name',
         'slug',
+        'subtitle',
         'description',
+        'max_guests',
+        'bedroom_count',
+        'bathroom_count',
+        'view',
     ];
 
     /**
@@ -39,7 +44,9 @@ class Unit extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            //
+            'max_guests' => 'integer',
+            'bedroom_count' => 'integer',
+            'bathroom_count' => 'integer',
         ];
     }
 

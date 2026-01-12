@@ -52,6 +52,13 @@ export interface ResourceBase {
  */
 export interface Resource extends ResourceBase {
     updated_at?: string;
+    // Unit specific fields (optional as they might not exist on Activities)
+    subtitle?: string;
+    max_guests?: number;
+    bedroom_count?: number;
+    bathroom_count?: number;
+    view?: string;
+
     features?: Feature[];
     media?: MediaItem[];
 }

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import Layout from './Layout.vue';
 import { useResourceStore, type Resource, type Feature, type MediaItem } from '@/stores/useResourceStore';
 import { formatCurrency } from '@/helpers/currency';
 import ProductGallery from '@/components/tenants/default/ProductGallery.vue';
+import ProductHeader from '@/components/tenants/default/ProductHeader.vue';
+import { type TenantData } from '@/stores/useTenantStore';
 
 // ============================================
 // TYPES - Same pattern as Cabins.vue/Activities.vue
@@ -39,6 +42,8 @@ interface Props {
 
 const props = defineProps<Props>();
 const resourceStore = useResourceStore();
+const page = usePage();
+const tenant = computed(() => (page.props.tenant as TenantData | undefined));
 
 // ============================================
 // COMPUTED HELPERS - Consistent with Cabins.vue/Activities.vue
@@ -96,9 +101,11 @@ const formatPriceType = (type: string | null): string => {
                 <div class="lg:col-span-3">
                     <ProductGallery :images="images" />
 
-                    <div>
-                        
-                    </div>
+                    <ProductHeader 
+                        :resource="resource" 
+                        :resource-type="resourceType" 
+                        :tenant-name="tenant?.name"
+                    />
                 </div>
                 <!-- Right Column -->
                 <div class="lg:col-span-2 lg:ps-16"></div>

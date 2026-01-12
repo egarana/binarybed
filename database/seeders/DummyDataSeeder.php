@@ -176,6 +176,11 @@ class DummyDataSeeder extends Seeder
                 'commission_fixed' => null,
                 'currency' => 'IDR',
                 'fixed_unit' => null,
+                'subtitle' => 'Entire cabin',
+                'max_guests' => 4,
+                'bedroom_count' => 2,
+                'bathroom_count' => 1,
+                'view' => 'Mountain View',
             ],
             [
                 'name' => 'Rahayu Cabin',
@@ -188,6 +193,11 @@ class DummyDataSeeder extends Seeder
                 'commission_fixed' => null,
                 'currency' => 'IDR',
                 'fixed_unit' => null,
+                'subtitle' => 'Entire cabin',
+                'max_guests' => 4,
+                'bedroom_count' => 2,
+                'bathroom_count' => 1,
+                'view' => 'Lake View',
             ],
         ];
 
@@ -203,6 +213,11 @@ class DummyDataSeeder extends Seeder
             $unit = Unit::create([
                 'name' => $unitData['name'],
                 'slug' => $unitData['slug'],
+                'subtitle' => $unitData['subtitle'],
+                'max_guests' => $unitData['max_guests'],
+                'bedroom_count' => $unitData['bedroom_count'],
+                'bathroom_count' => $unitData['bathroom_count'],
+                'view' => $unitData['view'],
             ]);
 
             // Create rate

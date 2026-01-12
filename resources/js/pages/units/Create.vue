@@ -42,10 +42,18 @@ const { slug } = useAutoSlug(name, {
 const uploadedMediaIds = ref<number[]>([]);
 
 // Standard Rate fields
+// Standard Rate fields
 const standardRatePrice = ref(0);
 const standardRateCurrency = ref('IDR');
 const standardRatePriceType = ref('flat');
 const description = ref('');
+
+// Unit Capacity & Details
+const subtitle = ref('');
+const maxGuests = ref(2);
+const bedroomCount = ref(1);
+const bathroomCount = ref(1);
+const view = ref('');
 
 </script>
 
@@ -59,7 +67,13 @@ const description = ref('');
         :onError="onError"
         :transform="(data) => ({ 
             ...data, 
-            uploaded_media_ids: uploadedMediaIds
+            uploaded_media_ids: uploadedMediaIds,
+            // Include new fields in payload
+            subtitle: subtitle,
+            max_guests: maxGuests,
+            bedroom_count: bedroomCount,
+            bathroom_count: bathroomCount,
+            view: view
         })"
     >
         <template #default="{ errors, processing }">
@@ -103,6 +117,18 @@ const description = ref('');
                 :error="errors.slug"
             />
 
+            <FormField
+                id="subtitle"
+                label="Subtitle"
+                type="text"
+                :tabindex="4"
+                autocomplete="off"
+                placeholder="e.g. Entire cabin"
+                v-model="subtitle"
+                :error="errors.subtitle"
+                :optional="true"
+            />
+
             <div class="grid gap-2">
                 <Label for="description" class="flex items-center gap-1">
                     Description
@@ -111,13 +137,60 @@ const description = ref('');
                 <Textarea
                     id="description"
                     name="description"
-                    :tabindex="4"
+                    :tabindex="5"
                     placeholder="Describe this unit..."
                     v-model="description"
                     rows="12"
                 />
                 <InputError :message="errors.description" />
             </div>
+
+            <div class="grid grid-cols-3 gap-x-4 gap-y-2">
+                <NumberFormField
+                    id="max_guests"
+                    label="Max Guests"
+                    :tabindex="6"
+                    v-model="maxGuests"
+                    :min="1"
+                    :max="50"
+                    :required="true"
+                />
+
+                <NumberFormField
+                    id="bedroom_count"
+                    label="Total Bedrooms"
+                    :tabindex="7"
+                    v-model="bedroomCount"
+                    :min="0"
+                    :max="20"
+                    :required="true"
+                />
+
+                <NumberFormField
+                    id="bathroom_count"
+                    label="Total Bathrooms"
+                    :tabindex="8"
+                    v-model="bathroomCount"
+                    :min="0"
+                    :max="20"
+                    :required="true"
+                />
+
+            <div class="col-span-3" v-if="errors.capacity">
+                <InputError :message="errors.capacity" />
+            </div>
+            </div>
+
+            <FormField
+                id="view"
+                label="View"
+                type="text"
+                :tabindex="9"
+                placeholder="e.g. Lake View"
+                v-model="view"
+                :error="errors.view"
+                :required="true"
+            />
 
             <!-- Standard Rate -->
             <div class="grid gap-4">
@@ -131,7 +204,7 @@ const description = ref('');
                 <NumberFormField
                     id="standard_rate_price"
                     label="Price"
-                    :tabindex="5"
+                    :tabindex="10"
                     placeholder="0"
                     v-model="standardRatePrice"
                     :min="0"
@@ -141,7 +214,7 @@ const description = ref('');
                 <CurrencySelect
                     id="standard_rate_currency"
                     label="Currency"
-                    :tabindex="6"
+                    :tabindex="11"
                     v-model="standardRateCurrency"
                     :error="errors.standard_rate_currency"
                 />
@@ -150,7 +223,7 @@ const description = ref('');
                     id="standard_rate_price_type"
                     label="Price Type"
                     type="text"
-                    :tabindex="7"
+                    :tabindex="12"
                     autocomplete="off"
                     placeholder="e.g. nightly, person, hourly"
                     v-model="standardRatePriceType"
@@ -165,14 +238,14 @@ const description = ref('');
                 :multiple="true"
                 :max-files="25"
                 :error="errors.images || errors.uploaded_media_ids"
-                :tabindex="8"
+                :tabindex="13"
                 :disabled="processing"
                 @update:uploaded-media-ids="uploadedMediaIds = $event"
             />
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="9"
+                :tabindex="14"
                 test-id="create-unit-button"
                 label="Create"
             />

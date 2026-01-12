@@ -16,14 +16,13 @@ class DatabaseSeeder extends Seeder
             FeatureSeeder::class,
         ]);
 
-        $user = User::factory()
-            ->withoutTwoFactor()
-            ->create([
-                'global_id' => Str::uuid(),
-                'name' => 'Bali Simfoni Eksplorasi',
-                'email' => 'bimansaegarana@gmail.com',
-                'password' => Hash::make('Letdareca1#8'),
-            ]);
+        $user = User::firstOrCreate([
+            'email' => 'bimansaegarana@gmail.com',
+        ], [
+            'global_id' => Str::uuid(),
+            'name' => 'Bali Simfoni Eksplorasi',
+            'password' => Hash::make('Letdareca1#8'),
+        ]);
 
         $user->assignRole('super-admin');
 

@@ -73,11 +73,7 @@ class CleanupTenantDatabases extends Command
                 $this->line("   • {$database}");
             }
             $this->newLine();
-
-            if (!$this->confirm('Do you want to continue?', false)) {
-                $this->info('❌ Operation cancelled.');
-                return self::SUCCESS;
-            }
+            // Auto-proceed as per user request (removed confirmation)
         }
 
         // Delete databases

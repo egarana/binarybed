@@ -355,17 +355,29 @@ const formatCurrency = (amount: number, currency: string) => {
                         <!-- Header -->
                         <header class="border-b border-stone-200 pb-8">
                             <p class="text-sm uppercase tracking-wider text-stone-500 mb-2">
-                                {{ property.type }}
+                                Entire cabin
                             </p>
                             <h1 class="text-3xl md:text-4xl font-light text-stone-900 mb-4">
-                                {{ property.name }}
+                                Lakefront Cabin with Volcano View
                             </h1>
                             
                             <!-- Highlights -->
                             <div class="flex flex-wrap gap-4 text-stone-600">
-                                <div v-for="highlight in highlights" :key="highlight.label" class="flex items-center gap-2">
-                                    <component :is="highlight.icon" class="w-5 h-5" />
-                                    <span>{{ highlight.label }}</span>
+                                <div class="flex items-center gap-2">
+                                    <Bed class="w-5 h-5" />
+                                    <span>2 Bedrooms</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-5 h-5" />
+                                    <span>4 Guests</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Bath class="w-5 h-5" />
+                                    <span>1 Bathroom</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Mountain class="w-5 h-5" />
+                                    <span>Lake View</span>
                                 </div>
                             </div>
                         </header>

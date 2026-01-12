@@ -16,29 +16,7 @@ class UpdateUnitRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        // If _features_cleared flag is set, explicitly set features to empty array
-        if ($this->has('_features_cleared') && $this->input('_features_cleared') === '1') {
-            $this->merge(['features' => []]);
-            return;
-        }
 
-        // Filter out empty values from features array
-        if ($this->has('features')) {
-            $features = $this->input('features');
-            if (is_array($features)) {
-                // Filter out empty strings and null values
-                $features = array_values(array_filter($features, function ($value) {
-                    return $value !== '' && $value !== null;
-                }));
-            }
-            $this->merge(['features' => $features]);
-        }
-    }
 
     public function rules(): array
     {
@@ -53,8 +31,13 @@ class UpdateUnitRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'description' => ['nullable', 'string', 'max:65535'],
-            'features'   => ['nullable', 'array'],
-            'features.*' => ['nullable', 'integer', 'exists:features,id'],
+            'subtitle'    => ['nullable', 'string', 'max:255'],
+            'max_guests'     => ['required', 'integer', 'min:1', 'max:50'],
+            'bedroom_count'  => ['required', 'integer', 'min:0', 'max:20'],
+            'bathroom_count' => ['required', 'integer', 'min:0', 'max:20'],
+            'view'           => ['required', 'string', 'max:255'],
+
+
             'existing_images'   => ['nullable', 'array'],
             'existing_images.*' => ['integer'],
             // Support for immediate upload (new way)
@@ -84,6 +67,53 @@ class UpdateUnitRequest extends FormRequest
                 );
             }
         });
+
+        $validator->after(function (Validator $validator) {
+            $errors = $validator->errors();
+            $missing = [];
+
+            if ($errors->has('max_guests')) {
+                $missing['max_guests'] = true;
+            }
+            if ($errors->has('bedroom_count')) {
+                $missing['bedroom_count'] = true;
+            }
+            if ($errors->has('bathroom_count')) {
+                $missing['bathroom_count'] = true;
+            }
+
+            if (empty($missing)) {
+                return;
+            }
+
+            $message = '';
+            $hasGuest = isset($missing['max_guests']);
+            $hasBedroom = isset($missing['bedroom_count']);
+            $hasBathroom = isset($missing['bathroom_count']);
+
+            if ($hasGuest && $hasBedroom && $hasBathroom) {
+                $message = 'Please specify the max guests, total bedrooms, and total bathrooms to continue.';
+            } elseif ($hasGuest && $hasBedroom) {
+                $message = 'Please specify the max guests and total bedrooms to continue.';
+            } elseif ($hasGuest && $hasBathroom) {
+                $message = 'Please specify the max guests and total bathrooms to continue.';
+            } elseif ($hasBedroom && $hasBathroom) {
+                $message = 'Please specify the total number of bedrooms and bathrooms to continue.';
+            } elseif ($hasGuest) {
+                $message = 'Please specify the maximum number of guests to continue.';
+            } elseif ($hasBedroom) {
+                $message = 'Please specify the total number of bedrooms to continue.';
+            } elseif ($hasBathroom) {
+                $message = 'Please specify the total number of bathrooms to continue.';
+            }
+
+            if ($message) {
+                $errors->add('capacity', $message);
+                $errors->forget('max_guests');
+                $errors->forget('bedroom_count');
+                $errors->forget('bathroom_count');
+            }
+        });
     }
 
     public function messages(): array
@@ -98,7 +128,12 @@ class UpdateUnitRequest extends FormRequest
             'slug.string'   => 'The slug must be valid text',
             'slug.min'      => 'The slug must be at least 3 characters',
             'slug.max'      => 'The slug cannot be longer than 255 characters',
-            'slug.regex'    => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., unit-name)',
+            'slug.regex'         => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., unit-name)',
+
+            'subtitle.string'   => 'The unit subtitle must be valid text',
+
+            'view.required' => 'Please specify the unit view',
+            'view.string' => 'The view must be valid text',
         ];
     }
 }

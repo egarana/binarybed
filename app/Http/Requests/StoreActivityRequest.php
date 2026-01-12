@@ -29,8 +29,7 @@ class StoreActivityRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
             'description' => ['nullable', 'string', 'max:65535'],
-            'features'   => ['nullable', 'array'],
-            'features.*' => ['nullable', 'integer', 'exists:features,id'],
+
             // Support for immediate upload (new way)
             'uploaded_media_ids'   => ['nullable', 'array', 'max:25'],
             'uploaded_media_ids.*' => ['required', 'integer', 'exists:temporary_uploads,id'],

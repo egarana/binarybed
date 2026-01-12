@@ -28,9 +28,16 @@ class StoreUnitRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'subtitle'    => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:65535'],
-            'features'   => ['nullable', 'array'],
-            'features.*' => ['nullable', 'integer', 'exists:features,id'],
+
+            // Unit Capacity
+            'max_guests'     => ['required', 'integer', 'min:1', 'max:50'],
+            'bedroom_count'  => ['required', 'integer', 'min:0', 'max:20'],
+            'bathroom_count' => ['required', 'integer', 'min:0', 'max:20'],
+            'view'           => ['required', 'string', 'max:255'],
+
+
             // Support for immediate upload (new way)
             'uploaded_media_ids'   => ['nullable', 'array', 'max:25'],
             'uploaded_media_ids.*' => ['required', 'integer', 'exists:temporary_uploads,id'],
@@ -60,6 +67,53 @@ class StoreUnitRequest extends FormRequest
                 );
             }
         });
+
+        $validator->after(function (Validator $validator) {
+            $errors = $validator->errors();
+            $missing = [];
+
+            if ($errors->has('max_guests')) {
+                $missing['max_guests'] = true;
+            }
+            if ($errors->has('bedroom_count')) {
+                $missing['bedroom_count'] = true;
+            }
+            if ($errors->has('bathroom_count')) {
+                $missing['bathroom_count'] = true;
+            }
+
+            if (empty($missing)) {
+                return;
+            }
+
+            $message = '';
+            $hasGuest = isset($missing['max_guests']);
+            $hasBedroom = isset($missing['bedroom_count']);
+            $hasBathroom = isset($missing['bathroom_count']);
+
+            if ($hasGuest && $hasBedroom && $hasBathroom) {
+                $message = 'Please specify the max guests, total bedrooms, and total bathrooms to continue.';
+            } elseif ($hasGuest && $hasBedroom) {
+                $message = 'Please specify the max guests and total bedrooms to continue.';
+            } elseif ($hasGuest && $hasBathroom) {
+                $message = 'Please specify the max guests and total bathrooms to continue.';
+            } elseif ($hasBedroom && $hasBathroom) {
+                $message = 'Please specify the total number of bedrooms and bathrooms to continue.';
+            } elseif ($hasGuest) {
+                $message = 'Please specify the maximum number of guests to continue.';
+            } elseif ($hasBedroom) {
+                $message = 'Please specify the total number of bedrooms to continue.';
+            } elseif ($hasBathroom) {
+                $message = 'Please specify the total number of bathrooms to continue.';
+            }
+
+            if ($message) {
+                $errors->add('capacity', $message);
+                $errors->forget('max_guests');
+                $errors->forget('bedroom_count');
+                $errors->forget('bathroom_count');
+            }
+        });
     }
 
     public function messages(): array
@@ -79,6 +133,11 @@ class StoreUnitRequest extends FormRequest
             'slug.min'           => 'The slug must be at least 3 characters',
             'slug.max'           => 'The slug cannot be longer than 255 characters',
             'slug.regex'         => 'The slug must only contain lowercase letters, numbers, and hyphens (e.g., unit-name)',
+
+            'subtitle.string'   => 'The unit subtitle must be valid text',
+
+            'view.required' => 'Please specify the unit view',
+            'view.string'   => 'The view must be valid text',
         ];
     }
 }

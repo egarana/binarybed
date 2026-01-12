@@ -5,7 +5,7 @@ import { Fancybox } from '@fancyapps/ui/dist/fancybox/fancybox.js';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
 import { Button } from '@/components/ui/button';
 import type { MediaItem } from '@/stores/useResourceStore';
-import { ImageOff } from 'lucide-vue-next';
+import { Images } from 'lucide-vue-next';
 
 interface Props {
     images: MediaItem[];
@@ -111,7 +111,6 @@ const openGallery = () => {
             class="aspect-[16/11] bg-accent flex items-center justify-center md:h-120 md:rounded-md"
         >
             <div class="text-center text-muted-foreground flex items-center gap-2">
-                <ImageOff class="h-5 w-5 stroke-1 md:h-6 md:w-6" />
                 <p>No images available</p>
             </div>
         </div>
