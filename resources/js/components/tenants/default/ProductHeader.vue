@@ -30,17 +30,17 @@ const isActivity = computed(() => props.resourceType === 'activities');
             <ul class="flex flex-wrap text-sm gap-x-2 gap-y-1">
                 <li class="flex items-center gap-2">
                     <Bed class="w-4 h-4 text-muted-foreground" />
-                    <span>{{ resource.bedroom_count || 1 }} Bedrooms</span>
+                    <span>{{ resource.bedroom_count || 1 }} Bedroom{{ (resource.bedroom_count || 1) > 1 ? 's' : '' }}</span>
                 </li>
                 <li>·</li>
                 <li class="flex items-center gap-2">
                     <Users class="w-4 h-4 text-muted-foreground" />
-                    <span>{{ resource.max_guests || 2 }} Guests</span>
+                    <span>{{ resource.max_guests || 2 }} Guest{{ (resource.max_guests || 2) > 1 ? 's' : '' }}</span>
                 </li>
                 <li>·</li>
                 <li class="flex items-center gap-2">
                     <Bath class="w-4 h-4 text-muted-foreground" />
-                    <span>{{ resource.bathroom_count || 1 }} Bathroom</span>
+                    <span>{{ resource.bathroom_count || 1 }} Bathroom{{ (resource.bathroom_count || 1) > 1 ? 's' : '' }}</span>
                 </li>
                 <template v-if="resource.view">
                     <li>·</li>

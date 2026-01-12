@@ -69,6 +69,11 @@ function transformFormData(data: Record<string, any>) {
         ...data,
         existing_images: existingImages.value.map(img => img.id),
         uploaded_media_ids: uploadedMediaIds.value,
+        subtitle: subtitle.value,
+        max_guests: maxGuests.value,
+        bedroom_count: bedroomCount.value,
+        bathroom_count: bathroomCount.value,
+        view: view.value,
     };
 }
 </script>

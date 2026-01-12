@@ -181,6 +181,11 @@ class DummyDataSeeder extends Seeder
                 'bedroom_count' => 2,
                 'bathroom_count' => 1,
                 'view' => 'Mountain View',
+                'description' => "Escape to the serene highlands of Kintamani at Rahajeng Cabin, a sanctuary designed for those seeking tranquility amidst nature. Perched on the edge of the caldera, this cabin offers breathtaking panoramic views of Mount Batur and the shimmering lake below. The architecture blends traditional Balinese elements with modern comfort, featuring natural wood finishes and large glass windows that flood the space with soft, natural light, creating a warm and inviting atmosphere from the moment you step inside.
+
+Inside, the cabin is thoughtfully appointed with cozy furnishings and premium amenities to ensure a restful stay. The spacious living area is perfect for gathering with loved ones, while the bedrooms offer plush bedding and blackout curtains for a deep, restorative sleep. A fully equipped kitchenette allows you to prepare simple meals, which you can enjoy on the private terrace as the cool mountain breeze brushes past. Whether you're sipping your morning coffee or stargazing at night, every moment here feels like a pause in time.
+
+Beyond the cabin, adventure awaits just a stone's throw away. Explore the nearby pine forests, take a dip in the natural hot springs, or embark on a sunrise trek to the summit of Mount Batur. For those who prefer a slower pace, simply relax by the fire pit in the evening, sharing stories under a canopy of stars. Rahajeng Cabin isn't just a place to stay; it's an experience that reconnects you with the beauty of the earth and the peace within yourself.",
             ],
             [
                 'name' => 'Rahayu Cabin',
@@ -198,6 +203,11 @@ class DummyDataSeeder extends Seeder
                 'bedroom_count' => 2,
                 'bathroom_count' => 1,
                 'view' => 'Lake View',
+                'description' => "Rahayu Cabin offers a luxurious retreat in the heart of Kintamani, where elegance meets the raw beauty of the volcanic landscape. Designed for travelers who appreciate the finer things in life, this cabin features a contemporary aesthetic with rustic touches that harmonize perfectly with its surroundings. The expansive deck provides an unrivaled vantage point to witness the majestic sunrise over Mount Abang, painting the sky in hues of orange and purple that reflect beautifully on the calm waters of Lake Batur.
+
+Step inside to discover a haven of comfort and style. The open-plan design creates a seamless flow between the living, dining, and sleeping areas, making it ideal for families or small groups. High ceilings and floor-to-ceiling windows ensure that the stunning views are never out of sight. The bathroom is a sanctuary of its own, featuring a rain shower and organic toiletries that add a touch of spa-like indulgence to your daily routine. Every detail, from the soft lighting to the curated artwork, has been chosen to enhance your sense of well-being.
+
+Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the cultural and natural wonders of Bali's highlands. Visit the ancient Trunyan village across the lake, explore local coffee plantations, or simply unwind in the cool mountain air. As evening falls, the cabin transforms into a cozy refuge where you can curl up with a book or enjoy a glass of wine by the heater. At Rahayu Cabin, preventing the hustle of the world is easy, allowing you to focus on what truly matters: relaxation, connection, and joy.",
             ],
         ];
 
@@ -213,6 +223,7 @@ class DummyDataSeeder extends Seeder
             $unit = Unit::create([
                 'name' => $unitData['name'],
                 'slug' => $unitData['slug'],
+                'description' => $unitData['description'],
                 'subtitle' => $unitData['subtitle'],
                 'max_guests' => $unitData['max_guests'],
                 'bedroom_count' => $unitData['bedroom_count'],
@@ -288,6 +299,11 @@ class DummyDataSeeder extends Seeder
                 'commission_fixed' => null,
                 'currency' => 'IDR',
                 'fixed_unit' => null,
+                'description' => "Embark on an unforgettable journey to the summit of Mount Batur, one of Bali's most iconic active volcanoes. This guided trekking experience is designed for adventurers of all levels, offering a chance to witness the island from above the clouds. Starting in the cool, pre-dawn hours, you'll hike up the volcanic slopes under a blanket of stars, guided by experienced locals who know every turn of the trail. The crisp mountain air and the anticipation of the sunrise create an atmosphere of excitement and camaraderie among fellow trekkers.
+
+As you reach the summit, you'll be rewarded with a spectacle that defies description—the sunrise over the caldera. Watch as the sun slowly emerges from the horizon, illuminating the vast crater lake and the distant peaks of Mount Abang and Mount Agung in a golden glow. It's a moment of pure magic, perfect for photography or quiet reflection. To make the experience even more special, your guides will prepare a simple, delicious breakfast cooked using the natural steam vents of the volcano, a unique culinary experience you won't find anywhere else.
+
+The descent offers its own set of wonders, with sweeping views of the lava fields and the lush agricultural land surrounding the mountain. You'll pass through villages and farms, getting a glimpse of local life in the highlands. Whether you're an avid hiker or a first-time trekker, the Mount Batur Sunrise Trek is a bucket-list adventure that combines physical challenge with spiritual awe. It's not just a hike; it's a journey to the top of the world, leaving you with memories that will last a lifetime.",
             ],
         ];
 
@@ -303,6 +319,7 @@ class DummyDataSeeder extends Seeder
             $activity = Activity::create([
                 'name' => $activityData['name'],
                 'slug' => $activityData['slug'],
+                'description' => $activityData['description'],
             ]);
 
             // Create rate

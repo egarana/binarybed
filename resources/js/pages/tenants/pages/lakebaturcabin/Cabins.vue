@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import Layout from './Layout.vue';
 import { Link } from '@inertiajs/vue3';
-import { useResourceStore, type Resource, type Feature } from '@/stores/useResourceStore';
+import { useResourceStore, type Resource } from '@/stores/useResourceStore';
 import { formatCurrency } from '@/helpers/currency';
 
 interface Rate {
@@ -46,12 +46,7 @@ const getLowestPrice = (rates: Rate[]) => {
 
 const getImage = (r: ResourceWithRates) => r.media?.[0]?.original_url || null;
 
-const getFeatures = (r: ResourceWithRates, n = 3): Feature[] => r.features?.slice(0, n) || [];
 
-const getRemainingFeatures = (r: ResourceWithRates, shown = 3) => {
-    const total = r.features?.length || 0;
-    return total > shown ? total - shown : 0;
-};
 
 const formatPrice = (type: string | null) => {
     if (!type || type === 'flat') return '';
@@ -76,13 +71,14 @@ const formatPrice = (type: string | null) => {
                         <div class="space-y-1.5 mt-6">
                             <h2 class="text-lg font-semibold">{{ r.name }}</h2>
                             <p v-if="r.description" class="line-clamp-2">{{ r.description }}</p>
-                            <ul v-if="getFeatures(r).length" class="text-muted-foreground text-sm flex flex-wrap gap-x-1.5">
-                                <template v-for="(f, index) in getFeatures(r, 2)" :key="f.id">
-                                    <li v-if="index > 0">·</li>
-                                    <li>{{ f.name }}</li>
-                                </template>
-                                <li v-if="getRemainingFeatures(r, 2)">·</li>
-                                <li v-if="getRemainingFeatures(r, 2)">{{ getRemainingFeatures(r, 2) }} more</li>
+                            <ul class="text-muted-foreground text-sm flex flex-wrap gap-x-1.5 gap-y-1">
+                                <li v-if="r.max_guests">{{ r.max_guests }} Guest{{ r.max_guests > 1 ? 's' : '' }}</li>
+                                <li v-if="r.bedroom_count">·</li>
+                                <li v-if="r.bedroom_count">{{ r.bedroom_count }} Bedroom{{ r.bedroom_count > 1 ? 's' : '' }}</li>
+                                <li v-if="r.bathroom_count">·</li>
+                                <li v-if="r.bathroom_count">{{ r.bathroom_count }} Bathroom{{ r.bathroom_count > 1 ? 's' : '' }}</li>
+                                <li v-if="r.view">·</li>
+                                <li v-if="r.view">{{ r.view }}</li>
                             </ul>
                         </div>
                         <p v-if="getLowestPrice(r.rates)" class="mt-4">
