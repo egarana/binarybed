@@ -9,6 +9,7 @@ import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
+import ActivityHighlightsEditor from '@/components/ActivityHighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -20,7 +21,9 @@ interface Props {
         tenant_name: string;
         name: string;
         slug: string;
+        subtitle?: string;
         description?: string;
+        highlights?: any[];
         images?: ExistingImage[];
     };
 }
@@ -44,10 +47,13 @@ const { slug } = useAutoSlug(name, {
     initialValue: props.activity.slug || ''
 });
 
+const subtitle = ref(props.activity.subtitle || '');
+
 // Image management
 const existingImages = ref<ExistingImage[]>(props.activity.images || []);
 const uploadedMediaIds = ref<number[]>([]);
 const description = ref(props.activity.description || '');
+const highlights = ref(props.activity.highlights || []);
 
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
@@ -55,6 +61,8 @@ function transformFormData(data: Record<string, any>) {
         ...data,
         existing_images: existingImages.value.map(img => img.id),
         uploaded_media_ids: uploadedMediaIds.value,
+        highlights: highlights.value,
+        subtitle: subtitle.value,
     };
 }
 </script>
@@ -100,6 +108,18 @@ function transformFormData(data: Record<string, any>) {
                 :error="errors.slug"
             />
 
+            <FormField
+                id="subtitle"
+                label="Subtitle"
+                type="text"
+                :tabindex="3"
+                autocomplete="off"
+                placeholder="e.g. Guided Adventure"
+                v-model="subtitle"
+                :error="errors.subtitle"
+                :optional="true"
+            />
+
             <div class="grid gap-2">
                 <Label for="description" class="flex items-center gap-1">
                     Description
@@ -108,13 +128,19 @@ function transformFormData(data: Record<string, any>) {
                 <Textarea
                     id="description"
                     name="description"
-                    :tabindex="3"
+                    :tabindex="7"
                     placeholder="Describe this activity..."
                     v-model="description"
                     rows="12"
                 />
                 <InputError :message="errors.description" />
             </div>
+
+            <ActivityHighlightsEditor
+                v-model="highlights"
+                :error="errors.highlights"
+                :tabindex="7"
+            />
 
             <ImageUploader
                 :existing-images="existingImages"
@@ -125,13 +151,13 @@ function transformFormData(data: Record<string, any>) {
                 :multiple="true"
                 :max-files="25"
                 :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
-                :tabindex="4"
+                :tabindex="7"
                 :disabled="processing"
             />
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="5"
+                :tabindex="7"
                 test-id="update-activity-button"
                 label="Save"
             />

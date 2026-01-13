@@ -28,6 +28,7 @@ class StoreActivityRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'subtitle'    => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:65535'],
 
             // Support for immediate upload (new way)
@@ -40,6 +41,11 @@ class StoreActivityRequest extends FormRequest
             'standard_rate_price'      => ['required', 'numeric', 'min:0'],
             'standard_rate_currency'   => ['required', 'string', 'size:3'],
             'standard_rate_price_type' => ['nullable', 'string', 'max:50'],
+
+            // Highlights
+            'highlights' => ['nullable', 'array'],
+            'highlights.*.icon' => ['required', 'string'],
+            'highlights.*.label' => ['required', 'string', 'max:255'],
         ];
     }
 

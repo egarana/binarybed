@@ -47,6 +47,15 @@ export interface ResourceBase {
 }
 
 /**
+ * Activity Highlight
+ */
+export interface Highlight {
+    icon: string;
+    label: string;
+    _id?: string;
+}
+
+/**
  * Resource with full details (from page props)
  * NOTE: rates are NOT cached - always fetch fresh for booking
  */
@@ -59,6 +68,7 @@ export interface Resource extends ResourceBase {
     bathroom_count?: number;
     view?: string;
 
+    highlights?: Highlight[];
     features?: Feature[];
     media?: MediaItem[];
 }

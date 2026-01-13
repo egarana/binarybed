@@ -11,6 +11,7 @@ import NumberFormField from '@/components/NumberFormField.vue';
 import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
+import ActivityHighlightsEditor from '@/components/ActivityHighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -34,9 +35,10 @@ const selectedTenant = ref<ComboboxOption>();
 
 const name = ref('');
 const { slug } = useAutoSlug(name, {
-    separator: '-',
     lowercase: true
 });
+
+const subtitle = ref('');
 
 // Track uploaded media IDs from ImageUploader
 const uploadedMediaIds = ref<number[]>([]);
@@ -46,6 +48,7 @@ const standardRatePrice = ref(0);
 const standardRateCurrency = ref('IDR');
 const standardRatePriceType = ref('flat');
 const description = ref('');
+const highlights = ref([]);
 </script>
 
 <template>
@@ -58,7 +61,9 @@ const description = ref('');
         :onError="onError"
         :transform="(data) => ({ 
             ...data, 
-            uploaded_media_ids: uploadedMediaIds
+            uploaded_media_ids: uploadedMediaIds,
+            highlights: highlights,
+            subtitle: subtitle
         })"
     >
         <template #default="{ errors, processing }">
@@ -102,6 +107,18 @@ const description = ref('');
                 :error="errors.slug"
             />
 
+            <FormField
+                id="subtitle"
+                label="Subtitle"
+                type="text"
+                :tabindex="4"
+                autocomplete="off"
+                placeholder="e.g. Guided Adventure"
+                v-model="subtitle"
+                :error="errors.subtitle"
+                :optional="true"
+            />
+
             <div class="grid gap-2">
                 <Label for="description" class="flex items-center gap-1">
                     Description
@@ -110,13 +127,19 @@ const description = ref('');
                 <Textarea
                     id="description"
                     name="description"
-                    :tabindex="4"
+                    :tabindex="10"
                     placeholder="Describe this activity..."
                     v-model="description"
                     rows="12"
                 />
                 <InputError :message="errors.description" />
             </div>
+
+            <ActivityHighlightsEditor
+                v-model="highlights"
+                :error="errors.highlights"
+                :tabindex="6"
+            />
 
             <!-- Standard Rate -->
             <div class="grid gap-4">
@@ -130,7 +153,7 @@ const description = ref('');
                 <NumberFormField
                     id="standard_rate_price"
                     label="Price"
-                    :tabindex="5"
+                    :tabindex="10"
                     placeholder="0"
                     v-model="standardRatePrice"
                     :min="0"
@@ -140,7 +163,7 @@ const description = ref('');
                 <CurrencySelect
                     id="standard_rate_currency"
                     label="Currency"
-                    :tabindex="6"
+                    :tabindex="10"
                     v-model="standardRateCurrency"
                     :error="errors.standard_rate_currency"
                 />
@@ -149,7 +172,7 @@ const description = ref('');
                     id="standard_rate_price_type"
                     label="Price Type"
                     type="text"
-                    :tabindex="7"
+                    :tabindex="10"
                     autocomplete="off"
                     placeholder="e.g. nightly, person, hourly"
                     v-model="standardRatePriceType"
@@ -164,14 +187,14 @@ const description = ref('');
                 :multiple="true"
                 :max-files="25"
                 :error="errors.images || errors.uploaded_media_ids"
-                :tabindex="8"
+                :tabindex="10"
                 :disabled="processing"
                 @update:uploaded-media-ids="uploadedMediaIds = $event"
             />
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="9"
+                :tabindex="10"
                 test-id="create-activity-button"
                 label="Create"
             />

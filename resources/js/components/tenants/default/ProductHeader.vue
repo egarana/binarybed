@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Bath, Bed, Binoculars, Users, Clock, Footprints, ShieldCheck, Ticket } from 'lucide-vue-next';
+import { Bath, Bed, Binoculars, Users } from 'lucide-vue-next';
 import { type Resource } from '@/stores/useResourceStore';
 
 interface Props {
@@ -61,26 +61,14 @@ const isActivity = computed(() => props.resourceType === 'activities');
                 {{ resource.name }}
             </h1>
             
-            <ul class="flex flex-wrap text-sm gap-x-2 gap-y-1">
-                <li class="flex items-center gap-2">
-                    <Clock class="w-4 h-4 text-muted-foreground" />
-                    <span>6-7 Hours</span>
-                </li>
-                <li>·</li>
-                <li class="flex items-center gap-2">
-                    <Footprints class="w-4 h-4 text-muted-foreground" />
-                    <span>Moderate</span>
-                </li>
-                <li>·</li>
-                <li class="flex items-center gap-2">
-                    <ShieldCheck class="w-4 h-4 text-muted-foreground" />
-                    <span>Insurance Included</span>
-                </li>
-                <li>·</li>
-                <li class="flex items-center gap-2">
-                    <Ticket class="w-4 h-4 text-muted-foreground" />
-                    <span>Mobile Ticket</span>
-                </li>
+            <ul v-if="resource.highlights?.length" class="flex flex-wrap text-sm gap-x-2 gap-y-1">
+                <template v-for="(highlight, index) in resource.highlights" :key="index">
+                    <li v-if="index > 0">·</li>
+                    <li class="flex items-center gap-2">
+                        <div v-html="highlight.icon" class="text-muted-foreground [&>svg]:size-4" />
+                        <span>{{ highlight.label }}</span>
+                    </li>
+                </template>
             </ul>
         </template>
     </div>

@@ -30,6 +30,7 @@ class UpdateActivityRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             ],
+            'subtitle'    => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:65535'],
             'existing_images'   => ['nullable', 'array'],
             'existing_images.*' => ['integer'],
@@ -39,6 +40,11 @@ class UpdateActivityRequest extends FormRequest
             // Legacy support for direct file upload
             'new_images'        => ['nullable', 'array', 'max:10'],
             'new_images.*'      => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+
+            // Highlights
+            'highlights' => ['nullable', 'array'],
+            'highlights.*.icon' => ['required', 'string'],
+            'highlights.*.label' => ['required', 'string', 'max:255'],
         ];
     }
 

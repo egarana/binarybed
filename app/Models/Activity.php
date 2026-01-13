@@ -19,7 +19,9 @@ class Activity extends Model implements HasMedia
     protected $fillable = [
         'name',
         'slug',
+        'subtitle',
         'description',
+        'highlights',
     ];
 
     /**
@@ -39,7 +41,7 @@ class Activity extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            //
+            'highlights' => 'array',
         ];
     }
 
