@@ -14,6 +14,8 @@ import ImageUploader from '@/components/ImageUploader.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 defineProps<{
     tenants?: ComboboxOption[];
@@ -55,6 +57,73 @@ const bedroomCount = ref(1);
 const bathroomCount = ref(1);
 const view = ref('');
 
+// Error tracking for badge indicators
+const hasGeneralErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.tenant_id) count++;
+    if (errors?.name) count++;
+    if (errors?.slug) count++;
+    return count;
+};
+
+const hasDescriptionErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.subtitle) count++;
+    if (errors?.description) count++;
+    return count;
+};
+
+const hasPropertyDetailsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.max_guests) count++;
+    if (errors?.bedroom_count) count++;
+    if (errors?.bathroom_count) count++;
+    if (errors?.view) count++;
+    if (errors?.capacity) count++;
+    return count;
+};
+
+const hasPricingErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.standard_rate_price) count++;
+    if (errors?.standard_rate_currency) count++;
+    if (errors?.standard_rate_price_type) count++;
+    return count;
+};
+
+const hasMediaErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.images) count++;
+    if (errors?.uploaded_media_ids) count++;
+    return count;
+};
+
+// Transform function to prepare ALL data for submission
+// This ensures data is sent regardless of which tab is active (TabsContent unmounts inactive tabs)
+function transformFormData(data: Record<string, any>) {
+    return {
+        ...data,
+        // General tab
+        tenant_id: selectedTenant.value?.value ?? '',
+        name: name.value,
+        slug: slug.value,
+        // Description tab
+        subtitle: subtitle.value,
+        description: description.value,
+        // Property Details tab
+        max_guests: maxGuests.value,
+        bedroom_count: bedroomCount.value,
+        bathroom_count: bathroomCount.value,
+        view: view.value,
+        // Pricing tab
+        standard_rate_price: standardRatePrice.value,
+        standard_rate_currency: standardRateCurrency.value,
+        standard_rate_price_type: standardRatePriceType.value,
+        // Media tab
+        uploaded_media_ids: uploadedMediaIds.value,
+    };
+}
+
 </script>
 
 <template>
@@ -65,187 +134,214 @@ const view = ref('');
         method="post"
         :onSuccess="onSuccess"
         :onError="onError"
-        :transform="(data) => ({ 
-            ...data, 
-            uploaded_media_ids: uploadedMediaIds,
-            // Include new fields in payload
-            subtitle: subtitle,
-            max_guests: maxGuests,
-            bedroom_count: bedroomCount,
-            bathroom_count: bathroomCount,
-            view: view
-        })"
+        :transform="transformFormData"
     >
         <template #default="{ errors, processing }">
-            <!-- Tenant Selection -->
-            <SearchableSelect
-                mode="single"
-                v-model="selectedTenant"
-                :options="tenants"
-                :fetch-url="() => units.create.url()"
-                response-key="tenants"
-                label="Tenant"
-                placeholder="Select a tenant"
-                search-placeholder="Search tenant..."
-                name="tenant_id"
-                :tabindex="1"
-                :error="errors.tenant_id"
-                :required="true"
-                :clearable="true"
-                :disabled="processing"
-            />
+            <Tabs default-value="general">
+                <TabsList>
+                    <TabsTrigger value="general">
+                        General
+                        <Badge v-if="hasGeneralErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasGeneralErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="description">
+                        Description
+                        <Badge v-if="hasDescriptionErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasDescriptionErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="property-details">
+                        Property Details
+                        <Badge v-if="hasPropertyDetailsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPropertyDetailsErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="pricing">
+                        Pricing
+                        <Badge v-if="hasPricingErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPricingErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="media">
+                        Media
+                        <Badge v-if="hasMediaErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasMediaErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                </TabsList>
 
-            <FormField
-                id="name"
-                label="Name"
-                type="text"
-                :tabindex="2"
-                autocomplete="organization"
-                placeholder="e.g. Unit Name"
-                v-model="name"
-                :error="errors.name"
-            />
+                <!-- General Tab -->
+                <TabsContent value="general" class="space-y-4 mt-4">
+                    <SearchableSelect
+                        mode="single"
+                        v-model="selectedTenant"
+                        :options="tenants"
+                        :fetch-url="() => units.create.url()"
+                        response-key="tenants"
+                        label="Tenant"
+                        placeholder="Select a tenant"
+                        search-placeholder="Search tenant..."
+                        name="tenant_id"
+                        :tabindex="1"
+                        :error="errors.tenant_id"
+                        :required="true"
+                        :clearable="true"
+                        :disabled="processing"
+                    />
 
-            <FormField
-                id="slug"
-                label="Slug"
-                type="text"
-                :tabindex="3"
-                autocomplete="off"
-                placeholder="e.g. unit-name"
-                v-model="slug"
-                :error="errors.slug"
-            />
+                    <FormField
+                        id="name"
+                        label="Name"
+                        type="text"
+                        :tabindex="2"
+                        autocomplete="organization"
+                        placeholder="e.g. Unit Name"
+                        v-model="name"
+                        :error="errors.name"
+                    />
 
-            <FormField
-                id="subtitle"
-                label="Subtitle"
-                type="text"
-                :tabindex="4"
-                autocomplete="off"
-                placeholder="e.g. Entire cabin"
-                v-model="subtitle"
-                :error="errors.subtitle"
-                :optional="true"
-            />
+                    <FormField
+                        id="slug"
+                        label="Slug"
+                        type="text"
+                        :tabindex="3"
+                        autocomplete="off"
+                        placeholder="e.g. unit-name"
+                        v-model="slug"
+                        :error="errors.slug"
+                    />
+                </TabsContent>
 
-            <div class="grid gap-2">
-                <Label for="description" class="flex items-center gap-1">
-                    Description
-                    <span class="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Textarea
-                    id="description"
-                    name="description"
-                    :tabindex="5"
-                    placeholder="Describe this unit..."
-                    v-model="description"
-                    rows="12"
-                />
-                <InputError :message="errors.description" />
-            </div>
+                <!-- Description Tab -->
+                <TabsContent value="description" class="space-y-4 mt-4">
+                    <FormField
+                        id="subtitle"
+                        label="Subtitle"
+                        type="text"
+                        :tabindex="1"
+                        autocomplete="off"
+                        placeholder="e.g. Entire cabin"
+                        v-model="subtitle"
+                        :error="errors.subtitle"
+                        :optional="true"
+                    />
 
-            <div class="grid grid-cols-3 gap-x-4 gap-y-2">
-                <NumberFormField
-                    id="max_guests"
-                    label="Max Guests"
-                    :tabindex="6"
-                    v-model="maxGuests"
-                    :min="1"
-                    :max="50"
-                    :required="true"
-                />
+                    <div class="grid gap-2">
+                        <Label for="description" class="flex items-center gap-1">
+                            Description
+                            <span class="text-muted-foreground">(Optional)</span>
+                        </Label>
+                        <Textarea
+                            id="description"
+                            name="description"
+                            :tabindex="2"
+                            placeholder="Describe this unit..."
+                            v-model="description"
+                            rows="12"
+                        />
+                        <InputError :message="errors.description" />
+                    </div>
+                </TabsContent>
 
-                <NumberFormField
-                    id="bedroom_count"
-                    label="Total Bedrooms"
-                    :tabindex="7"
-                    v-model="bedroomCount"
-                    :min="0"
-                    :max="20"
-                    :required="true"
-                />
+                <!-- Property Details Tab -->
+                <TabsContent value="property-details" class="space-y-4 mt-4">
+                    <div class="grid grid-cols-3 gap-x-4 gap-y-2">
+                        <NumberFormField
+                            id="max_guests"
+                            label="Max Guests"
+                            :tabindex="1"
+                            v-model="maxGuests"
+                            :min="1"
+                            :max="50"
+                            :required="true"
+                        />
 
-                <NumberFormField
-                    id="bathroom_count"
-                    label="Total Bathrooms"
-                    :tabindex="8"
-                    v-model="bathroomCount"
-                    :min="0"
-                    :max="20"
-                    :required="true"
-                />
+                        <NumberFormField
+                            id="bedroom_count"
+                            label="Total Bedrooms"
+                            :tabindex="2"
+                            v-model="bedroomCount"
+                            :min="0"
+                            :max="20"
+                            :required="true"
+                        />
 
-            <div class="col-span-3" v-if="errors.capacity">
-                <InputError :message="errors.capacity" />
-            </div>
-            </div>
+                        <NumberFormField
+                            id="bathroom_count"
+                            label="Total Bathrooms"
+                            :tabindex="3"
+                            v-model="bathroomCount"
+                            :min="0"
+                            :max="20"
+                            :required="true"
+                        />
 
-            <FormField
-                id="view"
-                label="View"
-                type="text"
-                :tabindex="9"
-                placeholder="e.g. Lake View"
-                v-model="view"
-                :error="errors.view"
-                :required="true"
-            />
+                        <div class="col-span-3" v-if="errors.capacity">
+                            <InputError :message="errors.capacity" />
+                        </div>
+                    </div>
 
-            <!-- Standard Rate -->
-            <div class="grid gap-4">
-                <div>
-                    <Label>Standard Rate</Label>
-                    <p class="text-xs text-muted-foreground mt-1">
-                        Set the default rate for this unit. This rate cannot be deleted but can be edited later.
-                    </p>
-                </div>
-                
-                <NumberFormField
-                    id="standard_rate_price"
-                    label="Price"
-                    :tabindex="10"
-                    placeholder="0"
-                    v-model="standardRatePrice"
-                    :min="0"
-                    :error="errors.standard_rate_price"
-                />
+                    <FormField
+                        id="view"
+                        label="View"
+                        type="text"
+                        :tabindex="4"
+                        placeholder="e.g. Lake View"
+                        v-model="view"
+                        :error="errors.view"
+                        :required="true"
+                    />
+                </TabsContent>
 
-                <CurrencySelect
-                    id="standard_rate_currency"
-                    label="Currency"
-                    :tabindex="11"
-                    v-model="standardRateCurrency"
-                    :error="errors.standard_rate_currency"
-                />
+                <!-- Pricing Tab -->
+                <TabsContent value="pricing" class="space-y-4 mt-4">
+                    <div>
+                        <Label>Standard Rate</Label>
+                        <p class="text-xs text-muted-foreground mt-1">
+                            Set the default rate for this unit. This rate cannot be deleted but can be edited later.
+                        </p>
+                    </div>
+                    
+                    <NumberFormField
+                        id="standard_rate_price"
+                        label="Price"
+                        :tabindex="1"
+                        placeholder="0"
+                        v-model="standardRatePrice"
+                        :min="0"
+                        :error="errors.standard_rate_price"
+                    />
 
-                <FormField
-                    id="standard_rate_price_type"
-                    label="Price Type"
-                    type="text"
-                    :tabindex="12"
-                    autocomplete="off"
-                    placeholder="e.g. nightly, person, hourly"
-                    v-model="standardRatePriceType"
-                    :error="errors.standard_rate_price_type"
-                    help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
-                />
-            </div>
+                    <CurrencySelect
+                        id="standard_rate_currency"
+                        label="Currency"
+                        :tabindex="2"
+                        v-model="standardRateCurrency"
+                        :error="errors.standard_rate_currency"
+                    />
 
-            <ImageUploader
-                label="Images"
-                name="images"
-                :multiple="true"
-                :max-files="25"
-                :error="errors.images || errors.uploaded_media_ids"
-                :tabindex="13"
-                :disabled="processing"
-                @update:uploaded-media-ids="uploadedMediaIds = $event"
-            />
+                    <FormField
+                        id="standard_rate_price_type"
+                        label="Price Type"
+                        type="text"
+                        :tabindex="3"
+                        autocomplete="off"
+                        placeholder="e.g. nightly, person, hourly"
+                        v-model="standardRatePriceType"
+                        :error="errors.standard_rate_price_type"
+                        help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
+                    />
+                </TabsContent>
+
+                <!-- Media Tab -->
+                <TabsContent value="media" class="space-y-4 mt-4">
+                    <ImageUploader
+                        label="Images"
+                        name="images"
+                        :multiple="true"
+                        :max-files="25"
+                        :error="errors.images || errors.uploaded_media_ids"
+                        :tabindex="1"
+                        :disabled="processing"
+                        @update:uploaded-media-ids="uploadedMediaIds = $event"
+                    />
+                </TabsContent>
+            </Tabs>
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="14"
+                :tabindex="99"
                 test-id="create-unit-button"
                 label="Create"
             />

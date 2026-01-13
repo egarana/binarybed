@@ -61,7 +61,7 @@ const isActivity = computed(() => props.resourceType === 'activities');
                 {{ resource.name }}
             </h1>
             
-            <ul v-if="resource.highlights?.length" class="flex flex-wrap text-sm gap-x-2 gap-y-1">
+            <ul v-if="resource.highlights?.length" class="flex flex-wrap text-sm gap-x-2 gap-y-2">
                 <template v-for="(highlight, index) in resource.highlights" :key="index">
                     <li v-if="index > 0">·</li>
                     <li class="flex items-center gap-2">

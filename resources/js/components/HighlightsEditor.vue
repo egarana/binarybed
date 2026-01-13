@@ -161,7 +161,7 @@ const hasHighlights = computed(() => highlights.value.length > 0);
             </ItemGroup>
 
             <Button class="mt-4" type="button" variant="outline" @click="addHighlight">
-                <PlusCircle class="mr-2 h-4 w-4" /> Add highlight
+                <PlusCircle /> Add highlight
             </Button>
         </div>
 

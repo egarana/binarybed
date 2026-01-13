@@ -9,10 +9,15 @@ import DisabledFormField from '@/components/DisabledFormField.vue';
 import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
-import ActivityHighlightsEditor from '@/components/ActivityHighlightsEditor.vue';
+import HighlightsEditor from '@/components/HighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Link } from '@inertiajs/vue3';
+import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item';
+import { ChevronRightIcon, ShieldAlert } from 'lucide-vue-next';
 
 interface Props {
     activity: {
@@ -61,10 +66,46 @@ function transformFormData(data: Record<string, any>) {
         ...data,
         existing_images: existingImages.value.map(img => img.id),
         uploaded_media_ids: uploadedMediaIds.value,
-        highlights: highlights.value,
+        highlights: highlights.value
+            .filter(h => h.label?.trim())
+            .map(({ icon, label }) => ({ icon, label })),
         subtitle: subtitle.value,
     };
 }
+
+// Error tracking for badge indicators
+const hasGeneralErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.name) count++;
+    if (errors?.slug) count++;
+    return count;
+};
+
+const hasDescriptionErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.subtitle) count++;
+    if (errors?.description) count++;
+    return count;
+};
+
+const hasHighlightsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.highlights) count++;
+    return count;
+};
+
+const hasPricingErrors = (_errors: Record<string, any>) => {
+    void _errors; // Explicitly mark as intentionally unused
+    return 0; // Edit page doesn't have pricing fields
+};
+
+const hasMediaErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.images) count++;
+    if (errors?.uploaded_media_ids) count++;
+    if (errors?.existing_images) count++;
+    return count;
+};
 </script>
 
 <template>
@@ -80,84 +121,138 @@ function transformFormData(data: Record<string, any>) {
         <template #default="{ errors, processing }">
             <input type="hidden" name="tenant_id" :value="activity.tenant_id" />
 
-            <DisabledFormField
-                label="Tenant"
-                :value="activity.tenant_name"
-                help-text="Activity tenant cannot be changed after creation"
-            />
+            <Tabs default-value="general">
+                <TabsList>
+                    <TabsTrigger value="general">
+                        General
+                        <Badge v-if="hasGeneralErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasGeneralErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="description">
+                        Description
+                        <Badge v-if="hasDescriptionErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasDescriptionErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="highlights">
+                        Highlights
+                        <Badge v-if="hasHighlightsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasHighlightsErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="pricing">
+                        Pricing
+                        <Badge v-if="hasPricingErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPricingErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="media">
+                        Media
+                        <Badge v-if="hasMediaErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasMediaErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                </TabsList>
 
-            <FormField
-                id="name"
-                label="Name"
-                type="text"
-                :tabindex="1"
-                autocomplete="organization"
-                placeholder="e.g. Activity Name"
-                v-model="name"
-                :error="errors.name"
-            />
+                <!-- General Tab -->
+                <TabsContent value="general" class="space-y-4 mt-4">
+                    <DisabledFormField
+                        label="Tenant"
+                        :value="activity.tenant_name"
+                        help-text="Activity tenant cannot be changed after creation"
+                    />
 
-            <FormField
-                id="slug"
-                label="Slug"
-                type="text"
-                :tabindex="2"
-                autocomplete="off"
-                placeholder="e.g. activity-name"
-                v-model="slug"
-                :error="errors.slug"
-            />
+                    <FormField
+                        id="name"
+                        label="Name"
+                        type="text"
+                        :tabindex="1"
+                        autocomplete="organization"
+                        placeholder="e.g. Activity Name"
+                        v-model="name"
+                        :error="errors.name"
+                    />
 
-            <FormField
-                id="subtitle"
-                label="Subtitle"
-                type="text"
-                :tabindex="3"
-                autocomplete="off"
-                placeholder="e.g. Guided Adventure"
-                v-model="subtitle"
-                :error="errors.subtitle"
-                :optional="true"
-            />
+                    <FormField
+                        id="slug"
+                        label="Slug"
+                        type="text"
+                        :tabindex="2"
+                        autocomplete="off"
+                        placeholder="e.g. activity-name"
+                        v-model="slug"
+                        :error="errors.slug"
+                    />
+                </TabsContent>
 
-            <div class="grid gap-2">
-                <Label for="description" class="flex items-center gap-1">
-                    Description
-                    <span class="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Textarea
-                    id="description"
-                    name="description"
-                    :tabindex="7"
-                    placeholder="Describe this activity..."
-                    v-model="description"
-                    rows="12"
-                />
-                <InputError :message="errors.description" />
-            </div>
+                <!-- Description Tab -->
+                <TabsContent value="description" class="space-y-4 mt-4">
+                    <FormField
+                        id="subtitle"
+                        label="Subtitle"
+                        type="text"
+                        :tabindex="1"
+                        autocomplete="off"
+                        placeholder="e.g. Guided Adventure"
+                        v-model="subtitle"
+                        :error="errors.subtitle"
+                        :optional="true"
+                    />
 
-            <ActivityHighlightsEditor
-                v-model="highlights"
-                :error="errors.highlights"
-                :tabindex="7"
-            />
+                    <div class="grid gap-2">
+                        <Label for="description" class="flex items-center gap-1">
+                            Description
+                            <span class="text-muted-foreground">(Optional)</span>
+                        </Label>
+                        <Textarea
+                            id="description"
+                            name="description"
+                            :tabindex="2"
+                            placeholder="Describe this activity..."
+                            v-model="description"
+                            rows="12"
+                        />
+                        <InputError :message="errors.description" />
+                    </div>
+                </TabsContent>
 
-            <ImageUploader
-                :existing-images="existingImages"
-                @update:existing-images="existingImages = $event"
-                @update:uploaded-media-ids="uploadedMediaIds = $event"
-                label="Images"
-                name="images"
-                :multiple="true"
-                :max-files="25"
-                :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
-                :tabindex="7"
-                :disabled="processing"
-            />
+                <!-- Highlights Tab -->
+                <TabsContent value="highlights" class="space-y-4 mt-4">
+                    <HighlightsEditor
+                        v-model="highlights"
+                        :error="errors.highlights"
+                        :tabindex="1"
+                    />
+                </TabsContent>
+
+                <!-- Pricing Tab -->
+                <TabsContent value="pricing" class="space-y-4 mt-4">
+                    <Item variant="outline" size="sm" as-child>
+                        <Link :href="activities.rates.url([activity.tenant_id, activity.slug])">
+                            <ItemMedia>
+                                <ShieldAlert class="size-5" />
+                            </ItemMedia>
+                            <ItemContent>
+                                <ItemTitle>Pricing is configured separately in rate plans.</ItemTitle>
+                            </ItemContent>
+                            <ItemActions>
+                                <ChevronRightIcon class="size-4" />
+                            </ItemActions>
+                        </Link>
+                    </Item>
+                </TabsContent>
+
+                <!-- Media Tab -->
+                <TabsContent value="media" class="space-y-4 mt-4">
+                    <ImageUploader
+                        :existing-images="existingImages"
+                        @update:existing-images="existingImages = $event"
+                        @update:uploaded-media-ids="uploadedMediaIds = $event"
+                        label="Images"
+                        name="images"
+                        :multiple="true"
+                        :max-files="25"
+                        :error="errors.images || errors.uploaded_media_ids || errors.existing_images"
+                        :tabindex="1"
+                        :disabled="processing"
+                    />
+                </TabsContent>
+            </Tabs>
 
             <SubmitButton
                 :processing="processing"
-                :tabindex="7"
+                :tabindex="99"
                 test-id="update-activity-button"
                 label="Save"
             />
