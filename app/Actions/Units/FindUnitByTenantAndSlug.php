@@ -35,6 +35,7 @@ class FindUnitByTenantAndSlug
                 'bedroom_count' => $unit->bedroom_count,
                 'bathroom_count' => $unit->bathroom_count,
                 'view' => $unit->view,
+                'selling_points' => $unit->selling_points,
                 'commission_config' => $unit->commissionConfig ? [
                     'commission_type' => $unit->commissionConfig->commission_type,
                     'commission_percentage' => $unit->commissionConfig->commission_percentage,

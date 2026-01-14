@@ -22,6 +22,7 @@ class Activity extends Model implements HasMedia
         'subtitle',
         'description',
         'highlights',
+        'selling_points',
     ];
 
     /**
@@ -42,6 +43,7 @@ class Activity extends Model implements HasMedia
     {
         return [
             'highlights' => 'array',
+            'selling_points' => 'array',
         ];
     }
 

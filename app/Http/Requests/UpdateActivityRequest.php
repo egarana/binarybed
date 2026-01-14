@@ -43,8 +43,14 @@ class UpdateActivityRequest extends FormRequest
 
             // Highlights
             'highlights' => ['nullable', 'array'],
-            'highlights.*.icon' => ['required', 'string'],
+            'highlights.*.icon' => ['nullable', 'string'],
             'highlights.*.label' => ['required', 'string', 'max:255'],
+
+            // Selling Points
+            'selling_points' => ['nullable', 'array'],
+            'selling_points.*.icon' => ['nullable', 'string'],
+            'selling_points.*.title' => ['required', 'string', 'max:255'],
+            'selling_points.*.description' => ['nullable', 'string', 'max:500'],
         ];
     }
 

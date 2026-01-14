@@ -11,6 +11,7 @@ import NumberFormField from '@/components/NumberFormField.vue';
 import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
+import SellingPointsEditor from '@/components/SellingPointsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -49,6 +50,15 @@ const standardRatePrice = ref(0);
 const standardRateCurrency = ref('IDR');
 const standardRatePriceType = ref('flat');
 const description = ref('');
+
+interface SellingPoint {
+    icon: string;
+    title: string;
+    description: string;
+    _id?: string;
+}
+
+const sellingPoints = ref<SellingPoint[]>([]);
 
 // Unit Capacity & Details
 const subtitle = ref('');
@@ -98,6 +108,12 @@ const hasMediaErrors = (errors: Record<string, any>) => {
     return count;
 };
 
+const hasSellingPointsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.selling_points) count++;
+    return count;
+};
+
 // Transform function to prepare ALL data for submission
 // This ensures data is sent regardless of which tab is active (TabsContent unmounts inactive tabs)
 function transformFormData(data: Record<string, any>) {
@@ -121,6 +137,10 @@ function transformFormData(data: Record<string, any>) {
         standard_rate_price_type: standardRatePriceType.value,
         // Media tab
         uploaded_media_ids: uploadedMediaIds.value,
+        // Selling Points tab
+        selling_points: sellingPoints.value
+            .filter(sp => sp.title?.trim())
+            .map(({ icon, title, description }) => ({ icon, title, description })),
     };
 }
 
@@ -154,6 +174,10 @@ function transformFormData(data: Record<string, any>) {
                     <TabsTrigger value="pricing">
                         Pricing
                         <Badge v-if="hasPricingErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPricingErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="selling-points">
+                        Selling Points
+                        <Badge v-if="hasSellingPointsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasSellingPointsErrors(errors) }}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="media">
                         Media
@@ -321,6 +345,15 @@ function transformFormData(data: Record<string, any>) {
                         v-model="standardRatePriceType"
                         :error="errors.standard_rate_price_type"
                         help-text="How this price is calculated: nightly, person, hourly, daily, session, flat, etc."
+                    />
+                </TabsContent>
+
+                <!-- Selling Points Tab -->
+                <TabsContent value="selling-points" class="space-y-4 mt-4">
+                    <SellingPointsEditor
+                        v-model="sellingPoints"
+                        :error="errors.selling_points"
+                        :tabindex="1"
                     />
                 </TabsContent>
 

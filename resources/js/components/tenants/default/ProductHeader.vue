@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Bath, Bed, Binoculars, Users } from 'lucide-vue-next';
+import { Bath, Bed, Binoculars, Users, Check } from 'lucide-vue-next';
 import { type Resource } from '@/stores/useResourceStore';
 
 interface Props {
@@ -17,7 +17,7 @@ const isActivity = computed(() => props.resourceType === 'activities');
 </script>
 
 <template>
-    <div class="px-6 py-6 space-y-4 md:px-0">
+    <div class="px-6 py-6 space-y-4 md:px-0 md:py-8">
         <!-- UNIT VERSION -->
         <template v-if="!isActivity">
             <p class="text-muted-foreground font-medium uppercase text-sm tracking-wider">
@@ -65,7 +65,8 @@ const isActivity = computed(() => props.resourceType === 'activities');
                 <template v-for="(highlight, index) in resource.highlights" :key="index">
                     <li v-if="index > 0">·</li>
                     <li class="flex items-center gap-2">
-                        <div v-html="highlight.icon" class="text-muted-foreground [&>svg]:size-4" />
+                        <Check v-if="!highlight.icon" class="size-4 text-muted-foreground" />
+                        <div v-else v-html="highlight.icon" class="text-muted-foreground [&>svg]:size-4" />
                         <span>{{ highlight.label }}</span>
                     </li>
                 </template>

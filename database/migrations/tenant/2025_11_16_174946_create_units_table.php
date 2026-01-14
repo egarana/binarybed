@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('bedroom_count')->default(1);
             $table->integer('bathroom_count')->default(1);
             $table->string('view'); // e.g. 'Lake View'
+            $table->json('selling_points')->nullable();
 
             $table->timestamps();
         });

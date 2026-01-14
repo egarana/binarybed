@@ -46,6 +46,12 @@ class UpdateUnitRequest extends FormRequest
             // Legacy support for direct file upload
             'new_images'        => ['nullable', 'array', 'max:10'],
             'new_images.*'      => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+
+            // Selling Points
+            'selling_points' => ['nullable', 'array'],
+            'selling_points.*.icon' => ['nullable', 'string'],
+            'selling_points.*.title' => ['required', 'string', 'max:255'],
+            'selling_points.*.description' => ['nullable', 'string', 'max:500'],
         ];
     }
 

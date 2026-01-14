@@ -10,6 +10,7 @@ import FormField from '@/components/FormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
 import HighlightsEditor from '@/components/HighlightsEditor.vue';
+import SellingPointsEditor from '@/components/SellingPointsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -29,6 +30,7 @@ interface Props {
         subtitle?: string;
         description?: string;
         highlights?: any[];
+        selling_points?: any[];
         images?: ExistingImage[];
     };
 }
@@ -60,18 +62,34 @@ const uploadedMediaIds = ref<number[]>([]);
 const description = ref(props.activity.description || '');
 const highlights = ref(props.activity.highlights || []);
 
+interface SellingPoint {
+    icon: string;
+    title: string;
+    description: string;
+    _id?: string;
+}
+
+const sellingPoints = ref<SellingPoint[]>(props.activity.selling_points || []);
+
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
     return {
         ...data,
+        name: name.value,
+        slug: slug.value,
+        description: description.value,
         existing_images: existingImages.value.map(img => img.id),
         uploaded_media_ids: uploadedMediaIds.value,
         highlights: highlights.value
             .filter(h => h.label?.trim())
             .map(({ icon, label }) => ({ icon, label })),
         subtitle: subtitle.value,
+        selling_points: sellingPoints.value
+            .filter(sp => sp.title?.trim())
+            .map(({ icon, title, description }) => ({ icon, title, description })),
     };
 }
+
 
 // Error tracking for badge indicators
 const hasGeneralErrors = (errors: Record<string, any>) => {
@@ -106,6 +124,12 @@ const hasMediaErrors = (errors: Record<string, any>) => {
     if (errors?.existing_images) count++;
     return count;
 };
+
+const hasSellingPointsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.selling_points) count++;
+    return count;
+};
 </script>
 
 <template>
@@ -138,6 +162,10 @@ const hasMediaErrors = (errors: Record<string, any>) => {
                     <TabsTrigger value="pricing">
                         Pricing
                         <Badge v-if="hasPricingErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPricingErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="selling-points">
+                        Selling Points
+                        <Badge v-if="hasSellingPointsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasSellingPointsErrors(errors) }}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="media">
                         Media
@@ -231,6 +259,15 @@ const hasMediaErrors = (errors: Record<string, any>) => {
                             </ItemActions>
                         </Link>
                     </Item>
+                </TabsContent>
+
+                <!-- Selling Points Tab -->
+                <TabsContent value="selling-points" class="space-y-4 mt-4">
+                    <SellingPointsEditor
+                        v-model="sellingPoints"
+                        :error="errors.selling_points"
+                        :tabindex="1"
+                    />
                 </TabsContent>
 
                 <!-- Media Tab -->

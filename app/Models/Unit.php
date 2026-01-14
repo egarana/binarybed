@@ -25,6 +25,7 @@ class Unit extends Model implements HasMedia
         'bedroom_count',
         'bathroom_count',
         'view',
+        'selling_points',
     ];
 
     /**
@@ -47,6 +48,7 @@ class Unit extends Model implements HasMedia
             'max_guests' => 'integer',
             'bedroom_count' => 'integer',
             'bathroom_count' => 'integer',
+            'selling_points' => 'array',
         ];
     }
 

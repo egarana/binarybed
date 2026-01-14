@@ -186,6 +186,12 @@ class DummyDataSeeder extends Seeder
 Inside, the cabin is thoughtfully appointed with cozy furnishings and premium amenities to ensure a restful stay. The spacious living area is perfect for gathering with loved ones, while the bedrooms offer plush bedding and blackout curtains for a deep, restorative sleep. A fully equipped kitchenette allows you to prepare simple meals, which you can enjoy on the private terrace as the cool mountain breeze brushes past. Whether you're sipping your morning coffee or stargazing at night, every moment here feels like a pause in time.
 
 Beyond the cabin, adventure awaits just a stone's throw away. Explore the nearby pine forests, take a dip in the natural hot springs, or embark on a sunrise trek to the summit of Mount Batur. For those who prefer a slower pace, simply relax by the fire pit in the evening, sharing stories under a canopy of stars. Rahajeng Cabin isn't just a place to stay; it's an experience that reconnects you with the beauty of the earth and the peace within yourself.",
+                'selling_points' => [
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></svg>', 'title' => 'Eco-Friendly', 'description' => 'Solar powered with rainwater harvesting'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>', 'title' => 'Family Owned', 'description' => 'Authentic local hospitality'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', 'title' => 'Direct Contact', 'description' => 'Chat with host anytime, no middleman'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7v5H2V7l10-5z"/></svg>', 'title' => 'Welcome Package', 'description' => 'Local snacks & handmade souvenirs'],
+                ],
             ],
             [
                 'name' => 'Rahayu Cabin',
@@ -208,6 +214,12 @@ Beyond the cabin, adventure awaits just a stone's throw away. Explore the nearby
 Step inside to discover a haven of comfort and style. The open-plan design creates a seamless flow between the living, dining, and sleeping areas, making it ideal for families or small groups. High ceilings and floor-to-ceiling windows ensure that the stunning views are never out of sight. The bathroom is a sanctuary of its own, featuring a rain shower and organic toiletries that add a touch of spa-like indulgence to your daily routine. Every detail, from the soft lighting to the curated artwork, has been chosen to enhance your sense of well-being.
 
 Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the cultural and natural wonders of Bali's highlands. Visit the ancient Trunyan village across the lake, explore local coffee plantations, or simply unwind in the cool mountain air. As evening falls, the cabin transforms into a cozy refuge where you can curl up with a book or enjoy a glass of wine by the heater. At Rahayu Cabin, preventing the hustle of the world is easy, allowing you to focus on what truly matters: relaxation, connection, and joy.",
+                'selling_points' => [
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></svg>', 'title' => 'Eco-Friendly', 'description' => 'Solar powered with rainwater harvesting'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>', 'title' => 'Family Owned', 'description' => 'Authentic local hospitality'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', 'title' => 'Direct Contact', 'description' => 'Chat with host anytime, no middleman'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7v5H2V7l10-5z"/></svg>', 'title' => 'Welcome Package', 'description' => 'Local snacks & handmade souvenirs'],
+                ],
             ],
         ];
 
@@ -229,6 +241,7 @@ Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the
                 'bedroom_count' => $unitData['bedroom_count'],
                 'bathroom_count' => $unitData['bathroom_count'],
                 'view' => $unitData['view'],
+                'selling_points' => $unitData['selling_points'],
             ]);
 
             // Create rate
@@ -299,11 +312,23 @@ Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the
                 'commission_fixed' => null,
                 'currency' => 'IDR',
                 'fixed_unit' => null,
+                'subtitle' => 'Guided Adventure',
                 'description' => "Embark on an unforgettable journey to the summit of Mount Batur, one of Bali's most iconic active volcanoes. This guided trekking experience is designed for adventurers of all levels, offering a chance to witness the island from above the clouds. Starting in the cool, pre-dawn hours, you'll hike up the volcanic slopes under a blanket of stars, guided by experienced locals who know every turn of the trail. The crisp mountain air and the anticipation of the sunrise create an atmosphere of excitement and camaraderie among fellow trekkers.
 
 As you reach the summit, you'll be rewarded with a spectacle that defies description—the sunrise over the caldera. Watch as the sun slowly emerges from the horizon, illuminating the vast crater lake and the distant peaks of Mount Abang and Mount Agung in a golden glow. It's a moment of pure magic, perfect for photography or quiet reflection. To make the experience even more special, your guides will prepare a simple, delicious breakfast cooked using the natural steam vents of the volcano, a unique culinary experience you won't find anywhere else.
 
 The descent offers its own set of wonders, with sweeping views of the lava fields and the lush agricultural land surrounding the mountain. You'll pass through villages and farms, getting a glimpse of local life in the highlands. Whether you're an avid hiker or a first-time trekker, the Mount Batur Sunrise Trek is a bucket-list adventure that combines physical challenge with spiritual awe. It's not just a hike; it's a journey to the top of the world, leaving you with memories that will last a lifetime.",
+                'highlights' => [
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', 'label' => '4-5 hours'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', 'label' => 'Max 8 people'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', 'label' => 'Hotel pickup'],
+                ],
+                'selling_points' => [
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>', 'title' => 'Expert Guide', 'description' => 'Certified local guides with 5+ years experience'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', 'title' => 'Small Groups', 'description' => 'Maximum 8 people for personalized attention'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>', 'title' => 'Safety First', 'description' => 'All equipment provided & regularly inspected'],
+                    ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>', 'title' => 'Photo Included', 'description' => 'Professional photos of your adventure'],
+                ],
             ],
         ];
 
@@ -319,7 +344,10 @@ The descent offers its own set of wonders, with sweeping views of the lava field
             $activity = Activity::create([
                 'name' => $activityData['name'],
                 'slug' => $activityData['slug'],
+                'subtitle' => $activityData['subtitle'],
                 'description' => $activityData['description'],
+                'highlights' => $activityData['highlights'],
+                'selling_points' => $activityData['selling_points'],
             ]);
 
             // Create rate

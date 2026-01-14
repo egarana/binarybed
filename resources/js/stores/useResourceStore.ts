@@ -26,9 +26,14 @@ export interface Feature {
     value: string | null;
     description: string | null;
     icon: string | null;
-    category: string | null;
     pivot: {
+        featureable_id: number;
+        feature_id: number;
+        category: string | null;
         order: number | null;
+        assigned_at: string;
+        created_at: string;
+        updated_at: string;
     };
 }
 
@@ -56,6 +61,16 @@ export interface Highlight {
 }
 
 /**
+ * Selling Point
+ */
+export interface SellingPoint {
+    icon: string;
+    title: string;
+    description: string;
+    _id?: string;
+}
+
+/**
  * Resource with full details (from page props)
  * NOTE: rates are NOT cached - always fetch fresh for booking
  */
@@ -68,7 +83,9 @@ export interface Resource extends ResourceBase {
     bathroom_count?: number;
     view?: string;
 
+    description?: string;
     highlights?: Highlight[];
+    selling_points?: SellingPoint[];
     features?: Feature[];
     media?: MediaItem[];
 }

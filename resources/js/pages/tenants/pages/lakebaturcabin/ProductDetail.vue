@@ -6,6 +6,9 @@ import { useResourceStore, type Resource, type Feature, type MediaItem } from '@
 import { formatCurrency } from '@/helpers/currency';
 import ProductGallery from '@/components/tenants/default/ProductGallery.vue';
 import ProductHeader from '@/components/tenants/default/ProductHeader.vue';
+import UniqueSellingPoints from '@/components/tenants/default/UniqueSellingPoints.vue';
+import ProductDescription from '@/components/tenants/default/ProductDescription.vue';
+import ProductAmenities from '@/components/tenants/default/ProductAmenities.vue';
 import { type TenantData } from '@/stores/useTenantStore';
 
 // ============================================
@@ -106,6 +109,12 @@ const formatPriceType = (type: string | null): string => {
                         :resource-type="resourceType" 
                         :tenant-name="tenant?.name"
                     />
+
+                    <UniqueSellingPoints :resource="resource" />
+
+                    <ProductDescription :resource="resource" />
+
+                    <ProductAmenities :resource="resource" />
                 </div>
                 <!-- Right Column -->
                 <div class="lg:col-span-2 lg:ps-16"></div>

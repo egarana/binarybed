@@ -48,6 +48,12 @@ class StoreUnitRequest extends FormRequest
             'standard_rate_price'      => ['required', 'numeric', 'min:0'],
             'standard_rate_currency'   => ['required', 'string', 'size:3'],
             'standard_rate_price_type' => ['nullable', 'string', 'max:50'],
+
+            // Selling Points
+            'selling_points' => ['nullable', 'array'],
+            'selling_points.*.icon' => ['nullable', 'string'],
+            'selling_points.*.title' => ['required', 'string', 'max:255'],
+            'selling_points.*.description' => ['nullable', 'string', 'max:500'],
         ];
     }
 
