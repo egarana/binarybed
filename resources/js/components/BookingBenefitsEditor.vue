@@ -2,8 +2,8 @@
 import { ref, watch, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/FormField.vue';
+import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/InputError.vue';
 import {
     Item,
@@ -14,20 +14,21 @@ import {
 import {
     PlusCircle,
     GripVertical,
-    Star,
+    Gift,
     Trash2
 } from 'lucide-vue-next';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import Draggable from 'vuedraggable';
 
-interface Highlight {
+interface BookingBenefit {
     icon: string;
-    label: string;
+    title: string;
+    description: string;
     _id?: string;
 }
 
 interface Props {
-    modelValue: Highlight[];
+    modelValue: BookingBenefit[];
     error?: string;
 }
 
@@ -36,78 +37,78 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: Highlight[]): void;
+    (e: 'update:modelValue', value: BookingBenefit[]): void;
 }>();
 
-const highlights = ref<Highlight[]>([]);
+const benefits = ref<BookingBenefit[]>([]);
 
 // Initialize and watch modelValue
 watch(() => props.modelValue, (newVal) => {
-    // We compare stringified values to avoid infinite loops, but we need to handle _id stability
-    const currentWithoutIds = highlights.value.map((h) => {
-        const copy = { ...h };
+    const currentWithoutIds = benefits.value.map((sp) => {
+        const copy = { ...sp };
         delete copy._id;
         return copy;
     });
     const newWithoutIds = Array.isArray(newVal)
-        ? newVal.map((h) => {
-              const copy = { ...h };
+        ? newVal.map((sp) => {
+              const copy = { ...sp };
               delete copy._id;
               return copy;
           })
         : [];
 
-    if (JSON.stringify(currentWithoutIds) !== JSON.stringify(newWithoutIds) || highlights.value.length !== newWithoutIds.length) {
-        highlights.value = Array.isArray(newVal)
-            ? newVal.map(h => ({ ...h, _id: h._id || Math.random().toString(36).substring(7) }))
+    if (JSON.stringify(currentWithoutIds) !== JSON.stringify(newWithoutIds) || benefits.value.length !== newWithoutIds.length) {
+        benefits.value = Array.isArray(newVal)
+            ? newVal.map(sp => ({ ...sp, _id: sp._id || Math.random().toString(36).substring(7) }))
             : [];
     }
 }, { immediate: true, deep: true });
 
 // Emit changes
-watch(highlights, (newVal) => {
+watch(benefits, (newVal) => {
     emit('update:modelValue', newVal);
 }, { deep: true });
 
-const addHighlight = () => {
-    highlights.value.push({
+const addBenefit = () => {
+    benefits.value.push({
         icon: '',
-        label: '',
+        title: '',
+        description: '',
         _id: Math.random().toString(36).substring(7)
     });
 };
 
-const removeHighlight = (index: number) => {
-    highlights.value.splice(index, 1);
+const removeBenefit = (index: number) => {
+    benefits.value.splice(index, 1);
 };
 
-const hasHighlights = computed(() => highlights.value.length > 0);
+const hasBenefits = computed(() => benefits.value.length > 0);
 </script>
 
 <template>
     <div class="grid gap-4">
         <div class="flex items-center justify-between">
             <div>
-                <Label class="flex items-center gap-1">Highlights <span class="text-muted-foreground">(Optional)</span></Label>
+                <Label class="flex items-center gap-1">Direct Booking Benefits <span class="text-muted-foreground">(Optional)</span></Label>
                 <p class="text-xs text-muted-foreground mt-1">
-                    Add key features or highlights for this activity (e.g., Duration, Difficulty).
+                    Add exclusive perks for booking directly (e.g. Best Price Guarantee, Welcome Drink).
                 </p>
             </div>
         </div>
 
-        <Empty v-if="!hasHighlights" class="border border-dashed">
+        <Empty v-if="!hasBenefits" class="border border-dashed">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
-                    <Star />
+                    <Gift />
                 </EmptyMedia>
-                <EmptyTitle>No highlights added</EmptyTitle>
+                <EmptyTitle>No benefits added</EmptyTitle>
                 <EmptyDescription>
-                    Add highlights like Duration, Difficulty, or Inclusions.
+                    Add perks that incentivize direct bookings.
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-                <Button type="button" variant="outline" @click="addHighlight">
-                    <PlusCircle /> Add highlight
+                <Button type="button" variant="outline" @click="addBenefit">
+                    <PlusCircle /> Add benefit
                 </Button>
             </EmptyContent>
         </Empty>
@@ -115,7 +116,7 @@ const hasHighlights = computed(() => highlights.value.length > 0);
         <div v-else>
             <ItemGroup class="gap-4">
                 <Draggable
-                    v-model="highlights"
+                    v-model="benefits"
                     item-key="_id"
                     handle=".drag-handle"
                     class="space-y-4"
@@ -125,22 +126,31 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                         <Item class="flex" variant="outline">
                             <ItemContent class="space-y-4 gap-0">
                                 <FormField
-                                    :id="`highlight-label-${index}`"
-                                    label="Label"
+                                    :id="`benefit-title-${index}`"
+                                    label="Title"
                                     type="text"
-                                    autocomplete="organization"
-                                    placeholder="e.g., 2 Hours"
-                                    v-model="element.label"
+                                    autocomplete="off"
+                                    placeholder="e.g., Best Price Guarantee"
+                                    v-model="element.title"
+                                />
+
+                                <FormField
+                                    :id="`benefit-description-${index}`"
+                                    label="Description"
+                                    type="text"
+                                    autocomplete="off"
+                                    placeholder="e.g., Use code DIRECT for 10% off"
+                                    v-model="element.description"
                                 />
 
                                 <div class="grid gap-2">
-                                    <Label :for="`highlight-icon-${index}`" class="flex items-center gap-1">
+                                    <Label :for="`benefit-icon-${index}`" class="flex items-center gap-1">
                                         Icon (SVG)
                                         <span class="text-muted-foreground">(Optional)</span>
                                     </Label>
                                     <Textarea
-                                        :id="`highlight-icon-${index}`"
-                                        :name="`highlight-icon-${index}`"
+                                        :id="`benefit-icon-${index}`"
+                                        :name="`benefit-icon-${index}`"
                                         v-model="element.icon"
                                         placeholder="Paste SVG code here..."
                                         rows="4"
@@ -151,7 +161,7 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                                 <Button variant="outline" size="icon" class="drag-handle cursor-move">
                                     <GripVertical class="text-muted-foreground"/>
                                 </Button>
-                                <Button type="button" variant="outline" size="icon" @click="removeHighlight(index)">
+                                <Button type="button" variant="outline" size="icon" @click="removeBenefit(index)">
                                     <Trash2 class="text-muted-foreground" />
                                 </Button>
                             </ItemActions>
@@ -160,8 +170,8 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                 </Draggable>
             </ItemGroup>
 
-            <Button class="mt-4" type="button" variant="outline" @click="addHighlight">
-                <PlusCircle /> Add highlight
+            <Button class="mt-4" type="button" variant="outline" @click="addBenefit">
+                <PlusCircle /> Add benefit
             </Button>
         </div>
 

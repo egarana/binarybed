@@ -14,37 +14,45 @@ import {
 import {
     PlusCircle,
     GripVertical,
-    Star,
+    ScrollText,
     Trash2
 } from 'lucide-vue-next';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import Draggable from 'vuedraggable';
 
-interface Highlight {
+interface Rule {
     icon: string;
     label: string;
     _id?: string;
 }
 
 interface Props {
-    modelValue: Highlight[];
+    modelValue: Rule[];
     error?: string;
+    label?: string;
+    description?: string;
+    emptyTitle?: string;
+    emptyDescription?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     modelValue: () => [],
+    label: 'Rules',
+    description: 'Add rules or guidelines that apply.',
+    emptyTitle: 'No rules added',
+    emptyDescription: 'Add rules like check-in time, restrictions, or guidelines.',
 });
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: Highlight[]): void;
+    (e: 'update:modelValue', value: Rule[]): void;
 }>();
 
-const highlights = ref<Highlight[]>([]);
+const rules = ref<Rule[]>([]);
 
 // Initialize and watch modelValue
 watch(() => props.modelValue, (newVal) => {
     // We compare stringified values to avoid infinite loops, but we need to handle _id stability
-    const currentWithoutIds = highlights.value.map((h) => {
+    const currentWithoutIds = rules.value.map((h) => {
         const copy = { ...h };
         delete copy._id;
         return copy;
@@ -57,57 +65,57 @@ watch(() => props.modelValue, (newVal) => {
           })
         : [];
 
-    if (JSON.stringify(currentWithoutIds) !== JSON.stringify(newWithoutIds) || highlights.value.length !== newWithoutIds.length) {
-        highlights.value = Array.isArray(newVal)
+    if (JSON.stringify(currentWithoutIds) !== JSON.stringify(newWithoutIds) || rules.value.length !== newWithoutIds.length) {
+        rules.value = Array.isArray(newVal)
             ? newVal.map(h => ({ ...h, _id: h._id || Math.random().toString(36).substring(7) }))
             : [];
     }
 }, { immediate: true, deep: true });
 
 // Emit changes
-watch(highlights, (newVal) => {
+watch(rules, (newVal) => {
     emit('update:modelValue', newVal);
 }, { deep: true });
 
-const addHighlight = () => {
-    highlights.value.push({
+const addRule = () => {
+    rules.value.push({
         icon: '',
         label: '',
         _id: Math.random().toString(36).substring(7)
     });
 };
 
-const removeHighlight = (index: number) => {
-    highlights.value.splice(index, 1);
+const removeRule = (index: number) => {
+    rules.value.splice(index, 1);
 };
 
-const hasHighlights = computed(() => highlights.value.length > 0);
+const hasRules = computed(() => rules.value.length > 0);
 </script>
 
 <template>
     <div class="grid gap-4">
         <div class="flex items-center justify-between">
             <div>
-                <Label class="flex items-center gap-1">Highlights <span class="text-muted-foreground">(Optional)</span></Label>
+                <Label class="flex items-center gap-1">{{ label }} <span class="text-muted-foreground">(Optional)</span></Label>
                 <p class="text-xs text-muted-foreground mt-1">
-                    Add key features or highlights for this activity (e.g., Duration, Difficulty).
+                    {{ description }}
                 </p>
             </div>
         </div>
 
-        <Empty v-if="!hasHighlights" class="border border-dashed">
+        <Empty v-if="!hasRules" class="border border-dashed">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
-                    <Star />
+                    <ScrollText />
                 </EmptyMedia>
-                <EmptyTitle>No highlights added</EmptyTitle>
+                <EmptyTitle>{{ emptyTitle }}</EmptyTitle>
                 <EmptyDescription>
-                    Add highlights like Duration, Difficulty, or Inclusions.
+                    {{ emptyDescription }}
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-                <Button type="button" variant="outline" @click="addHighlight">
-                    <PlusCircle /> Add highlight
+                <Button type="button" variant="outline" @click="addRule">
+                    <PlusCircle /> Add rule
                 </Button>
             </EmptyContent>
         </Empty>
@@ -115,7 +123,7 @@ const hasHighlights = computed(() => highlights.value.length > 0);
         <div v-else>
             <ItemGroup class="gap-4">
                 <Draggable
-                    v-model="highlights"
+                    v-model="rules"
                     item-key="_id"
                     handle=".drag-handle"
                     class="space-y-4"
@@ -125,22 +133,22 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                         <Item class="flex" variant="outline">
                             <ItemContent class="space-y-4 gap-0">
                                 <FormField
-                                    :id="`highlight-label-${index}`"
+                                    :id="`rule-label-${index}`"
                                     label="Label"
                                     type="text"
-                                    autocomplete="organization"
-                                    placeholder="e.g., 2 Hours"
+                                    autocomplete="off"
+                                    placeholder="e.g., Check-in: 2:00 PM"
                                     v-model="element.label"
                                 />
 
                                 <div class="grid gap-2">
-                                    <Label :for="`highlight-icon-${index}`" class="flex items-center gap-1">
+                                    <Label :for="`rule-icon-${index}`" class="flex items-center gap-1">
                                         Icon (SVG)
                                         <span class="text-muted-foreground">(Optional)</span>
                                     </Label>
                                     <Textarea
-                                        :id="`highlight-icon-${index}`"
-                                        :name="`highlight-icon-${index}`"
+                                        :id="`rule-icon-${index}`"
+                                        :name="`rule-icon-${index}`"
                                         v-model="element.icon"
                                         placeholder="Paste SVG code here..."
                                         rows="4"
@@ -151,7 +159,7 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                                 <Button variant="outline" size="icon" class="drag-handle cursor-move">
                                     <GripVertical class="text-muted-foreground"/>
                                 </Button>
-                                <Button type="button" variant="outline" size="icon" @click="removeHighlight(index)">
+                                <Button type="button" variant="outline" size="icon" @click="removeRule(index)">
                                     <Trash2 class="text-muted-foreground" />
                                 </Button>
                             </ItemActions>
@@ -160,8 +168,8 @@ const hasHighlights = computed(() => highlights.value.length > 0);
                 </Draggable>
             </ItemGroup>
 
-            <Button class="mt-4" type="button" variant="outline" @click="addHighlight">
-                <PlusCircle /> Add highlight
+            <Button class="mt-4" type="button" variant="outline" @click="addRule">
+                <PlusCircle /> Add rule
             </Button>
         </div>
 

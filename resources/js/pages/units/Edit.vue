@@ -10,7 +10,10 @@ import FormField from '@/components/FormField.vue';
 import NumberFormField from '@/components/NumberFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
+import BookingBenefitsEditor from '@/components/BookingBenefitsEditor.vue';
 import SellingPointsEditor from '@/components/SellingPointsEditor.vue';
+import RulesEditor from '@/components/RulesEditor.vue';
+import HostEditor from '@/components/HostEditor.vue';
 import LocationHighlightsEditor from '@/components/LocationHighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -37,12 +40,15 @@ interface Props {
         bathroom_count?: number;
         view?: string;
         selling_points?: any[];
+        book_direct_benefits?: any[];
+        host?: any;
         location?: {
-            address?: string;
+            address: string;
             subtitle?: string;
             map_url?: string;
             highlights?: string[];
         };
+        rules?: any[];
     };
 }
 
@@ -77,20 +83,24 @@ const bedroomCount = ref(props.unit.bedroom_count ?? 1);
 const bathroomCount = ref(props.unit.bathroom_count ?? 1);
 const view = ref(props.unit.view ?? '');
 
-interface SellingPoint {
-    icon: string;
-    title: string;
-    description: string;
-    _id?: string;
-}
-
-const sellingPoints = ref<SellingPoint[]>(props.unit.selling_points || []);
+const sellingPoints = ref<any[]>(props.unit.selling_points || []);
+const bookDirectBenefits = ref<any[]>(props.unit.book_direct_benefits || []);
+const host = ref<any>(props.unit.host || null);
 
 // Location
 const locationAddress = ref(props.unit.location?.address || '');
 const locationSubtitle = ref(props.unit.location?.subtitle || '');
 const locationMapUrl = ref(props.unit.location?.map_url || '');
 const locationHighlights = ref<string[]>(props.unit.location?.highlights || []);
+
+// Rules (House Rules)
+interface Rule {
+    icon: string;
+    label: string;
+    _id?: string;
+}
+
+const rules = ref<Rule[]>(props.unit.rules || []);
 
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
@@ -112,6 +122,15 @@ function transformFormData(data: Record<string, any>) {
         selling_points: sellingPoints.value
             .filter(sp => sp.title?.trim())
             .map(({ icon, title, description }) => ({ icon, title, description })),
+        book_direct_benefits: bookDirectBenefits.value
+            .filter(b => b.title?.trim())
+            .map(({ icon, title, description }) => ({ icon, title, description })),
+        // Host Information
+        host: host.value,
+        // Rules (House Rules)
+        rules: rules.value
+            .filter(r => r.label?.trim())
+            .map(({ icon, label }) => ({ icon, label })),
     };
 
     // Only include location if at least one field has value
@@ -134,11 +153,6 @@ const hasGeneralErrors = (errors: Record<string, any>) => {
     let count = 0;
     if (errors?.name) count++;
     if (errors?.slug) count++;
-    return count;
-};
-
-const hasDescriptionErrors = (errors: Record<string, any>) => {
-    let count = 0;
     if (errors?.subtitle) count++;
     if (errors?.description) count++;
     return count;
@@ -173,6 +187,12 @@ const hasSellingPointsErrors = (errors: Record<string, any>) => {
     return count;
 };
 
+const hasBookingBenefitsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.book_direct_benefits) count++;
+    return count;
+};
+
 const hasLocationErrors = (errors: Record<string, any>) => {
     let count = 0;
     // Check for location-related errors (location.address, location.subtitle, etc.)
@@ -181,6 +201,18 @@ const hasLocationErrors = (errors: Record<string, any>) => {
             count++;
         }
     });
+    return count;
+};
+
+const hasRulesErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.rules) count++;
+    return count;
+};
+
+const hasHostErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.host) count++;
     return count;
 };
 </script>
@@ -204,10 +236,6 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                         General
                         <Badge v-if="hasGeneralErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasGeneralErrors(errors) }}</Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="description">
-                        Description
-                        <Badge v-if="hasDescriptionErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasDescriptionErrors(errors) }}</Badge>
-                    </TabsTrigger>
                     <TabsTrigger value="property-details">
                         Property Details
                         <Badge v-if="hasPropertyDetailsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPropertyDetailsErrors(errors) }}</Badge>
@@ -220,9 +248,21 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                         Selling Points
                         <Badge v-if="hasSellingPointsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasSellingPointsErrors(errors) }}</Badge>
                     </TabsTrigger>
+                    <TabsTrigger value="booking-benefits">
+                        Booking Benefits
+                        <Badge v-if="hasBookingBenefitsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasBookingBenefitsErrors(errors) }}</Badge>
+                    </TabsTrigger>
                     <TabsTrigger value="location">
                         Location
                         <Badge v-if="hasLocationErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasLocationErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="host">
+                        Host
+                        <Badge v-if="hasHostErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasHostErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="rules">
+                        House Rules
+                        <Badge v-if="hasRulesErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasRulesErrors(errors) }}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="media">
                         Media
@@ -259,15 +299,12 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                         v-model="slug"
                         :error="errors.slug"
                     />
-                </TabsContent>
 
-                <!-- Description Tab -->
-                <TabsContent value="description" class="space-y-4 mt-4">
                     <FormField
                         id="subtitle"
                         label="Subtitle"
                         type="text"
-                        :tabindex="1"
+                        :tabindex="3"
                         autocomplete="off"
                         placeholder="e.g. Entire cabin"
                         v-model="subtitle"
@@ -283,10 +320,10 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                         <Textarea
                             id="description"
                             name="description"
-                            :tabindex="2"
+                            :tabindex="4"
                             placeholder="Describe this unit..."
                             v-model="description"
-                            rows="12"
+                            rows="8"
                         />
                         <InputError :message="errors.description" />
                     </div>
@@ -364,6 +401,14 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                     />
                 </TabsContent>
 
+                <!-- Booking Benefits Tab -->
+                <TabsContent value="booking-benefits" class="space-y-4 mt-4">
+                    <BookingBenefitsEditor
+                        v-model="bookDirectBenefits"
+                        :error="errors.book_direct_benefits"
+                    />
+                </TabsContent>
+
                 <!-- Location Tab -->
                 <TabsContent value="location" class="space-y-4 mt-4">
                     <FormField
@@ -406,6 +451,27 @@ const hasLocationErrors = (errors: Record<string, any>) => {
                     <LocationHighlightsEditor
                         v-model="locationHighlights"
                         :error="errors['location.highlights']"
+                    />
+                </TabsContent>
+
+                <!-- Host Tab -->
+                <TabsContent value="host" class="space-y-4 mt-4">
+                    <HostEditor
+                        v-model="host"
+                        :error="errors.host"
+                    />
+                </TabsContent>
+
+                <!-- House Rules Tab -->
+                <TabsContent value="rules" class="space-y-4 mt-4">
+                    <RulesEditor
+                        v-model="rules"
+                        :error="errors.rules"
+                        label="House Rules"
+                        description="Add house rules or guidelines that guests must follow."
+                        empty-title="No house rules added"
+                        empty-description="Add rules like check-in time, no smoking policy, or quiet hours."
+                        :tabindex="1"
                     />
                 </TabsContent>
 

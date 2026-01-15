@@ -23,7 +23,10 @@ class Activity extends Model implements HasMedia
         'description',
         'highlights',
         'selling_points',
+        'book_direct_benefits',
         'location',
+        'rules',
+        'host',
     ];
 
     /**
@@ -36,18 +39,18 @@ class Activity extends Model implements HasMedia
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'highlights' => 'array',
-            'selling_points' => 'array',
-            'location' => 'array',
-        ];
-    }
+    protected $casts = [
+        'highlights' => 'array',
+        'selling_points' => 'array',
+        'book_direct_benefits' => 'array',
+        'location' => 'array',
+        'rules' => 'array',
+        'host' => 'array',
+    ];
 
     /**
      * Get all users assigned to this activity

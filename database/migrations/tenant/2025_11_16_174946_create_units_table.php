@@ -24,7 +24,10 @@ return new class extends Migration
             $table->integer('bathroom_count')->default(1);
             $table->string('view'); // e.g. 'Lake View'
             $table->json('selling_points')->nullable();
+            $table->json('book_direct_benefits')->nullable();
             $table->json('location')->nullable();
+            $table->json('rules')->nullable();
+            $table->json('host')->nullable();
 
             $table->timestamps();
         });

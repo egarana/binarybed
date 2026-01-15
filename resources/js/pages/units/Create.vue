@@ -12,6 +12,9 @@ import CurrencySelect from '@/components/CurrencySelect.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 import SellingPointsEditor from '@/components/SellingPointsEditor.vue';
+import BookingBenefitsEditor from '@/components/BookingBenefitsEditor.vue';
+import RulesEditor from '@/components/RulesEditor.vue';
+import HostEditor from '@/components/HostEditor.vue';
 import LocationHighlightsEditor from '@/components/LocationHighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -52,14 +55,11 @@ const standardRateCurrency = ref('IDR');
 const standardRatePriceType = ref('flat');
 const description = ref('');
 
-interface SellingPoint {
-    icon: string;
-    title: string;
-    description: string;
-    _id?: string;
-}
 
-const sellingPoints = ref<SellingPoint[]>([]);
+
+const sellingPoints = ref<any[]>([]);
+const bookDirectBenefits = ref<any[]>([]);
+const host = ref<any>(null);
 
 // Unit Capacity & Details
 const subtitle = ref('');
@@ -74,17 +74,21 @@ const locationSubtitle = ref('');
 const locationMapUrl = ref('');
 const locationHighlights = ref<string[]>([]);
 
+// Rules (House Rules)
+interface Rule {
+    icon: string;
+    label: string;
+    _id?: string;
+}
+
+const rules = ref<Rule[]>([]);
+
 // Error tracking for badge indicators
 const hasGeneralErrors = (errors: Record<string, any>) => {
     let count = 0;
     if (errors?.tenant_id) count++;
     if (errors?.name) count++;
     if (errors?.slug) count++;
-    return count;
-};
-
-const hasDescriptionErrors = (errors: Record<string, any>) => {
-    let count = 0;
     if (errors?.subtitle) count++;
     if (errors?.description) count++;
     return count;
@@ -121,6 +125,12 @@ const hasSellingPointsErrors = (errors: Record<string, any>) => {
     return count;
 };
 
+const hasBookingBenefitsErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.book_direct_benefits) count++;
+    return count;
+};
+
 const hasLocationErrors = (errors: Record<string, any>) => {
     let count = 0;
     // Check for location-related errors (location.address, location.subtitle, etc.)
@@ -132,11 +142,23 @@ const hasLocationErrors = (errors: Record<string, any>) => {
     return count;
 };
 
+const hasRulesErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.rules) count++;
+    return count;
+};
+
+const hasHostErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    if (errors?.host) count++;
+    return count;
+};
+
 // Transform function to prepare ALL data for submission
 // This ensures data is sent regardless of which tab is active (TabsContent unmounts inactive tabs)
 function transformFormData(data: Record<string, any>) {
     const filteredHighlights = locationHighlights.value.filter(h => h?.trim());
-    const hasLocationData = locationAddress.value || locationSubtitle.value || locationMapUrl.value || filteredHighlights.length > 0;
+    const hasLocationData = locationAddress.value || locationMapUrl.value || filteredHighlights.length > 0;
 
     const formData: Record<string, any> = {
         ...data,
@@ -159,9 +181,14 @@ function transformFormData(data: Record<string, any>) {
         // Media tab
         uploaded_media_ids: uploadedMediaIds.value,
         // Selling Points tab
-        selling_points: sellingPoints.value
-            .filter(sp => sp.title?.trim())
+        selling_points: sellingPoints.value,
+        book_direct_benefits: bookDirectBenefits.value
+            .filter(b => b.title?.trim())
             .map(({ icon, title, description }) => ({ icon, title, description })),
+        // Host Information
+        host: host.value,
+        // Rules tab (House Rules)
+        rules: rules.value,
     };
 
     // Only include location if at least one field has value
@@ -196,10 +223,6 @@ function transformFormData(data: Record<string, any>) {
                         General
                         <Badge v-if="hasGeneralErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasGeneralErrors(errors) }}</Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="description">
-                        Description
-                        <Badge v-if="hasDescriptionErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasDescriptionErrors(errors) }}</Badge>
-                    </TabsTrigger>
                     <TabsTrigger value="property-details">
                         Property Details
                         <Badge v-if="hasPropertyDetailsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasPropertyDetailsErrors(errors) }}</Badge>
@@ -212,9 +235,21 @@ function transformFormData(data: Record<string, any>) {
                         Selling Points
                         <Badge v-if="hasSellingPointsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasSellingPointsErrors(errors) }}</Badge>
                     </TabsTrigger>
+                    <TabsTrigger value="booking-benefits">
+                        Booking Benefits
+                        <Badge v-if="hasBookingBenefitsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasBookingBenefitsErrors(errors) }}</Badge>
+                    </TabsTrigger>
                     <TabsTrigger value="location">
                         Location
                         <Badge v-if="hasLocationErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasLocationErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="host">
+                        Host
+                        <Badge v-if="hasHostErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasHostErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="rules">
+                        House Rules
+                        <Badge v-if="hasRulesErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasRulesErrors(errors) }}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="media">
                         Media
@@ -262,15 +297,12 @@ function transformFormData(data: Record<string, any>) {
                         v-model="slug"
                         :error="errors.slug"
                     />
-                </TabsContent>
 
-                <!-- Description Tab -->
-                <TabsContent value="description" class="space-y-4 mt-4">
                     <FormField
                         id="subtitle"
                         label="Subtitle"
                         type="text"
-                        :tabindex="1"
+                        :tabindex="4"
                         autocomplete="off"
                         placeholder="e.g. Entire cabin"
                         v-model="subtitle"
@@ -286,10 +318,10 @@ function transformFormData(data: Record<string, any>) {
                         <Textarea
                             id="description"
                             name="description"
-                            :tabindex="2"
+                            :tabindex="5"
                             placeholder="Describe this unit..."
                             v-model="description"
-                            rows="12"
+                            rows="8"
                         />
                         <InputError :message="errors.description" />
                     </div>
@@ -394,6 +426,14 @@ function transformFormData(data: Record<string, any>) {
                     />
                 </TabsContent>
 
+                <!-- Booking Benefits Tab -->
+                <TabsContent value="booking-benefits" class="space-y-4 mt-4">
+                    <BookingBenefitsEditor
+                        v-model="bookDirectBenefits"
+                        :error="errors.book_direct_benefits"
+                    />
+                </TabsContent>
+
                 <!-- Location Tab -->
                 <TabsContent value="location" class="space-y-4 mt-4">
                     <FormField
@@ -436,6 +476,27 @@ function transformFormData(data: Record<string, any>) {
                     <LocationHighlightsEditor
                         v-model="locationHighlights"
                         :error="errors['location.highlights']"
+                    />
+                </TabsContent>
+
+                <!-- Host Tab -->
+                <TabsContent value="host" class="space-y-4 mt-4">
+                    <HostEditor
+                        v-model="host"
+                        :error="errors.host"
+                    />
+                </TabsContent>
+
+                <!-- House Rules Tab -->
+                <TabsContent value="rules" class="space-y-4 mt-4">
+                    <RulesEditor
+                        v-model="rules"
+                        :error="errors.rules"
+                        label="House Rules"
+                        description="Add house rules or guidelines that guests must follow."
+                        empty-title="No house rules added"
+                        empty-description="Add rules like check-in time, no smoking policy, or quiet hours."
+                        :tabindex="1"
                     />
                 </TabsContent>
 

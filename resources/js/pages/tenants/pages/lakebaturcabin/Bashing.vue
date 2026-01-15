@@ -559,7 +559,7 @@ const formatCurrency = (amount: number, currency: string) => {
                             </div>
                         </div>
 
-                        <!-- Host Story -->
+                        <!-- Host -->
                         <div class="space-y-4 border-b border-stone-200 pb-8">
                             <h2 class="text-xl font-medium text-stone-900">Meet your host</h2>
                             <div class="flex items-start gap-4">

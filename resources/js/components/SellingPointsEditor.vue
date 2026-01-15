@@ -124,7 +124,7 @@ const hasSellingPoints = computed(() => sellingPoints.value.length > 0);
                 >
                     <template #item="{ element, index }">
                         <Item class="flex" variant="outline">
-                            <ItemContent class="space-y-4">
+                            <ItemContent class="space-y-4 gap-0">
                                 <FormField
                                     :id="`selling-point-title-${index}`"
                                     label="Title"

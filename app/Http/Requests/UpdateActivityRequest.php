@@ -51,6 +51,10 @@ class UpdateActivityRequest extends FormRequest
             'selling_points.*.icon' => ['nullable', 'string'],
             'selling_points.*.title' => ['required', 'string', 'max:255'],
             'selling_points.*.description' => ['nullable', 'string', 'max:500'],
+            'book_direct_benefits' => ['nullable', 'array'],
+            'book_direct_benefits.*.icon' => ['nullable', 'string'],
+            'book_direct_benefits.*.title' => ['required', 'string', 'max:255'],
+            'book_direct_benefits.*.description' => ['nullable', 'string', 'max:500'],
 
             // Location
             'location' => ['nullable', 'array'],
@@ -59,6 +63,23 @@ class UpdateActivityRequest extends FormRequest
             'location.map_url' => ['nullable', 'url', 'max:500'],
             'location.highlights' => ['nullable', 'array', 'max:10'],
             'location.highlights.*' => ['required', 'string', 'max:100'],
+
+            // Rules (Activity Rules)
+            'rules' => ['nullable', 'array'],
+            'rules.*.icon' => ['nullable', 'string'],
+            'rules.*.label' => ['required', 'string', 'max:255'],
+
+            // Host Information
+            'host' => ['nullable', 'array'],
+            'host.name' => ['required_with:host', 'string', 'max:255'],
+            'host.photo' => ['nullable', 'url', 'max:500'],
+            'host.languages' => ['nullable', 'array', 'max:5'],
+            'host.languages.*' => ['string', 'max:50'],
+            'host.story' => ['nullable', 'string', 'max:1000'],
+            'host.whatsapp' => ['nullable', 'string', 'max:20'],
+            'host.instagram' => ['nullable', 'string', 'max:255'],
+            'host.facebook' => ['nullable', 'string', 'max:255'],
+            'host.tiktok' => ['nullable', 'string', 'max:255'],
         ];
     }
 

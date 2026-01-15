@@ -19,7 +19,10 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->json('highlights')->nullable();
             $table->json('selling_points')->nullable();
+            $table->json('book_direct_benefits')->nullable();
             $table->json('location')->nullable();
+            $table->json('rules')->nullable();
+            $table->json('host')->nullable();
             $table->timestamps();
         });
     }

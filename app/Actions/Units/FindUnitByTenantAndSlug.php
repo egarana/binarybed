@@ -36,7 +36,10 @@ class FindUnitByTenantAndSlug
                 'bathroom_count' => $unit->bathroom_count,
                 'view' => $unit->view,
                 'selling_points' => $unit->selling_points,
+                'book_direct_benefits' => $unit->book_direct_benefits,
                 'location' => $unit->location,
+                'rules' => $unit->rules,
+                'host' => $unit->host,
                 'commission_config' => $unit->commissionConfig ? [
                     'commission_type' => $unit->commissionConfig->commission_type,
                     'commission_percentage' => $unit->commissionConfig->commission_percentage,

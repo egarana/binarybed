@@ -71,6 +71,49 @@ export interface SellingPoint {
 }
 
 /**
+ * Rule (Unit House Rule or Activity Rule)
+ */
+export interface Rule {
+    icon: string;
+    label: string;
+    _id?: string;
+}
+
+/**
+ * Booking Benefit (Exclusive Perk)
+ */
+export interface BookingBenefit {
+    icon: string;
+    title: string;
+    description: string;
+    _id?: string;
+}
+
+/**
+ * Location Data
+ */
+export interface Location {
+    address?: string;
+    subtitle?: string;
+    map_url?: string;
+    highlights?: string[];
+}
+
+/**
+ * Host Information
+ */
+export interface Host {
+    name: string;
+    photo?: string;
+    languages?: string[];
+    story?: string;
+    whatsapp?: string;
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+}
+
+/**
  * Resource with full details (from page props)
  * NOTE: rates are NOT cached - always fetch fresh for booking
  */
@@ -84,8 +127,12 @@ export interface Resource extends ResourceBase {
     view?: string;
 
     description?: string;
+    location?: Location;
     highlights?: Highlight[];
     selling_points?: SellingPoint[];
+    book_direct_benefits?: BookingBenefit[];
+    rules?: Rule[];
+    host?: Host;
     features?: Feature[];
     media?: MediaItem[];
 }
