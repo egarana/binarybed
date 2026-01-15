@@ -28,7 +28,7 @@ interface Props {
 const props = defineProps<Props>();
 
 // Categories to include in amenities
-const amenityCategories = ['amenity', 'facility', 'equipment'];
+const amenityCategories = ['amenity', 'facility', 'equipment', 'inclusion'];
 
 // Filter features by amenity categories
 const amenities = computed(() => {
@@ -64,7 +64,7 @@ const Modal = computed(() => ({
         <h1 class="text-lg font-semibold">What you'll get</h1>
         
         <!-- Preview Grid -->
-        <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <li 
                 v-for="amenity in previewAmenities" 
                 :key="amenity.id"
@@ -79,13 +79,13 @@ const Modal = computed(() => ({
         <!-- Show All Button - Responsive Modal -->
         <component :is="Modal.Root" v-if="hasMore" v-model:open="isOpen">
             <component :is="Modal.Trigger" as-child>
-                <Button variant="outline" class="mt-8" size="lg">
-                    Show all {{ amenities.length }} amenities
+                <Button variant="outline" class="mt-8" size="lg" @click="(e: MouseEvent) => (e.currentTarget as HTMLElement).blur()">
+                    Show all {{ amenities.length }} items
                 </Button>
             </component>
             <component 
                 :is="Modal.Content" 
-                :trap-focus="false"
+                @open-auto-focus="(e) => e.preventDefault()"
                 :class="[
                     isDesktop ? 'sm:max-w-2xl max-h-[80vh] flex flex-col pb-0' : 'max-h-[80vh]',
                     !isDesktop && 'px-0 *:px-6'
@@ -105,7 +105,7 @@ const Modal = computed(() => ({
                         <li 
                             v-for="amenity in amenities" 
                             :key="amenity.id"
-                            class="flex items-start gap-4 py-5 last:pb-11"
+                            class="flex items-start gap-4 py-5 last:pb-8 last:md:pb-11"
                         >
                             <CheckSquare v-if="!amenity.icon" class="size-6 text-muted-foreground shrink-0 stroke-1" />
                             <div v-else v-html="amenity.icon" class="text-muted-foreground [&>svg]:size-6 shrink-0 stroke-1" />

@@ -5,6 +5,7 @@ import { type Resource } from '@/stores/useResourceStore';
 
 interface Props {
     resource: Resource;
+    resourceType: 'units' | 'activities';
 }
 
 const props = defineProps<Props>();
@@ -40,7 +41,7 @@ const truncatedDescription = computed(() => {
 
 <template>
     <div v-if="resource.description" class="mx-6 py-6 border-t md:mx-0 md:py-8">
-        <h1 class="text-lg font-semibold">About this place</h1>
+        <h1 class="text-lg font-semibold">{{ resourceType === 'activities' ? 'About this experience' : 'About this place' }}</h1>
         <p class="whitespace-pre-line mt-4">
             {{ truncatedDescription }}
         </p>

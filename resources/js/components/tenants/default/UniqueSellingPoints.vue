@@ -15,7 +15,7 @@ defineProps<Props>();
             <div 
                 v-for="(point, index) in resource.selling_points" 
                 :key="index" 
-                class="flex items-start gap-6"
+                class="flex items-start gap-4"
             >
                 <div class="h-10 w-10 shrink-0 border rounded-md flex items-center justify-center">
                     <Check v-if="!point.icon" class="w-5 h-5 text-muted-foreground stroke-[1.5px]" />

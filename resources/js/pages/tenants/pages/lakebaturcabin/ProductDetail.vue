@@ -9,6 +9,7 @@ import ProductHeader from '@/components/tenants/default/ProductHeader.vue';
 import UniqueSellingPoints from '@/components/tenants/default/UniqueSellingPoints.vue';
 import ProductDescription from '@/components/tenants/default/ProductDescription.vue';
 import ProductAmenities from '@/components/tenants/default/ProductAmenities.vue';
+import ProductFeaturesSummary from '@/components/tenants/default/ProductFeaturesSummary.vue';
 import { type TenantData } from '@/stores/useTenantStore';
 
 // ============================================
@@ -112,9 +113,11 @@ const formatPriceType = (type: string | null): string => {
 
                     <UniqueSellingPoints :resource="resource" />
 
-                    <ProductDescription :resource="resource" />
+                    <ProductDescription :resource="resource" :resource-type="resourceType" />
 
                     <ProductAmenities :resource="resource" />
+
+                    <ProductFeaturesSummary :resource="resource" />
                 </div>
                 <!-- Right Column -->
                 <div class="lg:col-span-2 lg:ps-16"></div>
