@@ -77,7 +77,7 @@ const Modal = computed(() => ({
             <div 
                 v-for="category in categoriesData" 
                 :key="category.key" 
-                class="flex items-start gap-4"
+                class="flex items-start gap-3"
             >
                 <div class="h-10 w-10 shrink-0 bg-accent rounded-full flex items-center justify-center">
                     <component :is="category.icon" class="size-6 text-muted-foreground shrink-0 stroke-1" />

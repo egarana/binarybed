@@ -32,6 +32,7 @@ class FindActivityByTenantAndSlug
                 'description' => $activity->description,
                 'highlights' => $activity->highlights,
                 'selling_points' => $activity->selling_points,
+                'location' => $activity->location,
                 'commission_config' => $activity->commissionConfig ? [
                     'commission_type' => $activity->commissionConfig->commission_type,
                     'commission_percentage' => $activity->commissionConfig->commission_percentage,

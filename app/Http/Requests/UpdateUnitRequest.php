@@ -52,6 +52,14 @@ class UpdateUnitRequest extends FormRequest
             'selling_points.*.icon' => ['nullable', 'string'],
             'selling_points.*.title' => ['required', 'string', 'max:255'],
             'selling_points.*.description' => ['nullable', 'string', 'max:500'],
+
+            // Location
+            'location' => ['nullable', 'array'],
+            'location.address' => ['required_with:location', 'string', 'max:255'],
+            'location.subtitle' => ['nullable', 'string', 'max:255'],
+            'location.map_url' => ['nullable', 'url', 'max:500'],
+            'location.highlights' => ['nullable', 'array', 'max:10'],
+            'location.highlights.*' => ['required', 'string', 'max:100'],
         ];
     }
 
@@ -140,6 +148,20 @@ class UpdateUnitRequest extends FormRequest
 
             'view.required' => 'Please specify the unit view',
             'view.string' => 'The view must be valid text',
+
+            // Location
+            'location.address.required_with' => 'Please provide an address when adding location information',
+            'location.address.string' => 'The location address must be valid text',
+            'location.address.max' => 'The location address cannot be longer than 255 characters',
+            'location.subtitle.string' => 'The location subtitle must be valid text',
+            'location.subtitle.max' => 'The location subtitle cannot be longer than 255 characters',
+            'location.map_url.url' => 'Please enter a valid URL for the map link',
+            'location.map_url.max' => 'The map URL cannot be longer than 500 characters',
+            'location.highlights.array' => 'Location highlights must be a list',
+            'location.highlights.max' => 'You can add a maximum of 10 location highlights',
+            'location.highlights.*.required' => 'Please fill in the highlight or remove it',
+            'location.highlights.*.string' => 'Each highlight must be valid text',
+            'location.highlights.*.max' => 'Each highlight cannot be longer than 100 characters',
         ];
     }
 }

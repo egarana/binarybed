@@ -192,6 +192,17 @@ Beyond the cabin, adventure awaits just a stone's throw away. Explore the nearby
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', 'title' => 'Direct Contact', 'description' => 'Chat with host anytime, no middleman'],
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7v5H2V7l10-5z"/></svg>', 'title' => 'Welcome Package', 'description' => 'Local snacks & handmade souvenirs'],
                 ],
+                'location' => [
+                    'address' => 'Songan A, Kintamani, Bangli Regency, Bali 80652',
+                    'subtitle' => '2 hours from Ngurah Rai International Airport',
+                    'map_url' => 'https://www.google.com/maps/search/?api=1&query=Songan+A+Kintamani+Bangli+Bali',
+                    'highlights' => [
+                        '5 min walk to Lake Batur shore',
+                        '10 min drive to Mount Batur trailhead',
+                        'Near traditional Songan village',
+                        'Surrounded by pine forest'
+                    ]
+                ],
             ],
             [
                 'name' => 'Rahayu Cabin',
@@ -220,6 +231,16 @@ Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', 'title' => 'Direct Contact', 'description' => 'Chat with host anytime, no middleman'],
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7v5H2V7l10-5z"/></svg>', 'title' => 'Welcome Package', 'description' => 'Local snacks & handmade souvenirs'],
                 ],
+                'location' => [
+                    'address' => 'Kedisan Village, Kintamani, Bangli Regency, Bali 80652',
+                    'subtitle' => '1.5 hours from Ubud',
+                    'map_url' => 'https://www.google.com/maps/place/Kedisan+Village+Kintamani/@-8.2425,115.3892,14z',
+                    'highlights' => [
+                        'Panoramic Lake Batur view',
+                        '15 min to Toya Bungkah hot springs',
+                        'Quiet lakeside location'
+                    ]
+                ],
             ],
         ];
 
@@ -242,6 +263,7 @@ Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the
                 'bathroom_count' => $unitData['bathroom_count'],
                 'view' => $unitData['view'],
                 'selling_points' => $unitData['selling_points'],
+                'location' => $unitData['location'] ?? null,
             ]);
 
             // Create rate
@@ -329,6 +351,18 @@ The descent offers its own set of wonders, with sweeping views of the lava field
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>', 'title' => 'Safety First', 'description' => 'All equipment provided & regularly inspected'],
                     ['icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>', 'title' => 'Photo Included', 'description' => 'Professional photos of your adventure'],
                 ],
+                'location' => [
+                    'address' => 'Mount Batur Trailhead, Toya Bungkah, Kintamani, Bangli 80652',
+                    'subtitle' => '2 hours from Ubud, pickup available',
+                    'map_url' => 'https://www.google.com/maps/place/Mount+Batur/@-8.242,115.375,13z',
+                    'highlights' => [
+                        'Starting point at 1,200m elevation',
+                        'Summit at 1,717m above sea level',
+                        'Crater lake viewpoint',
+                        'Natural steam vents',
+                        'Sunrise ceremony site'
+                    ]
+                ],
             ],
         ];
 
@@ -348,6 +382,7 @@ The descent offers its own set of wonders, with sweeping views of the lava field
                 'description' => $activityData['description'],
                 'highlights' => $activityData['highlights'],
                 'selling_points' => $activityData['selling_points'],
+                'location' => $activityData['location'] ?? null,
             ]);
 
             // Create rate

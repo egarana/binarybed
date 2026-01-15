@@ -484,7 +484,7 @@ const formatCurrency = (amount: number, currency: string) => {
                             </div>
                         </div>
 
-                        <!-- Location (without map) -->
+                        <!-- Location -->
                         <div class="space-y-4 border-b border-stone-200 pb-8">
                             <h2 class="text-xl font-medium text-stone-900">Location</h2>
                             <div class="flex items-start gap-3 text-stone-600">

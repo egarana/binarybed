@@ -11,6 +11,7 @@ import NumberFormField from '@/components/NumberFormField.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import ImageUploader, { type ExistingImage } from '@/components/ImageUploader.vue';
 import SellingPointsEditor from '@/components/SellingPointsEditor.vue';
+import LocationHighlightsEditor from '@/components/LocationHighlightsEditor.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
@@ -36,6 +37,12 @@ interface Props {
         bathroom_count?: number;
         view?: string;
         selling_points?: any[];
+        location?: {
+            address?: string;
+            subtitle?: string;
+            map_url?: string;
+            highlights?: string[];
+        };
     };
 }
 
@@ -79,9 +86,18 @@ interface SellingPoint {
 
 const sellingPoints = ref<SellingPoint[]>(props.unit.selling_points || []);
 
+// Location
+const locationAddress = ref(props.unit.location?.address || '');
+const locationSubtitle = ref(props.unit.location?.subtitle || '');
+const locationMapUrl = ref(props.unit.location?.map_url || '');
+const locationHighlights = ref<string[]>(props.unit.location?.highlights || []);
+
 // Transform function to prepare data for submission
 function transformFormData(data: Record<string, any>) {
-    return {
+    const filteredHighlights = locationHighlights.value.filter(h => h?.trim());
+    const hasLocationData = locationAddress.value || locationSubtitle.value || locationMapUrl.value || filteredHighlights.length > 0;
+
+    const formData: Record<string, any> = {
         ...data,
         name: name.value,
         slug: slug.value,
@@ -97,6 +113,18 @@ function transformFormData(data: Record<string, any>) {
             .filter(sp => sp.title?.trim())
             .map(({ icon, title, description }) => ({ icon, title, description })),
     };
+
+    // Only include location if at least one field has value
+    if (hasLocationData) {
+        formData.location = {
+            address: locationAddress.value,
+            subtitle: locationSubtitle.value,
+            map_url: locationMapUrl.value,
+            highlights: filteredHighlights
+        };
+    }
+
+    return formData;
 }
 
 
@@ -144,6 +172,17 @@ const hasSellingPointsErrors = (errors: Record<string, any>) => {
     if (errors?.selling_points) count++;
     return count;
 };
+
+const hasLocationErrors = (errors: Record<string, any>) => {
+    let count = 0;
+    // Check for location-related errors (location.address, location.subtitle, etc.)
+    Object.keys(errors).forEach(key => {
+        if (key.startsWith('location.') || key === 'location') {
+            count++;
+        }
+    });
+    return count;
+};
 </script>
 
 <template>
@@ -180,6 +219,10 @@ const hasSellingPointsErrors = (errors: Record<string, any>) => {
                     <TabsTrigger value="selling-points">
                         Selling Points
                         <Badge v-if="hasSellingPointsErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasSellingPointsErrors(errors) }}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="location">
+                        Location
+                        <Badge v-if="hasLocationErrors(errors)" variant="destructive" class="ml-1.5 text-[11px] rounded-full p-0 h-5 w-5">{{ hasLocationErrors(errors) }}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="media">
                         Media
@@ -318,6 +361,51 @@ const hasSellingPointsErrors = (errors: Record<string, any>) => {
                         v-model="sellingPoints"
                         :error="errors.selling_points"
                         :tabindex="1"
+                    />
+                </TabsContent>
+
+                <!-- Location Tab -->
+                <TabsContent value="location" class="space-y-4 mt-4">
+                    <FormField
+                        id="location_address"
+                        label="Address"
+                        type="text"
+                        :tabindex="1"
+                        autocomplete="off"
+                        placeholder="e.g. Songan A, Kintamani, Bangli"
+                        v-model="locationAddress"
+                        :error="errors['location.address']"
+                        :optional="true"
+                    />
+
+                    <FormField
+                        id="location_subtitle"
+                        label="Subtitle / Distance"
+                        type="text"
+                        :tabindex="2"
+                        autocomplete="off"
+                        placeholder="e.g. 2 hours from Ngurah Rai Airport"
+                        v-model="locationSubtitle"
+                        :error="errors['location.subtitle']"
+                        :optional="true"
+                    />
+
+                    <FormField
+                        id="location_map_url"
+                        label="Map URL"
+                        type="text"
+                        :tabindex="3"
+                        autocomplete="off"
+                        placeholder="e.g. https://www.google.com/maps/..."
+                        v-model="locationMapUrl"
+                        :error="errors['location.map_url']"
+                        :optional="true"
+                        help-text="Google Maps, Apple Maps, Waze, or any map link"
+                    />
+
+                    <LocationHighlightsEditor
+                        v-model="locationHighlights"
+                        :error="errors['location.highlights']"
                     />
                 </TabsContent>
 
