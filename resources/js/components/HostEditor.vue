@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-vue-next';
 import FormField from '@/components/FormField.vue';
+import PhoneInput from '@/components/PhoneInput.vue';
+import LanguageSelect from '@/components/LanguageSelect.vue';
+
+interface PhoneData {
+    country: {
+        country: string;
+        countryName: string;
+        code: string;
+    };
+    number: string;
+}
 
 interface Host {
     name: string;
     photo?: string;
     languages?: string[];
     story?: string;
-    whatsapp?: string;
+    whatsapp?: PhoneData;
     instagram?: string;
     facebook?: string;
     tiktok?: string;
@@ -33,27 +40,11 @@ const emit = defineEmits<{
 const hostName = ref(props.modelValue?.name || '');
 const hostPhoto = ref(props.modelValue?.photo || '');
 const hostStory = ref(props.modelValue?.story || '');
-const hostWhatsapp = ref(props.modelValue?.whatsapp || '');
+const hostWhatsapp = ref<PhoneData | null>(props.modelValue?.whatsapp || null);
 const hostInstagram = ref(props.modelValue?.instagram || '');
 const hostFacebook = ref(props.modelValue?.facebook || '');
 const hostTiktok = ref(props.modelValue?.tiktok || '');
 const hostLanguages = ref<string[]>(props.modelValue?.languages || []);
-const newLanguage = ref('');
-
-// Language management
-const addLanguage = () => {
-    const lang = newLanguage.value.trim();
-    if (lang && !hostLanguages.value.includes(lang) && hostLanguages.value.length < 5) {
-        hostLanguages.value.push(lang);
-        newLanguage.value = '';
-        emitUpdate();
-    }
-};
-
-const removeLanguage = (index: number) => {
-    hostLanguages.value.splice(index, 1);
-    emitUpdate();
-};
 
 // Emit updates
 const emitUpdate = () => {
@@ -69,7 +60,7 @@ const emitUpdate = () => {
         photo: hostPhoto.value.trim() || undefined,
         languages: hostLanguages.value.length > 0 ? hostLanguages.value : undefined,
         story: hostStory.value.trim() || undefined,
-        whatsapp: hostWhatsapp.value.trim() || undefined,
+        whatsapp: hostWhatsapp.value || undefined,
         instagram: hostInstagram.value.trim() || undefined,
         facebook: hostFacebook.value.trim() || undefined,
         tiktok: hostTiktok.value.trim() || undefined,
@@ -78,28 +69,37 @@ const emitUpdate = () => {
     emit('update:modelValue', host);
 };
 
-// Watch individual fields
-watch([hostName, hostPhoto, hostStory, hostWhatsapp, hostInstagram, hostFacebook, hostTiktok], () => {
+// Watch all fields together (including languages)
+watch([hostName, hostPhoto, hostStory, hostWhatsapp, hostInstagram, hostFacebook, hostTiktok, hostLanguages], () => {
     emitUpdate();
-});
+}, { deep: true });
 
-// Watch for external changes
+// Watch for external changes (from parent component)
 watch(
     () => props.modelValue,
     (newValue) => {
         if (newValue) {
-            hostName.value = newValue.name || '';
-            hostPhoto.value = newValue.photo || '';
-            hostStory.value = newValue.story || '';
-            hostWhatsapp.value = newValue.whatsapp || '';
-            hostInstagram.value = newValue.instagram || '';
-            hostFacebook.value = newValue.facebook || '';
-            hostTiktok.value = newValue.tiktok || '';
-            hostLanguages.value = newValue.languages || [];
+            // Only update if values actually changed to prevent infinite loops
+            if (newValue.name !== hostName.value) hostName.value = newValue.name || '';
+            if (newValue.photo !== hostPhoto.value) hostPhoto.value = newValue.photo || '';
+            if (newValue.story !== hostStory.value) hostStory.value = newValue.story || '';
+            if (JSON.stringify(newValue.whatsapp) !== JSON.stringify(hostWhatsapp.value)) {
+                hostWhatsapp.value = newValue.whatsapp || null;
+            }
+            if (newValue.instagram !== hostInstagram.value) hostInstagram.value = newValue.instagram || '';
+            if (newValue.facebook !== hostFacebook.value) hostFacebook.value = newValue.facebook || '';
+            if (newValue.tiktok !== hostTiktok.value) hostTiktok.value = newValue.tiktok || '';
+            
+            // For languages, compare arrays
+            const newLangs = newValue.languages || [];
+            if (JSON.stringify(newLangs) !== JSON.stringify(hostLanguages.value)) {
+                hostLanguages.value = newLangs;
+            }
         }
     },
     { deep: true }
 );
+
 </script>
 
 <template>
@@ -124,46 +124,7 @@ watch(
         />
 
         <!-- Languages -->
-        <div class="grid gap-2">
-            <Label class="flex items-center gap-1">
-                Languages
-                <span class="text-muted-foreground">(Optional, max 5)</span>
-            </Label>
-            <div class="flex gap-2">
-                <Input
-                    v-model="newLanguage"
-                    placeholder="e.g., English"
-                    type="text"
-                    @keydown.enter.prevent="addLanguage"
-                    :disabled="hostLanguages.length >= 5"
-                />
-                <Button
-                    @click="addLanguage"
-                    type="button"
-                    variant="secondary"
-                    :disabled="!newLanguage.trim() || hostLanguages.length >= 5"
-                >
-                    Add
-                </Button>
-            </div>
-            <div v-if="hostLanguages.length > 0" class="flex flex-wrap gap-2">
-                <Badge
-                    v-for="(lang, index) in hostLanguages"
-                    :key="index"
-                    variant="secondary"
-                    class="flex items-center gap-1"
-                >
-                    {{ lang }}
-                    <button
-                        @click="removeLanguage(index)"
-                        type="button"
-                        class="hover:bg-muted rounded-sm p-0.5"
-                    >
-                        <X class="h-3 w-3" />
-                    </button>
-                </Badge>
-            </div>
-        </div>
+        <LanguageSelect v-model="hostLanguages" />
 
         <!-- Story -->
         <div class="grid gap-2">
@@ -187,13 +148,11 @@ watch(
         </div>
 
         <!-- WhatsApp -->
-        <FormField
-            id="host_whatsapp"
+        <PhoneInput
+            name="host_whatsapp"
             label="WhatsApp Number"
-            type="tel"
             v-model="hostWhatsapp"
-            placeholder="+62812345678"
-            :optional="true"
+            placeholder="81234567890"
         />
 
         <!-- Instagram -->

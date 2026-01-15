@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
-import { CheckCheck, Ban, Info } from 'lucide-vue-next';
+import { CheckCircle, Ban, Info } from 'lucide-vue-next';
 import { type Resource } from '@/stores/useResourceStore';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +31,7 @@ const props = defineProps<Props>();
 const featureCategories = {
     exclusion: { icon: Ban, label: 'Not included' },
     requirement: { icon: Info, label: 'Requirements' },
-    suggestion: { icon: CheckCheck, label: 'Suggestions' },
+    suggestion: { icon: CheckCircle, label: 'Suggestions' },
 } as const;
 
 type CategoryKey = keyof typeof featureCategories;
@@ -50,7 +50,7 @@ const categoriesData = computed(() => {
     })).filter(cat => cat.features.length > 0);
 });
 
-// CheckCheck if any features exist
+// CheckCircle if any features exist
 const hasFeatures = computed(() => categoriesData.value.length > 0);
 
 // Modal open state

@@ -221,7 +221,14 @@ Beyond the cabin, adventure awaits just a stone's throw away. Explore the nearby
                     'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
                     'languages' => ['English', 'Indonesian', 'Japanese'],
                     'story' => 'Born and raised in Bali, I built this cabin to share the magic of Lake Batur with travelers. Every morning, I wake up to the volcano sunrise and wanted others to experience this too.',
-                    'whatsapp' => '+628123456789',
+                    'whatsapp' => [
+                        'country' => [
+                            'country' => 'ID',
+                            'countryName' => 'Indonesia',
+                            'code' => '+62',
+                        ],
+                        'number' => '8123456789',
+                    ],
                     'instagram' => '@madewirawan_bali',
                     'facebook' => 'https://facebook.com/madewirawan',
                     'tiktok' => '@lakebaturtours',
@@ -282,7 +289,14 @@ Your stay at Rahayu Cabin is more than just accommodation; it's a gateway to the
                     'photo' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face',
                     'languages' => ['English', 'Indonesian'],
                     'story' => 'As a lifelong resident of Kintamani, I have always been passionate about sharing our beautiful highlands with visitors from around the world. I take pride in offering warm hospitality and ensuring every guest feels at home.',
-                    'whatsapp' => '+628987654321',
+                    'whatsapp' => [
+                        'country' => [
+                            'country' => 'ID',
+                            'countryName' => 'Indonesia',
+                            'code' => '+62',
+                        ],
+                        'number' => '8987654321',
+                    ],
                     'instagram' => '@wayansari_kintamani',
                     'facebook' => 'https://facebook.com/wayansari.kintamani',
                 ],
@@ -428,7 +442,14 @@ The descent offers its own set of wonders, with sweeping views of the lava field
                     'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
                     'languages' => ['English', 'Indonesian', 'Mandarin'],
                     'story' => 'I have been guiding Mount Batur treks for over 15 years. Nothing compares to sharing the magic of sunrise from the summit with fellow adventurers. Safety and unforgettable experiences are my top priorities.',
-                    'whatsapp' => '+628234567890',
+                    'whatsapp' => [
+                        'country' => [
+                            'country' => 'ID',
+                            'countryName' => 'Indonesia',
+                            'code' => '+62',
+                        ],
+                        'number' => '8234567890',
+                    ],
                     'instagram' => '@ketutbawa_guide',
                     'facebook' => 'https://facebook.com/ketutbawa.mountbatur',
                     'tiktok' => '@mountbaturguide',

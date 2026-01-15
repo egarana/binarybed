@@ -107,7 +107,14 @@ export interface Host {
     photo?: string;
     languages?: string[];
     story?: string;
-    whatsapp?: string;
+    whatsapp?: {
+        country: {
+            country: string;
+            countryName: string;
+            code: string;
+        };
+        number: string;
+    };
     instagram?: string;
     facebook?: string;
     tiktok?: string;
