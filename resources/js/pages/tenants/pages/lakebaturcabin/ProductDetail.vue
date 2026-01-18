@@ -14,7 +14,9 @@ import ProductRules from '@/components/tenants/default/ProductRules.vue';
 import ProductBookingBenefits from '@/components/tenants/default/ProductBookingBenefits.vue';
 import ProductHost from '@/components/tenants/default/ProductHost.vue';
 import ProductLocation from '@/components/tenants/default/ProductLocation.vue';
+import ProductPricingCard from '@/components/tenants/default/ProductPricingCard.vue';
 import { type TenantData } from '@/stores/useTenantStore';
+import { useBenefitsVisibility } from '@/composables/useBenefitsVisibility';
 
 // ============================================
 // TYPES - Same pattern as Cabins.vue/Activities.vue
@@ -99,12 +101,15 @@ const formatPriceType = (type: string | null): string => {
     };
     return labels[type] || `/${type}`;
 };
+
+// Benefits visibility state for dynamic spacer height
+const { isBenefitsHidden } = useBenefitsVisibility();
 </script>
 
 <template>
     <Layout :title="resource?.name || 'Product Detail'">
         <section>
-            <div class="mx-auto max-w-6xl grid grid-cols-1 md:px-6 lg:grid-cols-5">
+            <div class="mx-auto max-w-6xl grid grid-cols-1 relative md:px-6 lg:grid-cols-5 lg:static">
                 <!-- Left Column -->
                 <div class="lg:col-span-3">
                     <ProductGallery :images="images" />
@@ -131,12 +136,17 @@ const formatPriceType = (type: string | null): string => {
                     />
 
                     <ProductHost :resource="resource" :resource-type="resourceType" />
-
-                    <!-- <ProductBookingBenefits :resource="resource" /> -->
                 </div>
                 <!-- Right Column -->
-                <div class="lg:col-span-2 lg:ps-16"></div>
+
+                <div class="fixed bottom-0 w-full lg:relative lg:col-span-2 lg:ps-12">
+                    <div class="grid grid-cols-1 gap-2 lg:gap-4 lg:sticky lg:top-8 lg:mb-12">
+                        <ProductBookingBenefits :resource="resource" />
+                        <ProductPricingCard :resource="resource" />
+                    </div>
+                </div>
             </div>
         </section>
     </Layout>
+    <section :class="['bg-accent lg:hidden', isBenefitsHidden || !resource.book_direct_benefits?.length ? 'h-[74px]' : 'h-32']"></section>
 </template>

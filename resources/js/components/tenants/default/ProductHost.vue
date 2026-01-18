@@ -44,13 +44,13 @@ const title = computed(() => props.resourceType === 'activities' ? 'Meet your gu
             </div>
             <div class="mt-6 flex items-center justify-between">
                 <a
+                    v-if="host.whatsapp"
                     :href="`https://wa.me/${host.whatsapp.country.code.replace('+', '')}${host.whatsapp.number}`"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-block"
                 >
                     <Button
-                        v-if="host.whatsapp"
                         size="lg"
                         variant="outline"
                         class="cursor-pointer"

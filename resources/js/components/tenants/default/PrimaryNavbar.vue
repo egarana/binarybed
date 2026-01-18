@@ -92,8 +92,8 @@ const shouldShowNavActive = (href: string) => {
                     <component :is="props.logo || AppLogoIcon" class="h-8 w-auto lg:h-9" />
                 </Link>
             </div>
-            <div class="fixed bottom-0 w-full bg-background px-6 border-t pt-3 pb-2.5 md:bg-transparent md:static md:w-auto md:py-0 md:border-t-0 md:px-0">
-                <nav>
+            <div class="fixed bottom-0 w-full bg-background px-6 border-t h-[74px] flex items-center md:h-auto md:bg-transparent md:static md:w-auto md:py-0 md:border-t-0 md:px-0">
+                <nav class="w-full">
                     <ul class="flex items-center justify-between md:gap-6 md:justify-end">
                         <!-- Default Home link (mobile only) -->
                         <li

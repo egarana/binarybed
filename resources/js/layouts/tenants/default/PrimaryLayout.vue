@@ -98,7 +98,7 @@ provide('tenant', tenant);
     <main>
         <slot :tenant="tenant" />
 
-        <section class="h-[66px] md:hidden"></section>
+        <section class="h-[74px] md:hidden"></section>
     </main>
 
     <Footer 

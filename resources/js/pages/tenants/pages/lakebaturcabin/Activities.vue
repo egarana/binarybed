@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import Layout from './Layout.vue';
-import { Link } from '@inertiajs/vue3';
+import ResourceCard from '@/components/tenants/default/ResourceCard.vue';
 import { useResourceStore, type Resource } from '@/stores/useResourceStore';
-import { formatCurrency } from '@/helpers/currency';
 
 interface Rate {
     id: number;
@@ -39,20 +38,6 @@ onMounted(() => {
     }
 });
 
-const getLowestPrice = (rates: Rate[]) => {
-    const active = rates.filter(r => r.is_active);
-    return active.length ? active.reduce((min, r) => r.price < min.price ? r : min, active[0]) : null;
-};
-
-const getImage = (r: ResourceWithRates) => r.media?.[0]?.original_url || null;
-
-
-
-const formatPrice = (type: string | null) => {
-    if (!type || type === 'flat') return '';
-    const labels: Record<string, string> = { night: '/night', person: '/person', unit: '/unit' };
-    return labels[type] || `/${type}`;
-};
 </script>
 
 <template>
@@ -60,33 +45,12 @@ const formatPrice = (type: string | null) => {
         <section>
             <div class="px-6 py-8 mx-auto max-w-screen-xl">
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Link 
-                        v-for="r in resources" :key="r.id"
-                        :href="`/activities/${r.slug}`"
-                        class="group block"
-                    >
-                        <div class="aspect-[4/3] rounded-lg overflow-hidden bg-muted-foreground">
-                            <img v-if="getImage(r)" :src="getImage(r)!" :alt="r.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        </div>
-                        <div class="space-y-1.5 mt-6">
-                            <h2 class="text-lg font-semibold">{{ r.name }}</h2>
-                            <p v-if="r.description" class="line-clamp-2">{{ r.description }}</p>
-                            <ul v-if="r.highlights?.length" class="text-muted-foreground text-sm flex flex-wrap gap-x-1.5 gap-y-1">
-                                <template v-for="(highlight, idx) in r.highlights.slice(0, 3)" :key="idx">
-                                    <li v-if="idx > 0">·</li>
-                                    <li>{{ highlight.label }}</li>
-                                </template>
-                                <template v-if="r.highlights.length > 3">
-                                    <li>·</li>
-                                    <li>{{ r.highlights.length - 3 }} more</li>
-                                </template>
-                            </ul>
-                        </div>
-                        <p v-if="getLowestPrice(r.rates)" class="mt-4">
-                            {{ formatCurrency(getLowestPrice(r.rates)!.price, getLowestPrice(r.rates)!.currency) }}
-                            <span class="text-muted-foreground text-sm">{{ formatPrice(getLowestPrice(r.rates)!.price_type) }}</span>
-                        </p>
-                    </Link>
+                    <ResourceCard 
+                        v-for="r in resources" 
+                        :key="r.id"
+                        :resource="r"
+                        :resource-type="resourceType"
+                    />
                 </div>
             </div>
         </section>

@@ -19,7 +19,7 @@ const rules = computed(() => props.resource.rules || []);
     <div v-if="rules.length > 0" class="mx-6 py-6 border-t md:mx-0 md:py-8">
         <h1 class="text-lg font-semibold">{{ title }}</h1>
 
-        <ul class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <li 
                 v-for="(rule, index) in rules"
                 :key="rule._id || index"

@@ -79,12 +79,12 @@ const Modal = computed(() => ({
                 :key="category.key" 
                 class="flex items-start gap-3"
             >
-                <div class="h-10 w-10 shrink-0 bg-accent rounded-full flex items-center justify-center">
+                <div class="h-10 w-10 shrink-0 bg-accent rounded-full flex items-center justify-center mt-0.5">
                     <component :is="category.icon" class="size-6 text-muted-foreground shrink-0 stroke-1" />
                 </div>
                 <div>
                     <p class="font-medium">{{ category.label }}</p>
-                    <p class="mt-1 text-muted-foreground line-clamp-1">
+                    <p class="text-muted-foreground line-clamp-1 mt-0.5">
                         <template v-for="(item, idx) in category.features.slice(0, 2)" :key="item.id">
                             <span :class="{ 'line-through': category.key === 'exclusion' }">{{ item.name }}</span><template v-if="idx < category.features.slice(0, 2).length - 1">, </template>
                         </template><template v-if="category.features.length > 2">, +{{ category.features.length - 2 }} more</template>
@@ -132,12 +132,12 @@ const Modal = computed(() => ({
                             >
                                 <!-- Icon with conditional slash for exclusions -->
                                 <template v-if="!item.icon">
-                                    <component :is="category.icon" class="size-6 text-muted-foreground shrink-0 stroke-1" />
+                                    <component :is="category.icon" class="size-6 text-muted-foreground shrink-0 stroke-1 mt-0.5" />
                                 </template>
                                 <div v-else class="relative shrink-0">
-                                    <div v-html="item.icon" class="text-muted-foreground [&>svg]:size-6 stroke-1" />
+                                    <div v-html="item.icon" class="text-muted-foreground [&>svg]:size-6 stroke-1 mt-0.5" />
                                     <!-- Slash overlay for exclusion items -->
-                                    <div v-if="category.key === 'exclusion'" class="absolute h-[5px] bg-background w-[130%] top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 rotate-45 flex items-center">
+                                    <div v-if="category.key === 'exclusion'" class="absolute h-[5px] bg-background w-[130%] top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 rotate-45 flex items-center mt-0.5">
                                         <div class="h-[1px] w-full bg-muted-foreground"></div>
                                     </div>
                                 </div>

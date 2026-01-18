@@ -64,7 +64,7 @@ const Modal = computed(() => ({
         <h1 class="text-lg font-semibold">What you'll get</h1>
         
         <!-- Preview Grid -->
-        <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <li 
                 v-for="amenity in previewAmenities" 
                 :key="amenity.id"
@@ -107,8 +107,8 @@ const Modal = computed(() => ({
                             :key="amenity.id"
                             class="flex items-start gap-4 py-5 last:pb-8 last:md:pb-11"
                         >
-                            <CheckSquare v-if="!amenity.icon" class="size-6 text-muted-foreground shrink-0 stroke-1" />
-                            <div v-else v-html="amenity.icon" class="text-muted-foreground [&>svg]:size-6 shrink-0 stroke-1" />
+                            <CheckSquare v-if="!amenity.icon" class="size-6 text-muted-foreground shrink-0 stroke-1 mt-1" />
+                            <div v-else v-html="amenity.icon" class="text-muted-foreground [&>svg]:size-6 shrink-0 stroke-1 mt-1" />
                             <div>
                                 <p class="font-medium">{{ amenity.name }}</p>
                                 <p v-if="amenity.description" class="text-muted-foreground">
